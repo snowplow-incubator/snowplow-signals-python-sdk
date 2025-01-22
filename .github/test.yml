@@ -1,0 +1,31 @@
+name: Test
+
+on: [push, workflow_call]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v3
+
+      - name: Handle poetry issue with setuptoools 72 # https://github.com/pypa/setuptools/issues/4519#issuecomment-2255652133
+        run: |
+          poetry export -o requirements.txt --without-hashes
+          poetry export -f constraints.txt -o constraints.txt --without-hashes
+          PIP_CONSTRAINT="$(pwd)/constraints.txt" poetry run pip install -r requirements.txt
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run tests
+        run: poetry run pytest
