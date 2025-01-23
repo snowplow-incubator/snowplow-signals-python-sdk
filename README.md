@@ -1,9 +1,9 @@
 ### Overview
 
-The Snowplow Signals SDK is the interface between the Feature Store (Personalisation API), the frontend JS plugin and the customer's own agentic implementation. It will extract features from the online store, and eventually handle the creation/update of features. 
-
+The Snowplow Signals SDK is the interface between the Feature Store (Personalisation API), the frontend JS plugin and the customer's own agentic implementation. It will extract features from the online store, and eventually handle the creation/update of features.
 
 ### JS plugin Integration
+
 The first step is to integrate the SDK with the already prototyped JS plugin. The JS sets a `sp_signals' cookie, key value pairs as below:
 
 ```json
@@ -26,10 +26,12 @@ last_visited_page_prompt = f"The last page the visitor visited was {last_visited
 # The last page the visitor visited was acme.com/about
 
 ```
-### Feature Retrieval
-The SDK should be able to retrieve a single from teh online feature store. 
 
-An example of the Feast Python SDK is below. Pass a list of dictionarys to define which entities to retrieve, and a list of the feature view/names. This can be returned as a dictionary to access in app. 
+### Feature Retrieval
+
+The SDK should be able to retrieve a single from teh online feature store.
+
+An example of the Feast Python SDK is below. Pass a list of dictionarys to define which entities to retrieve, and a list of the feature view/names. This can be returned as a dictionary to access in app.
 
 ```python
 # Initialize the feature store
@@ -43,9 +45,6 @@ features = ["feature_view:feature_name"]
 feature_data = store.get_online_features(features=features, entity_rows=entity_rows).to_dict()
 print(feature_data)
 ```
-
-
-
 
 ### Feature Store Integration
 

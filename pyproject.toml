@@ -4,15 +4,15 @@ version = "0.1.0"
 description = ""
 authors = ["Jack Keene <jack.keene@snowplowanalytics.com>"]
 readme = "README.md"
-packages = [
-    { include = "snowplow_signals_python_sdk", from = "src" },
-]
+packages = [{ include = "snowplow_signals_python_sdk", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-pytest = "^8.3.4"
 pydantic = "^2.10.5"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+black = "^24.10.0"
 
 [build-system]
 requires = ["poetry-core"]
