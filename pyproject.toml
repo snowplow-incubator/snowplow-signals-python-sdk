@@ -9,10 +9,14 @@ packages = [{ include = "snowplow_signals_python_sdk", from = "src" }]
 [tool.poetry.dependencies]
 python = "^3.12"
 pydantic = "^2.10.5"
+feast = "^0.43.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 black = "^24.10.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
 
 [build-system]
 requires = ["poetry-core"]
