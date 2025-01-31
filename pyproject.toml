@@ -15,9 +15,6 @@ feast = "^0.43.0"
 pytest = "^8.3.4"
 black = "^24.10.0"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.4"
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
