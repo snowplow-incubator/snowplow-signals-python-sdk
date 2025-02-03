@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-class Feature(BaseModel):
+class FeatureView(BaseModel):
     feature_view_name: str
     name: str
