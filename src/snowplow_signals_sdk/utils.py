@@ -19,13 +19,3 @@ def get_features_from_cookie(
     )
 
 
-def make_post_request(url: str, data: Optional[dict], headers: Optional[dict]):
-    response = requests.post(url, json=data, headers=headers)
-
-    if response.status_code != 200:
-        warnings.warn(
-            f"Error making a request to Console: {json.loads(response.text)['message']}"
-        )
-        return None
-
-    return response.json()
