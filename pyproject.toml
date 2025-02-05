@@ -1,19 +1,26 @@
 [tool.poetry]
-name = "snowplow-signals-python-sdk"
+name = "snowplow-signals-sdk"
 version = "0.1.0"
 description = ""
 authors = ["Jack Keene <jack.keene@snowplowanalytics.com>"]
 readme = "README.md"
-packages = [{ include = "snowplow_signals_python_sdk", from = "src" }]
+packages = [{ include = "snowplow_signals_sdk", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
 pydantic = "^2.10.5"
+feast = "^0.43.0"
+requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 black = "^24.10.0"
+pre-commit = "^4.1.0"
+isort = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
