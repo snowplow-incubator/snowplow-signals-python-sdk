@@ -1,12 +1,14 @@
-from pydantic import BaseModel
 from enum import Enum
 from typing import Optional, Union
-from .models.feature_view import FeatureView
-from .models.feature_service import FeatureService
+
+from pydantic import BaseModel
+
+from .api_client.api_client import DEFAULT_API_CLIENT, ApiClient
 from .models.browser_features import BrowserFeatures
-from .utils import make_post_request
 from .models.feature_response import FeatureResponse
-from .api_client.api_client import ApiClient, DEFAULT_API_CLIENT
+from .models.feature_service import FeatureService
+from .models.feature_view import FeatureView
+from .utils import make_post_request
 
 
 class SignalsStore(BaseModel):

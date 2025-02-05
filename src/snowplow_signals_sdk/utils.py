@@ -1,7 +1,9 @@
-from typing import Optional
-import requests
-import warnings
 import json
+import warnings
+from typing import Optional
+
+import requests
+
 from .models.browser_features import BrowserFeatures
 
 
@@ -17,5 +19,3 @@ def get_features_from_cookie(
             "domain_sessionid": cookie_list[5],
         }
     )
-
-

@@ -8,10 +8,11 @@ This project uses [poetry](https://python-poetry.org/) for dependency management
 
 You can follow [their instructions](https://python-poetry.org/docs/#installation) on installation.
 
-### Install Dependencies
+### Install Dependencies & commit hooks
 
 ```bash
 poetry install --with dev
+poetry run pre-commit install
 ```
 
 ### Run Tests

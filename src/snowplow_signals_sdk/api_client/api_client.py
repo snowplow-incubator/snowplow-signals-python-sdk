@@ -1,8 +1,10 @@
-from pydantic import BaseModel
 from enum import Enum
 from typing import Optional
-from ..settings.connection import ConnectionSettings, DEFAULT_CONNECTION_SETTINGS
+
 import requests
+from pydantic import BaseModel
+
+from ..settings.connection import DEFAULT_CONNECTION_SETTINGS, ConnectionSettings
 
 
 class Methods(Enum):
