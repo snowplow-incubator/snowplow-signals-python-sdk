@@ -14,7 +14,7 @@ class Result(BaseModel):
     event_timestamps: List[str]
 
 
-class FeatureResponse(BaseModel):
+class OnlineFeatureResponse(BaseModel):
     metadata: Metadata
     results: List[Result]
 

@@ -1,10 +1,10 @@
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 import requests
 from pydantic import BaseModel
 
-from ..settings.connection import DEFAULT_CONNECTION_SETTINGS, ConnectionSettings
+from .settings.connection import DEFAULT_CONNECTION_SETTINGS, ConnectionSettings
 
 
 class Methods(Enum):
@@ -23,25 +23,23 @@ class ApiClient(BaseModel):
         endpoint: str,
         params: Optional[dict] = None,
         data: Optional[dict] = None,
-    ):
-        url = f"{self.connection_settings.BPD_CONSOLE_API_URL}/{self.connection_settings.BDP_ORG_ID}/{endpoint}"
+    ) -> Any:
+        url = f"{self.connection_settings.BPD_CONSOLE_API_URL}/{endpoint}"
         # TO-DO Add Auth headers
-        headers = {"Content-Type": "application/json"}
-
+        headers = {"Content-Type": "application/json", "charset": "utf-8"}
         response = requests.request(
             method=method, url=url, headers=headers, params=params, json=data
         )
-        response.raise_for_status()
         return response.json()
 
     def make_get_request(
         self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
-    ):
+    ) -> Any:
         return self._request(method="get", endpoint=endpoint, params=params, data=data)
 
     def make_post_request(
         self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
-    ):
+    ) -> Any:
         return self._request(method="post", endpoint=endpoint, params=params, data=data)
 
 
