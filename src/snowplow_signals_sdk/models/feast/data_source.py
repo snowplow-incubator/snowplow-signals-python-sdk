@@ -67,17 +67,22 @@ class DataSource(BaseFeastObject):
     )
 
     # Push source
-    batch_source: Link["DataSource"] | None = PydanticField(
-        description="The batch source that backs this push source. It's used when materializing from the offline store to the online store, and when retrieving historical features",
+    batch_source: str | None = PydanticField(
+        description="The id of the batch source that backs this push source. It's used when materializing from the offline store to the online store, and when retrieving historical features",
         default=None,
     )
 
     def register_to_store(self, api_client: ApiClient) -> Optional["DataSource"]:
+        if not self.id:
+            response = api_client.make_get_request(
+                endpoint=f"registry/data_sources?name={self.name}"
+            )
+            if response:
+                self.id = response[0]["_id"]
+                return self
+
         response = api_client.make_post_request(
             endpoint="registry/data_sources/", data=self.model_dump(mode="json")
         )
-        # If data source is already registered return None
-        if response.get("detail"):
-            return None
-
-        return DataSource.model_validate(response)
+        self.id = response.get("_id", self.id)
+        return self
