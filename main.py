@@ -42,9 +42,10 @@ def main():
             ],
         ),
     )
+    session_entity = Entity(name="session")
 
     fv = FeatureView(
-        entities=["67b37d73a788623ecc4f49c0"],
+        entities=[session_entity],
         name="new_feature_views",
         version=1,
         features=[add_to_cart_count_feature],

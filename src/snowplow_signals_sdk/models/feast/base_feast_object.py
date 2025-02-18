@@ -12,11 +12,6 @@ class BaseFeastObject(BaseModel):
     BaseFeastObject is an interface for other Feast objects. ie Features, FeatureViews and Entities.
     """
 
-    id: str | None = PydanticField(
-        alias="_id",
-        description="ID of the Feast Object.",
-        default=None,
-    )
     name: str = PydanticField(
         description="Name of the Feast Object.",
     )
@@ -50,13 +45,12 @@ class BaseFeastObject(BaseModel):
         object_type: Literal[
             "feature_services", "feature_views", "entities", "data_sources"
         ],
-    ):
-        if not self.id:
-            exists = api_client.make_get_request(
-                endpoint=f"registry/{object_type}?name={self.name}"
-            )
-            if exists:
-                self.id = exists[0]["_id"]
-                return True
-
-        return False
+        version: Optional[int] = None,
+    ) -> bool:
+        url = (
+            f"registry/{object_type}/{self.name}/versions/{version}"
+            if version
+            else f"registry/{object_type}/{self.name}"
+        )
+        exists = api_client.make_get_request(endpoint=url)
+        return "detail" not in exists

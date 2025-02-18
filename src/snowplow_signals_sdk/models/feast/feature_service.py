@@ -31,18 +31,10 @@ class FeatureService(BaseFeastObject):
 
             if updated_fv:
                 self.feature_views[i] = updated_fv
-                fv.id = updated_fv.id
-            if not fv.id:
-                raise ValueError(f"Feature view {fv.name} has no property: id")
 
-        request_data = FeatureService.model_validate(self.model_dump())
-        request_data.feature_views = [fv.id for fv in self.feature_views]
-
-        response = api_client.make_post_request(
+        api_client.make_post_request(
             endpoint="registry/feature_services/",
-            data=request_data.model_dump(mode="json"),
+            data=self.model_dump(mode="json"),
         )
-
-        self.id = response.get("_id", self.id)
 
         return self

@@ -66,8 +66,7 @@ class Entity(BaseFeastObject):
         if self.already_registered(api_client=api_client, object_type="entities"):
             return self
 
-        response = api_client.make_post_request(
+        api_client.make_post_request(
             endpoint="registry/entities/", data=self.model_dump(mode="json")
         )
-        self.id = response.get("_id", self.id)
         return self

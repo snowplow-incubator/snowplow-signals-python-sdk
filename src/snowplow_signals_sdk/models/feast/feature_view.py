@@ -22,7 +22,7 @@ class FeatureView(BaseFeastObject):
         default=1,
     )
 
-    entities: list[Union[str, Entity]] = PydanticField(
+    entities: list[Entity] = PydanticField(
         description="The list of ids of entities that this feature view is associated with.",
         default_factory=list,
     )
@@ -67,17 +67,13 @@ class FeatureView(BaseFeastObject):
         if self.source and isinstance(self.source, DataSource):
             self.source.register_to_store()
 
-        if self.already_registered(api_client=api_client, object_type="feature_views"):
+        if self.already_registered(
+            api_client=api_client, version=self.version, object_type="feature_views"
+        ):
             return self
 
-        response = api_client.make_post_request(
-            endpoint="registry/feature_views/", data=self.model_dump(mode="json")
-        )
-        self.entities = [
-            entity["id"] for entity in response.get("entities", []) if "id" in entity
-        ]
+        data = self.model_dump(mode="json")
+        data["entities"] = [{"name": entity.name} for entity in self.entities]
 
-        self.source = response.get("source", {}).get("id", self.source)
-        self.id = response.get("_id", self.id)
-
+        api_client.make_post_request(endpoint="registry/feature_views/", data=data)
         return self

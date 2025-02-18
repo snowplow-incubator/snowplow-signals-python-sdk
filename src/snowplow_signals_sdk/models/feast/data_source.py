@@ -1,6 +1,5 @@
 from typing import Literal, Optional
 
-from beanie import Link
 from pydantic import Field as PydanticField
 
 from snowplow_signals_sdk.api_client import ApiClient
@@ -76,8 +75,7 @@ class DataSource(BaseFeastObject):
         if self.already_registered(api_client=api_client, object_type="data_sources"):
             return self
 
-        response = api_client.make_post_request(
+        api_client.make_post_request(
             endpoint="registry/data_sources/", data=self.model_dump(mode="json")
         )
-        self.id = response.get("_id", self.id)
         return self
