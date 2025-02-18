@@ -23,8 +23,8 @@ class ApiClient(BaseModel):
         endpoint: str,
         params: Optional[dict] = None,
         data: Optional[dict] = None,
-    ) -> Any:
-        url = f"{self.connection_settings.BPD_CONSOLE_API_URL}/{endpoint}"
+    ) -> dict:
+        url = f"{self.connection_settings.SIGNALS_API_URL}/{endpoint}"
         # TO-DO Add Auth headers
         headers = {"Content-Type": "application/json", "charset": "utf-8"}
         response = requests.request(
@@ -34,12 +34,12 @@ class ApiClient(BaseModel):
 
     def make_get_request(
         self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
-    ) -> Any:
+    ) -> dict:
         return self._request(method="get", endpoint=endpoint, params=params, data=data)
 
     def make_post_request(
         self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
-    ) -> Any:
+    ) -> dict:
         return self._request(method="post", endpoint=endpoint, params=params, data=data)
 
 

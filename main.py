@@ -28,6 +28,7 @@ def main():
     add_to_cart_count_feature = Feature(
         name="add_to_cart_events_count",
         scope="session",
+        dtype="INT32",
         events=[
             "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
         ],
@@ -42,26 +43,27 @@ def main():
         ),
     )
 
-    data_source = DataSource(
-        name="custom_unified_users_source",
-        type="snowflake",
-        database="SNOWPLOW_DEV1",
-        schema="SIGNALS",
-        table="SNOWPLOW_UNIFIED_USERS_FEATURES",
-        timestamp_field="UPDATED_AT",
-    )
-
-    feature_view = FeatureView(
-        name="user_behavior_features",
+    fv = FeatureView(
+        entities=["67b37d73a788623ecc4f49c0"],
+        name="new_feature_views",
+        version=1,
         features=[add_to_cart_count_feature],
+        status="Live",
     )
-    feature_service = FeatureService(name="new_fs", feature_views=[feature_view])
 
-    online_features_df = sp_signals.get_online_features(
-        features=feature_service, entity_type_id="domain_userid"
-    ).to_dataframe()
-    print(online_features_df)
+    fs = FeatureService(name="new_fs", feature_views=[fv])
+
+    sp_signals.apply(objects=[fs])
 
 
 if __name__ == "__main__":
     main()
+
+
+# curl -X POST "http://localhost:8000/api/v1/registry/feature_services" \
+#      -H "Content-Type: application/json" \
+#      -d '{
+#           "name": "user_feature_service",
+#           "features_views": [ "user_behavior_features" ],
+#           "description": "Feature service for user analytics"
+#      }'

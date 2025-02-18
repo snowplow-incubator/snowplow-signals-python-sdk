@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Optional
 
-from beanie import Document
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
 
@@ -13,7 +12,14 @@ class BaseFeastObject(BaseModel):
     BaseFeastObject is an interface for other Feast objects. ie Features, FeatureViews and Entities.
     """
 
-    name: str
+    id: str | None = PydanticField(
+        alias="_id",
+        description="ID of the Feast Object.",
+        default=None,
+    )
+    name: str = PydanticField(
+        description="Name of the Feast Object.",
+    )
 
     applied_at: datetime | None = PydanticField(
         description="Timestamp indicating the last time the model was applied to Feast.",

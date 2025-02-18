@@ -44,7 +44,7 @@ class Feature(BaseModel):
         description="An array of events used to calculate this trait.",
         min_length=1,
     )
-
+    dtype: str = "UNKNOWN"
     type: Literal[
         "counter",
         "aggregation(sum)",

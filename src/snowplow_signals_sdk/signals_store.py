@@ -1,5 +1,6 @@
 from typing import Any, Literal, Optional, Union
 
+import pandas as pd
 from pydantic import BaseModel
 
 from .api_client import DEFAULT_API_CLIENT, ApiClient
@@ -63,13 +64,11 @@ class SignalsStore(BaseModel):
             data = GetOnlineFeaturesRequest(
                 features=feature_names,
                 entities={entity_type_id: [entity]},
-                full_feature_names=True,
             )
         else:
             raise TypeError(
                 "Features must be a FeatureService or a list of FeatureView."
             )
-
         response = self.api_client.make_post_request(
             endpoint="get-online-features", data=data.model_dump(mode="json")
         )
