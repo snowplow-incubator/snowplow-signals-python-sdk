@@ -4,6 +4,11 @@ from pydantic import BaseModel
 from pydantic import Field as PydanticField
 
 
+class Field(BaseModel):
+    name: str
+    dtype: str = "UNKNOWN"
+
+
 class FilterCondition(BaseModel):
     property: str = PydanticField(
         description="The path to the property on the event or entity you wish to filter."
@@ -31,11 +36,7 @@ class FilterCombinator(BaseModel):
     )
 
 
-# TODO: Not currently a BaseFeastType, but probably should be in the future. We only register via feature views ATM
-
-
-class Feature(BaseModel):
-    name: str
+class Feature(Field):
     scope: Literal["session", "lifetime"] = PydanticField(
         description="The scope of the feature, either session or lifetime."
     )
@@ -44,7 +45,6 @@ class Feature(BaseModel):
         description="An array of events used to calculate this trait.",
         min_length=1,
     )
-    dtype: str = "UNKNOWN"
     type: Literal[
         "counter",
         "aggregation(sum)",

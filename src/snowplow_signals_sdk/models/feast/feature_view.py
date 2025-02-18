@@ -5,7 +5,7 @@ from pydantic import Field as PydanticField
 from pydantic import computed_field
 
 from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
-from snowplow_signals_sdk.models.feature import Feature
+from snowplow_signals_sdk.models.feature import Feature, Field
 
 from .base_feast_object import BaseFeastObject
 from .data_source import DataSource
@@ -43,7 +43,7 @@ class FeatureView(BaseFeastObject):
         default=True,
     )
 
-    fields: list[str] = PydanticField(
+    fields: list[Field] = PydanticField(
         description="The schema of the feature view, including timestamp, and entity columns. If not specified, can be inferred from the underlying data source.",
         default_factory=list,
     )

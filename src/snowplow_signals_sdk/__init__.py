@@ -4,20 +4,24 @@ from snowplow_signals_sdk.models.feature import (
     Feature,
     FilterCombinator,
     FilterCondition,
+    Field,
 )
 from snowplow_signals_sdk.models.feast.entity import (
     Entity,
     user_entity,
     session_entity,
 )
+from snowplow_signals_sdk.models.feast.data_source import DataSource
 
 SignalsStore
 FeatureView
 Feature
+Field
 FilterCombinator
 FilterCondition
+DataSource
 Entity
 user_entity
 session_entity
 
-# TODO: this incomplete, add all published classes
+# TODO: this is incomplete, add all published classes

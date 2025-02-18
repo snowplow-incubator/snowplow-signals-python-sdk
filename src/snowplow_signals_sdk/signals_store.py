@@ -80,7 +80,7 @@ class SignalsStore(BaseModel):
             feature_names = [
                 f"{fv.feast_name}:{feature.name}"
                 for fv in features
-                for feature in fv.features
+                for feature in fv.features + fv.fields
             ]
             data = GetOnlineFeaturesRequest(
                 features=feature_names,

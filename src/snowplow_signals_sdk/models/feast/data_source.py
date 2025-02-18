@@ -74,7 +74,7 @@ class DataSource(BaseFeastObject):
     def register_to_store(self, api_client: ApiClient) -> Optional["DataSource"]:
         try:
             response = api_client.make_get_request(
-                endpoint=f"registry/entities/{self.name}"
+                endpoint=f"registry/data_sources/{self.name}"
             )
         except NotFoundException:
             response = api_client.make_post_request(
