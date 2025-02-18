@@ -73,13 +73,8 @@ class DataSource(BaseFeastObject):
     )
 
     def register_to_store(self, api_client: ApiClient) -> Optional["DataSource"]:
-        if not self.id:
-            response = api_client.make_get_request(
-                endpoint=f"registry/data_sources?name={self.name}"
-            )
-            if response:
-                self.id = response[0]["_id"]
-                return self
+        if self.already_registered(api_client=api_client, object_type="data_sources"):
+            return self
 
         response = api_client.make_post_request(
             endpoint="registry/data_sources/", data=self.model_dump(mode="json")

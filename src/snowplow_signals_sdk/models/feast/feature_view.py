@@ -67,13 +67,8 @@ class FeatureView(BaseFeastObject):
         if self.source and isinstance(self.source, DataSource):
             self.source.register_to_store()
 
-        if not self.id:
-            existing_feature_view = api_client.make_get_request(
-                endpoint=f"registry/feature_views?name={self.name}&version={self.version}"
-            )
-            if existing_feature_view:
-                self.id = existing_feature_view[0]["_id"]
-                return self
+        if self.already_registered(api_client=api_client, object_type="feature_views"):
+            return self
 
         response = api_client.make_post_request(
             endpoint="registry/feature_views/", data=self.model_dump(mode="json")

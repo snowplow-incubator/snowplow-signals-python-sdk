@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import Field as PydanticField
 
@@ -21,6 +21,11 @@ class FeatureService(BaseFeastObject):
     )
 
     def register_to_store(self, api_client: ApiClient) -> Optional["FeatureService"]:
+        if self.already_registered(
+            api_client=api_client, object_type="feature_services"
+        ):
+            return self
+
         for i, fv in enumerate(self.feature_views):
             updated_fv = fv.register_to_store(api_client=api_client)
 

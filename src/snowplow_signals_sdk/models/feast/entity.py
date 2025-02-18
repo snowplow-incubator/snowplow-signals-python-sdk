@@ -63,11 +63,11 @@ class Entity(BaseFeastObject):
     )
 
     def register_to_store(self, api_client: ApiClient) -> Optional["Entity"]:
+        if self.already_registered(api_client=api_client, object_type="entities"):
+            return self
+
         response = api_client.make_post_request(
             endpoint="registry/entities/", data=self.model_dump(mode="json")
         )
-        # If entity is already registered return None
-        if response.get("detail"):
-            return None
-
-        return Entity.model_validate(response)
+        self.id = response.get("_id", self.id)
+        return self

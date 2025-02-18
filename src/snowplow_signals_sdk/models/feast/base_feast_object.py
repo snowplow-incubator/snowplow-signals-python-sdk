@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -43,3 +43,20 @@ class BaseFeastObject(BaseModel):
 
     def register_to_store(self, api_client: ApiClient) -> Optional["BaseFeastObject"]:
         raise NotImplementedError("register_to_store is not implemented")
+
+    def already_registered(
+        self,
+        api_client: ApiClient,
+        object_type: Literal[
+            "feature_services", "feature_views", "entities", "data_sources"
+        ],
+    ):
+        if not self.id:
+            exists = api_client.make_get_request(
+                endpoint=f"registry/{object_type}?name={self.name}"
+            )
+            if exists:
+                self.id = exists[0]["_id"]
+                return True
+
+        return False
