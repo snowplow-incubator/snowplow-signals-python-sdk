@@ -1,7 +1,6 @@
 from datetime import timedelta
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
-from beanie import Link
 from pydantic import Field as PydanticField
 from pydantic import computed_field
 
@@ -10,7 +9,7 @@ from snowplow_signals_sdk.models.feature import Feature
 
 from .base_feast_object import BaseFeastObject
 from .data_source import DataSource
-from .entity import Entity, Field
+from .entity import Entity
 
 
 class FeatureView(BaseFeastObject):
@@ -23,8 +22,8 @@ class FeatureView(BaseFeastObject):
         default=1,
     )
 
-    entities: list[Entity] = PydanticField(
-        description="The list of names of entities that this feature view is associated with.",
+    entities: list[Union[str, Entity]] = PydanticField(
+        description="The list of ids of entities that this feature view is associated with.",
         default_factory=list,
     )
 
@@ -33,9 +32,9 @@ class FeatureView(BaseFeastObject):
         default_factory=lambda: timedelta(days=0),
     )
 
-    source: Link["DataSource"] | None = PydanticField(
-        description="""The source of data for this group of features. May be a stream source, or a batch source.
-            If a stream source, the source should contain a batch_source for backfills & batch materialization.""",
+    source: Union[str, DataSource] | None = PydanticField(
+        description="""The id of the data source for this group of features. May be a stream source, or a batch source.
+                        If a stream source, the source should contain a batch_source for backfills & batch materialization.""",
         default=None,
     )
 
@@ -44,12 +43,15 @@ class FeatureView(BaseFeastObject):
         default=True,
     )
 
-    fields: list[Field] = PydanticField(
+    fields: list[str] = PydanticField(
         description="The schema of the feature view, including timestamp, and entity columns. If not specified, can be inferred from the underlying data source.",
         default_factory=list,
     )
 
-    features: list[Feature]
+    features: list[Feature] = PydanticField(
+        description="The list of features that this feature view is associated with.",
+        default_factory=list,
+    )
 
     status: Literal["Draft", "QA", "Live"] = PydanticField(
         description="The status of the feature view.",
@@ -61,14 +63,26 @@ class FeatureView(BaseFeastObject):
     def feast_name(self) -> str:
         return f"{self.name}_v{self.version}"
 
-    # feast_name: Optional[str] = None
-
     def register_to_store(self, api_client: ApiClient) -> Optional["FeatureView"]:
+        if self.source and isinstance(self.source, DataSource):
+            self.source.register_to_store()
+
+        if not self.id:
+            existing_feature_view = api_client.make_get_request(
+                endpoint=f"registry/feature_views?name={self.name}&version={self.version}"
+            )
+            if existing_feature_view:
+                self.id = existing_feature_view[0]["_id"]
+                return self
+
         response = api_client.make_post_request(
             endpoint="registry/feature_views/", data=self.model_dump(mode="json")
         )
-        # If feature view is already registered return None
-        if response.get("detail"):
-            return None
+        self.entities = [
+            entity["id"] for entity in response.get("entities", []) if "id" in entity
+        ]
 
-        return FeatureView.model_validate(response)
+        self.source = response.get("source", {}).get("id", self.source)
+        self.id = response.get("_id", self.id)
+
+        return self
