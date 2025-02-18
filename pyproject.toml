@@ -11,7 +11,6 @@ python = "^3.12"
 pydantic = "^2.10.5"
 feast = "^0.43.0"
 requests = "^2.32.3"
-beanie = "^1.29.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
