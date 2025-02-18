@@ -4,7 +4,7 @@ from typing import Literal, Optional, Union
 from pydantic import Field as PydanticField
 from pydantic import computed_field
 
-from snowplow_signals_sdk.api_client import ApiClient
+from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
 from snowplow_signals_sdk.models.feature import Feature
 
 from .base_feast_object import BaseFeastObject
@@ -55,7 +55,7 @@ class FeatureView(BaseFeastObject):
 
     status: Literal["Draft", "QA", "Live"] = PydanticField(
         description="The status of the feature view.",
-        default="Draft",
+        default="Live",
     )
 
     @computed_field
@@ -64,16 +64,16 @@ class FeatureView(BaseFeastObject):
         return f"{self.name}_v{self.version}"
 
     def register_to_store(self, api_client: ApiClient) -> Optional["FeatureView"]:
-        if self.source and isinstance(self.source, DataSource):
-            self.source.register_to_store()
+        try:
+            response = api_client.make_get_request(
+                endpoint=f"registry/feature_views/{self.name}/versions/{self.version}"
+            )
+        except NotFoundException:
+            response = api_client.make_post_request(
+                endpoint="registry/feature_views/", data=self.model_dump(mode="json")
+            )
 
-        if self.already_registered(
-            api_client=api_client, version=self.version, object_type="feature_views"
-        ):
-            return self
+        response = FeatureView.model_validate(response)
+        self.__dict__.update(response)
 
-        data = self.model_dump(mode="json")
-        data["entities"] = [{"name": entity.name} for entity in self.entities]
-
-        api_client.make_post_request(endpoint="registry/feature_views/", data=data)
         return self

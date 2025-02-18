@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Optional
+from typing import Optional
 
 import requests
 from pydantic import BaseModel
@@ -12,6 +12,10 @@ class Methods(Enum):
     post = "post"
     put = "put"
     delete = "delete"
+
+
+class NotFoundException(Exception):
+    pass
 
 
 class ApiClient(BaseModel):
@@ -30,7 +34,15 @@ class ApiClient(BaseModel):
         response = requests.request(
             method=method, url=url, headers=headers, params=params, json=data
         )
-        return response.json()
+
+        if response.status_code == 404:
+            raise NotFoundException()
+        elif response.status_code != 200:
+            raise Exception(
+                f"Request failed with status code {response.status_code}, {response.text}"
+            )
+        else:
+            return response.json()
 
     def make_get_request(
         self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None

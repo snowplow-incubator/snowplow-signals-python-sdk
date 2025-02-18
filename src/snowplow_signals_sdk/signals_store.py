@@ -1,12 +1,13 @@
 from typing import Any, Literal, Optional, Union
 
-import pandas as pd
 from pydantic import BaseModel
 
 from .api_client import DEFAULT_API_CLIENT, ApiClient
 from .models.feast.base_feast_object import BaseFeastObject
 from .models.feast.feature_service import FeatureService
 from .models.feast.feature_view import FeatureView
+from .models.feast.entity import Entity
+from .models.feast.data_source import DataSource
 from .models.online_feature_response import OnlineFeatureResponse
 
 
@@ -28,8 +29,28 @@ class SignalsStore(BaseModel):
 
     def apply(self, objects: Optional[list[BaseFeastObject]] = None) -> "ApplyResponse":
         if objects:
-            for object in objects:
-                object.register_to_store(api_client=self.api_client)
+            # We need to register first entities, then data_sources, then feature_views and finally feature_services to handle dependencies
+            entities = [object for object in objects if isinstance(object, Entity)]
+            for entity in entities:
+                entity.register_to_store(api_client=self.api_client)
+
+            data_sources = [
+                object for object in objects if isinstance(object, DataSource)
+            ]
+            for data_source in data_sources:
+                data_source.register_to_store(api_client=self.api_client)
+
+            feature_views = [
+                object for object in objects if isinstance(object, FeatureView)
+            ]
+            for feature_view in feature_views:
+                feature_view.register_to_store(api_client=self.api_client)
+
+            feature_services = [
+                object for object in objects if isinstance(object, FeatureService)
+            ]
+            for feature_service in feature_services:
+                feature_service.register_to_store(api_client=self.api_client)
 
         response = self.api_client.make_post_request(
             endpoint="feature_store/apply",
@@ -72,4 +93,4 @@ class SignalsStore(BaseModel):
         response = self.api_client.make_post_request(
             endpoint="get-online-features", data=data.model_dump(mode="json")
         )
-        return OnlineFeatureResponse(**response) if response else None
+        return OnlineFeatureResponse(data=response) if response else None

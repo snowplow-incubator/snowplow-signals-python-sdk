@@ -1,8 +1,8 @@
-from typing import Optional, Union
+from typing import Optional
 
 from pydantic import Field as PydanticField
 
-from snowplow_signals_sdk.api_client import ApiClient
+from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
 
 from .base_feast_object import BaseFeastObject
 from .feature_view import FeatureView
@@ -21,20 +21,17 @@ class FeatureService(BaseFeastObject):
     )
 
     def register_to_store(self, api_client: ApiClient) -> Optional["FeatureService"]:
-        if self.already_registered(
-            api_client=api_client, object_type="feature_services"
-        ):
-            return self
+        try:
+            response = api_client.make_get_request(
+                endpoint=f"registry/feature_services/{self.name}"
+            )
+        except NotFoundException:
+            response = api_client.make_post_request(
+                endpoint="registry/feature_services/",
+                data=self.model_dump(mode="json"),
+            )
 
-        for i, fv in enumerate(self.feature_views):
-            updated_fv = fv.register_to_store(api_client=api_client)
-
-            if updated_fv:
-                self.feature_views[i] = updated_fv
-
-        api_client.make_post_request(
-            endpoint="registry/feature_services/",
-            data=self.model_dump(mode="json"),
-        )
+        response = FeatureService.model_validate(response)
+        self.__dict__.update(response)
 
         return self

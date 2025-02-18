@@ -2,7 +2,7 @@ from typing import Literal, Optional
 
 from pydantic import Field as PydanticField
 
-from snowplow_signals_sdk.api_client import ApiClient
+from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
 
 from .base_feast_object import BaseFeastObject
 
@@ -72,10 +72,15 @@ class DataSource(BaseFeastObject):
     )
 
     def register_to_store(self, api_client: ApiClient) -> Optional["DataSource"]:
-        if self.already_registered(api_client=api_client, object_type="data_sources"):
-            return self
+        try:
+            response = api_client.make_get_request(
+                endpoint=f"registry/entities/{self.name}"
+            )
+        except NotFoundException:
+            response = api_client.make_post_request(
+                endpoint="registry/data_sources/", data=self.model_dump(mode="json")
+            )
 
-        api_client.make_post_request(
-            endpoint="registry/data_sources/", data=self.model_dump(mode="json")
-        )
+        response = DataSource.model_validate(response)
+        self.__dict__.update(response)
         return self
