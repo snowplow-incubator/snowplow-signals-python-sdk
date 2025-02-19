@@ -1,45 +1,11 @@
 from typing import Optional
 
-from pydantic import BaseModel
 from pydantic import Field as PydanticField
 
-from snowplow_signals_sdk.api_client import ApiClient
+from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
 from snowplow_signals_sdk.models.types import ValueType
 
 from .base_feast_object import BaseFeastObject
-
-
-class Field(BaseModel):
-    """
-    A Field represents a set of values with the same structure.
-    """
-
-    name: str = PydanticField(description="The name of the field.")
-
-    description: str | None = PydanticField(
-        description="A human-readable description.",
-        default=None,
-    )
-
-    dtype: ValueType = PydanticField(
-        description="The type of the field, such as string or float.",
-        default="UNKNOWN",
-    )
-
-    tags: dict[str, str] | None = PydanticField(
-        description="A dictionary of key-value pairs to store arbitrary metadata.",
-        default=None,
-    )
-
-    vector_index: bool = PydanticField(
-        description="If set to True the field will be indexed for vector similarity search.",
-        default=False,
-    )
-
-    vector_search_metric: str | None = PydanticField(
-        description="The metric used for vector similarity search.",
-        default=None,
-    )
 
 
 class Entity(BaseFeastObject):
@@ -63,10 +29,20 @@ class Entity(BaseFeastObject):
     )
 
     def register_to_store(self, api_client: ApiClient) -> Optional["Entity"]:
-        if self.already_registered(api_client=api_client, object_type="entities"):
-            return self
+        try:
+            response = api_client.make_get_request(
+                endpoint=f"registry/entities/{self.name}"
+            )
+        except NotFoundException:
+            response = api_client.make_post_request(
+                endpoint="registry/entities/", data=self.model_dump(mode="json")
+            )
 
-        api_client.make_post_request(
-            endpoint="registry/entities/", data=self.model_dump(mode="json")
-        )
+        response = Entity.model_validate(response)
+        self.__dict__.update(response)
         return self
+
+
+# Predefined entities
+user_entity = Entity(name="user", value_type="STRING")
+session_entity = Entity(name="session", value_type="STRING")

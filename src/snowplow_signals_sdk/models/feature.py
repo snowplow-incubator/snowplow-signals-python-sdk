@@ -2,6 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
+from snowplow_signals_sdk.models.feast.field import Field
 
 
 class FilterCondition(BaseModel):
@@ -31,11 +32,7 @@ class FilterCombinator(BaseModel):
     )
 
 
-# TODO: Not currently a BaseFeastType, but probably should be in the future. We only register via feature views ATM
-
-
-class Feature(BaseModel):
-    name: str
+class Feature(Field):
     scope: Literal["session", "lifetime"] = PydanticField(
         description="The scope of the feature, either session or lifetime."
     )
@@ -44,7 +41,6 @@ class Feature(BaseModel):
         description="An array of events used to calculate this trait.",
         min_length=1,
     )
-    dtype: str = "UNKNOWN"
     type: Literal[
         "counter",
         "aggregation(sum)",

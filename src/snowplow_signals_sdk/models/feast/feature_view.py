@@ -4,8 +4,8 @@ from typing import Literal, Optional, Union
 from pydantic import Field as PydanticField
 from pydantic import computed_field
 
-from snowplow_signals_sdk.api_client import ApiClient
-from snowplow_signals_sdk.models.feature import Feature
+from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
+from snowplow_signals_sdk.models.feature import Feature, Field
 
 from .base_feast_object import BaseFeastObject
 from .data_source import DataSource
@@ -43,7 +43,7 @@ class FeatureView(BaseFeastObject):
         default=True,
     )
 
-    fields: list[str] = PydanticField(
+    fields: list[Field] = PydanticField(
         description="The schema of the feature view, including timestamp, and entity columns. If not specified, can be inferred from the underlying data source.",
         default_factory=list,
     )
@@ -55,7 +55,7 @@ class FeatureView(BaseFeastObject):
 
     status: Literal["Draft", "QA", "Live"] = PydanticField(
         description="The status of the feature view.",
-        default="Draft",
+        default="Live",
     )
 
     @computed_field
@@ -64,16 +64,19 @@ class FeatureView(BaseFeastObject):
         return f"{self.name}_v{self.version}"
 
     def register_to_store(self, api_client: ApiClient) -> Optional["FeatureView"]:
-        if self.source and isinstance(self.source, DataSource):
-            self.source.register_to_store()
+        for entity in self.entities:
+            entity.register_to_store(api_client)
 
-        if self.already_registered(
-            api_client=api_client, version=self.version, object_type="feature_views"
-        ):
-            return self
+        try:
+            response = api_client.make_get_request(
+                endpoint=f"registry/feature_views/{self.name}/versions/{self.version}"
+            )
+        except NotFoundException:
+            response = api_client.make_post_request(
+                endpoint="registry/feature_views/", data=self.model_dump(mode="json")
+            )
 
-        data = self.model_dump(mode="json")
-        data["entities"] = [{"name": entity.name} for entity in self.entities]
+        response = FeatureView.model_validate(response)
+        self.__dict__.update(response)
 
-        api_client.make_post_request(endpoint="registry/feature_views/", data=data)
         return self

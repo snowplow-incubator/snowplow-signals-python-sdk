@@ -1,12 +1,13 @@
 from typing import Any, Literal, Optional, Union
 
-import pandas as pd
 from pydantic import BaseModel
 
 from .api_client import DEFAULT_API_CLIENT, ApiClient
 from .models.feast.base_feast_object import BaseFeastObject
 from .models.feast.feature_service import FeatureService
 from .models.feast.feature_view import FeatureView
+from .models.feast.entity import Entity
+from .models.feast.data_source import DataSource
 from .models.online_feature_response import OnlineFeatureResponse
 
 
@@ -59,7 +60,7 @@ class SignalsStore(BaseModel):
             feature_names = [
                 f"{fv.feast_name}:{feature.name}"
                 for fv in features
-                for feature in fv.features
+                for feature in fv.features + fv.fields
             ]
             data = GetOnlineFeaturesRequest(
                 features=feature_names,
@@ -72,4 +73,4 @@ class SignalsStore(BaseModel):
         response = self.api_client.make_post_request(
             endpoint="get-online-features", data=data.model_dump(mode="json")
         )
-        return OnlineFeatureResponse(**response) if response else None
+        return OnlineFeatureResponse(data=response) if response else None

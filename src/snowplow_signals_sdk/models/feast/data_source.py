@@ -1,8 +1,8 @@
-from typing import Literal, Optional
+from typing import Literal, Optional, Self
 
 from pydantic import Field as PydanticField
 
-from snowplow_signals_sdk.api_client import ApiClient
+from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
 
 from .base_feast_object import BaseFeastObject
 
@@ -66,16 +66,24 @@ class DataSource(BaseFeastObject):
     )
 
     # Push source
-    batch_source: str | None = PydanticField(
+    batch_source: Self | None = PydanticField(
         description="The id of the batch source that backs this push source. It's used when materializing from the offline store to the online store, and when retrieving historical features",
         default=None,
     )
 
     def register_to_store(self, api_client: ApiClient) -> Optional["DataSource"]:
-        if self.already_registered(api_client=api_client, object_type="data_sources"):
-            return self
+        if self.batch_source is not None:
+            self.batch_source.register_to_store(api_client)
 
-        api_client.make_post_request(
-            endpoint="registry/data_sources/", data=self.model_dump(mode="json")
-        )
+        try:
+            response = api_client.make_get_request(
+                endpoint=f"registry/data_sources/{self.name}"
+            )
+        except NotFoundException:
+            response = api_client.make_post_request(
+                endpoint="registry/data_sources/", data=self.model_dump(mode="json")
+            )
+
+        response = DataSource.model_validate(response)
+        self.__dict__.update(response)
         return self
