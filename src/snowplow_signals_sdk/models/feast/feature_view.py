@@ -64,6 +64,9 @@ class FeatureView(BaseFeastObject):
         return f"{self.name}_v{self.version}"
 
     def register_to_store(self, api_client: ApiClient) -> Optional["FeatureView"]:
+        for entity in self.entities:
+            entity.register_to_store(api_client)
+
         try:
             response = api_client.make_get_request(
                 endpoint=f"registry/feature_views/{self.name}/versions/{self.version}"

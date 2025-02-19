@@ -29,28 +29,8 @@ class SignalsStore(BaseModel):
 
     def apply(self, objects: Optional[list[BaseFeastObject]] = None) -> "ApplyResponse":
         if objects:
-            # We need to register first entities, then data_sources, then feature_views and finally feature_services to handle dependencies
-            entities = [object for object in objects if isinstance(object, Entity)]
-            for entity in entities:
-                entity.register_to_store(api_client=self.api_client)
-
-            data_sources = [
-                object for object in objects if isinstance(object, DataSource)
-            ]
-            for data_source in data_sources:
-                data_source.register_to_store(api_client=self.api_client)
-
-            feature_views = [
-                object for object in objects if isinstance(object, FeatureView)
-            ]
-            for feature_view in feature_views:
-                feature_view.register_to_store(api_client=self.api_client)
-
-            feature_services = [
-                object for object in objects if isinstance(object, FeatureService)
-            ]
-            for feature_service in feature_services:
-                feature_service.register_to_store(api_client=self.api_client)
+            for object in objects:
+                object.register_to_store(api_client=self.api_client)
 
         response = self.api_client.make_post_request(
             endpoint="feature_store/apply",

@@ -21,6 +21,9 @@ class FeatureService(BaseFeastObject):
     )
 
     def register_to_store(self, api_client: ApiClient) -> Optional["FeatureService"]:
+        for feature_view in self.feature_views:
+            feature_view.register_to_store(api_client)
+
         try:
             response = api_client.make_get_request(
                 endpoint=f"registry/feature_services/{self.name}"
