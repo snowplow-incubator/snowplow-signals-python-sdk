@@ -2,11 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
-
-
-class Field(BaseModel):
-    name: str
-    dtype: str = "UNKNOWN"
+from snowplow_signals_sdk.models.feast.field import Field
 
 
 class FilterCondition(BaseModel):
