@@ -2,7 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
-from snowplow_signals_sdk.models.feast.field import Field
+
+from snowplow_signals.models.field import Field
 
 
 class FilterCondition(BaseModel):

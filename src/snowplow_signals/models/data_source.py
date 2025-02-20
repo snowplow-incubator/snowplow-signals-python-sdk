@@ -2,12 +2,12 @@ from typing import Literal, Optional, Self
 
 from pydantic import Field as PydanticField
 
-from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
+from snowplow_signals.api_client import ApiClient, NotFoundException
 
-from .base_feast_object import BaseFeastObject
+from .base_signals_object import BaseSignalsObject
 
 
-class DataSource(BaseFeastObject):
+class DataSource(BaseSignalsObject):
     """
     DataSource that can be used to source features.
     """

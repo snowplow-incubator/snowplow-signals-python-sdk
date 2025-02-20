@@ -3,12 +3,13 @@ from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel
 
 from .api_client import DEFAULT_API_CLIENT, ApiClient
-from .models.feast.base_feast_object import BaseFeastObject
-from .models.feast.feature_service import FeatureService
-from .models.feast.feature_view import FeatureView
-from .models.feast.entity import Entity
-from .models.feast.data_source import DataSource
+from .models.base_signals_object import BaseSignalsObject
+from .models.data_source import DataSource
+from .models.entity import Entity
+from .models.feature_service import FeatureService
+from .models.feature_view import FeatureView
 from .models.online_feature_response import OnlineFeatureResponse
+from .settings.connection import ConnectionSettings
 
 
 class ApplyResponse(BaseModel):
@@ -22,12 +23,21 @@ class GetOnlineFeaturesRequest(BaseModel):
     full_feature_names: bool = False
 
 
-class SignalsStore(BaseModel):
+class Signals(BaseModel):
     """Interface to interact with Snowplow Signals AI"""
 
     api_client: ApiClient = DEFAULT_API_CLIENT
 
-    def apply(self, objects: Optional[list[BaseFeastObject]] = None) -> "ApplyResponse":
+    def __init__(self, signals_api_url: Optional[str] = None):
+        super().__init__()
+        if signals_api_url:
+            self.api_client = ApiClient(
+                connection_settings=ConnectionSettings(SIGNALS_API_URL=signals_api_url)
+            )
+
+    def apply(
+        self, objects: Optional[list[BaseSignalsObject]] = None
+    ) -> "ApplyResponse":
         if objects:
             for object in objects:
                 object.register_to_store(api_client=self.api_client)

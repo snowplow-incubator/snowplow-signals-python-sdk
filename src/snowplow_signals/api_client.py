@@ -21,6 +21,10 @@ class NotFoundException(Exception):
 class ApiClient(BaseModel):
     connection_settings: ConnectionSettings = DEFAULT_CONNECTION_SETTINGS
 
+    def __init__(self, connection_settings: Optional[ConnectionSettings] = None):
+        super().__init__()
+        self.connection_settings = connection_settings or DEFAULT_CONNECTION_SETTINGS
+
     def _request(
         self,
         method: Methods,

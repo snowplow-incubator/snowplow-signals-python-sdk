@@ -2,13 +2,13 @@ from typing import Optional
 
 from pydantic import Field as PydanticField
 
-from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
-from snowplow_signals_sdk.models.types import ValueType
+from snowplow_signals.api_client import ApiClient, NotFoundException
+from snowplow_signals.models.types import ValueType
 
-from .base_feast_object import BaseFeastObject
+from .base_signals_object import BaseSignalsObject
 
 
-class Entity(BaseFeastObject):
+class Entity(BaseSignalsObject):
     """
     Defines entities for which features can be defined.
     An entity can also contain associated metadata.

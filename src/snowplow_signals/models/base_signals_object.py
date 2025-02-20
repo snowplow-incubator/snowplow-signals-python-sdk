@@ -4,20 +4,20 @@ from typing import Optional
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
 
-from snowplow_signals_sdk.api_client import ApiClient
+from snowplow_signals.api_client import ApiClient
 
 
-class BaseFeastObject(BaseModel):
+class BaseSignalsObject(BaseModel):
     """
-    BaseFeastObject is an interface for other Feast objects. ie Features, FeatureViews and Entities.
+    BaseSignalsObject is an interface for other Signals objects. ie Features, FeatureViews and Entities.
     """
 
     name: str = PydanticField(
-        description="Name of the Feast Object.",
+        description="Name of the Signals Object.",
     )
 
     applied_at: datetime | None = PydanticField(
-        description="Timestamp indicating the last time the model was applied to Feast.",
+        description="Timestamp indicating the last time the model was applied to Signals.",
         default=None,
     )
 
@@ -36,5 +36,5 @@ class BaseFeastObject(BaseModel):
         default=None,
     )
 
-    def register_to_store(self, api_client: ApiClient) -> Optional["BaseFeastObject"]:
+    def register_to_store(self, api_client: ApiClient) -> Optional["BaseSignalsObject"]:
         raise NotImplementedError("register_to_store is not implemented")

@@ -2,13 +2,13 @@ from typing import Optional
 
 from pydantic import Field as PydanticField
 
-from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
+from snowplow_signals.api_client import ApiClient, NotFoundException
 
-from .base_feast_object import BaseFeastObject
+from .base_signals_object import BaseSignalsObject
 from .feature_view import FeatureView
 
 
-class FeatureService(BaseFeastObject):
+class FeatureService(BaseSignalsObject):
     """
     A feature service defines a logical group of features from one or more feature views.
     This group of features can be retrieved together during training or serving.

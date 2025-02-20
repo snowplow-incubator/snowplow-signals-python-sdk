@@ -4,15 +4,16 @@ from typing import Literal, Optional, Union
 from pydantic import Field as PydanticField
 from pydantic import computed_field
 
-from snowplow_signals_sdk.api_client import ApiClient, NotFoundException
-from snowplow_signals_sdk.models.feature import Feature, Field
+from snowplow_signals.api_client import ApiClient, NotFoundException
+from snowplow_signals.models.feature import Feature
+from snowplow_signals.models.field import Field
 
-from .base_feast_object import BaseFeastObject
+from .base_signals_object import BaseSignalsObject
 from .data_source import DataSource
 from .entity import Entity
 
 
-class FeatureView(BaseFeastObject):
+class FeatureView(BaseSignalsObject):
     """
     A FeatureView defines a logical group of features.
     """

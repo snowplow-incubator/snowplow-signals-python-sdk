@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
 
-from snowplow_signals_sdk.models.types import ValueType
+from snowplow_signals.models.types import ValueType
 
 
 class Field(BaseModel):

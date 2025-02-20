@@ -6,5 +6,9 @@ class ConnectionSettings(BaseModel):
         "http://localhost:8000/api/v1"  # Will change depending on where API is hosted
     )
 
+    def __init__(self, SIGNALS_API_URL: str = SIGNALS_API_URL):
+        super().__init__()
+        self.SIGNALS_API_URL = SIGNALS_API_URL
+
 
 DEFAULT_CONNECTION_SETTINGS = ConnectionSettings()
