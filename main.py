@@ -1,6 +1,6 @@
 from pydantic import ValidationError
 
-from snowplow_signals_sdk.features import (
+from snowplow_signals.features import (
     AverageProductPrice,
     CheapProductsCount,
     ExpensiveProductsCount,
@@ -10,20 +10,20 @@ from snowplow_signals_sdk.features import (
     TotalProductPrice,
     UniqueProductNames,
 )
-from snowplow_signals_sdk.models.feast.data_source import DataSource
-from snowplow_signals_sdk.models.feast.entity import Entity
-from snowplow_signals_sdk.models.feast.feature_service import FeatureService
-from snowplow_signals_sdk.models.feast.feature_view import FeatureView
-from snowplow_signals_sdk.models.feature import (
+from snowplow_signals.models.data_source import DataSource
+from snowplow_signals.models.entity import Entity
+from snowplow_signals.models.feature import (
     Feature,
     FilterCombinator,
     FilterCondition,
 )
-from snowplow_signals_sdk.signals_store import SignalsStore
+from snowplow_signals.models.feature_service import FeatureService
+from snowplow_signals.models.feature_view import FeatureView
+from snowplow_signals.signals import Signals
 
 
 def main():
-    sp_signals = SignalsStore()
+    sp_signals = Signals()
 
     add_to_cart_count_feature = Feature(
         name="add_to_cart_events_count",
@@ -60,11 +60,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-# curl -X POST "http://localhost:8000/api/v1/registry/feature_services" \
-#      -H "Content-Type: application/json" \
-#      -d '{
-#           "name": "user_feature_service",
-#           "features_views": [ "user_behavior_features" ],
-#           "description": "Feature service for user analytics"
-#      }'
