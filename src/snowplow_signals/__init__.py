@@ -1,3 +1,14 @@
+from snowplow_signals.features import (
+    AddToCartCountFeature,
+    AverageProductPrice,
+    CheapProductsCount,
+    ExpensiveProductsCount,
+    LastCartValue,
+    MaxCartValue,
+    MinCartValue,
+    TotalProductPrice,
+    UniqueProductNames,
+)
 from snowplow_signals.models.data_source import DataSource
 from snowplow_signals.models.entity import (
     Entity,
@@ -25,5 +36,12 @@ DataSource
 Entity
 user_entity
 session_entity
-
-# TODO: this is incomplete, add all published classes
+AverageProductPrice
+AddToCartCountFeature
+LastCartValue
+MaxCartValue
+MinCartValue
+TotalProductPrice
+UniqueProductNames
+ExpensiveProductsCount,
+CheapProductsCount

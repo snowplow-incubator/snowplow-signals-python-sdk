@@ -4,8 +4,6 @@ from pydantic import BaseModel
 
 from .api_client import DEFAULT_API_CLIENT, ApiClient
 from .models.base_signals_object import BaseSignalsObject
-from .models.data_source import DataSource
-from .models.entity import Entity
 from .models.feature_service import FeatureService
 from .models.feature_view import FeatureView
 from .models.online_feature_response import OnlineFeatureResponse
