@@ -1,20 +1,62 @@
-from snowplow_signals_sdk.signals_store import SignalsStore
-from snowplow_signals_sdk.models.feature_service import FeatureService
-from snowplow_signals_sdk.utils import get_features_from_cookie
+from pydantic import ValidationError
+
+from snowplow_signals.features import (
+    AverageProductPrice,
+    CheapProductsCount,
+    ExpensiveProductsCount,
+    LastCartValue,
+    MaxCartValue,
+    MinCartValue,
+    TotalProductPrice,
+    UniqueProductNames,
+)
+from snowplow_signals.models.data_source import DataSource
+from snowplow_signals.models.entity import Entity
+from snowplow_signals.models.feature import (
+    Feature,
+    FilterCombinator,
+    FilterCondition,
+)
+from snowplow_signals.models.feature_service import FeatureService
+from snowplow_signals.models.feature_view import FeatureView
+from snowplow_signals.signals import Signals
 
 
 def main():
-    browser_features = get_features_from_cookie(
-        cookie="_sp_id.1fff=b2f35890-edb0-449c-a77e-2b9c74955306.1738251412.2.1738264145.1738255199.7bd3d340-2ac0-43d6-878e-49ac97c6611e.cb06c04f-7367-46d4-9ce5-954e57d99890.7ff7cb56-7864-4a23-92ad-7905d5fa218a.1738264145366.1"
-    )
-    sp_signals = SignalsStore(browser_features=browser_features)
-    feature_service = FeatureService(name="user_features")
+    sp_signals = Signals()
 
-    online_features_df = sp_signals.get_online_features(
-        features=feature_service, entity_type_id="domain_userid"
-    ).to_dataframe()
-    print(online_features_df)
+    add_to_cart_count_feature = Feature(
+        name="add_to_cart_events_count",
+        scope="session",
+        dtype="INT32",
+        events=[
+            "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
+        ],
+        type="counter",
+        filter=FilterCombinator(
+            combinator="and",
+            condition=[
+                FilterCondition(
+                    property="event.type", operator="equals", value="add_to_cart"
+                )
+            ],
+        ),
+    )
+    session_entity = Entity(name="session")
+
+    fv = FeatureView(
+        entities=[session_entity],
+        name="new_feature_views",
+        version=1,
+        features=[add_to_cart_count_feature],
+        status="Live",
+    )
+
+    fs = FeatureService(name="new_fs", feature_views=[fv])
+
+    sp_signals.apply(objects=[fs])
 
 
 if __name__ == "__main__":
     main()
+

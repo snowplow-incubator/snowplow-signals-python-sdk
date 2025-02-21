@@ -14,11 +14,9 @@ class Result(BaseModel):
     event_timestamps: List[str]
 
 
-class FeatureResponse(BaseModel):
-    metadata: Metadata
-    results: List[Result]
+class OnlineFeatureResponse(BaseModel):
+    data: dict[str, list[Any]]
 
     def to_dataframe(self):
-        values = [result.values for result in self.results]
-        df = pd.DataFrame(list(zip(*values)), columns=self.metadata.feature_names)
+        df = pd.DataFrame(self.data)
         return df

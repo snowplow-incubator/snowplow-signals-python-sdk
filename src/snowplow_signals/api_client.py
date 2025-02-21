@@ -4,7 +4,7 @@ from typing import Optional
 import requests
 from pydantic import BaseModel
 
-from ..settings.connection import DEFAULT_CONNECTION_SETTINGS, ConnectionSettings
+from .settings.connection import DEFAULT_CONNECTION_SETTINGS, ConnectionSettings
 
 
 class Methods(Enum):
@@ -14,8 +14,16 @@ class Methods(Enum):
     delete = "delete"
 
 
+class NotFoundException(Exception):
+    pass
+
+
 class ApiClient(BaseModel):
     connection_settings: ConnectionSettings = DEFAULT_CONNECTION_SETTINGS
+
+    def __init__(self, connection_settings: Optional[ConnectionSettings] = None):
+        super().__init__()
+        self.connection_settings = connection_settings or DEFAULT_CONNECTION_SETTINGS
 
     def _request(
         self,
@@ -23,25 +31,31 @@ class ApiClient(BaseModel):
         endpoint: str,
         params: Optional[dict] = None,
         data: Optional[dict] = None,
-    ):
-        url = f"{self.connection_settings.BPD_CONSOLE_API_URL}/{self.connection_settings.BDP_ORG_ID}/{endpoint}"
+    ) -> dict:
+        url = f"{self.connection_settings.SIGNALS_API_URL}/{endpoint}"
         # TO-DO Add Auth headers
-        headers = {"Content-Type": "application/json"}
-
+        headers = {"Content-Type": "application/json", "charset": "utf-8"}
         response = requests.request(
             method=method, url=url, headers=headers, params=params, json=data
         )
-        response.raise_for_status()
-        return response.json()
+
+        if response.status_code == 404:
+            raise NotFoundException()
+        elif response.status_code != 200:
+            raise Exception(
+                f"Request failed with status code {response.status_code}, {response.text}"
+            )
+        else:
+            return response.json()
 
     def make_get_request(
         self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
-    ):
+    ) -> dict:
         return self._request(method="get", endpoint=endpoint, params=params, data=data)
 
     def make_post_request(
         self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
-    ):
+    ) -> dict:
         return self._request(method="post", endpoint=endpoint, params=params, data=data)
 
 
