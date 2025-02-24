@@ -1,0 +1,359 @@
+{
+    "name": "sample_custom_service_agent_batch_features",
+    "entities": [
+        "{user}"
+    ],
+    "online": true,
+    "status": "Live",
+    "description": "Example custom service agent batch features",
+    "features": [
+        {
+            "name": "page_view_events_count_last_7_days",
+            "value_type": "INT32",
+            "description": "Number of page_view events in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "counter",
+            "property": null,
+            "filter": {
+                "combinator": "and",
+                "condition": [
+                    {
+                        "property": "event.type",
+                        "operator": "equals",
+                        "value": "page_view"
+                    }
+                ]
+            },
+            "signals_derived": false,
+            "period": "P7D"
+        },
+        {
+            "name": "page_ping_events_count_last_7_days",
+            "value_type": "INT32",
+            "description": "Number of page_ping events in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "counter",
+            "property": null,
+            "filter": {
+                "combinator": "and",
+                "condition": [
+                    {
+                        "property": "event.type",
+                        "operator": "equals",
+                        "value": "page_ping"
+                    }
+                ]
+            },
+            "signals_derived": false,
+            "period": "P7D"
+        },
+        {
+            "name": "number_of_days_active_last_7_days",
+            "value_type": "INT32",
+            "description": "Number of days when the customer is active (min 1 pageping) in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "counter",
+            "property": null,
+            "filter": {
+                "combinator": "and",
+                "condition": [
+                    {
+                        "property": "event.type",
+                        "operator": "equals",
+                        "value": "page_ping"
+                    },
+                    {
+                        "property": "date(derived_tstamp)",
+                        "operator": "greater_than",
+                        "value": 0
+                    }
+                ]
+            },
+            "signals_derived": false,
+            "period": "P7D"
+        },
+        {
+            "name": "last_geo_country_last_7_days",
+            "value_type": "STRING",
+            "description": "Last geo_country value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "last",
+            "property": "geo_country",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "last_timezone_last_7_days",
+            "value_type": "STRING",
+            "description": "Last time_zone value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "last",
+            "property": "geo_timezone",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "last_os_last_7_days",
+            "value_type": "STRING",
+            "description": "Last operating system value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "last",
+            "property": "contexts_nl_basjes_yauaa_context_1[0]:operatingSystemName",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "last_device_class_last_7_days",
+            "value_type": "STRING",
+            "description": "Last device class value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "last",
+            "property": "contexts_nl_basjes_yauaa_context_1[0]:deviceClass",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "first_mkt_source_last_7_days",
+            "value_type": "STRING",
+            "description": "First marketing source value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "first",
+            "property": "mkt_source",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "first_mkt_medium_last_7_days",
+            "value_type": "STRING",
+            "description": "First marketing medium value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "first",
+            "property": "mkt_medium",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "last_mkt_source_last_7_days",
+            "value_type": "STRING",
+            "description": "Last marketing source value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "last",
+            "property": "mkt_source",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "last_mkt_medium_last_7_days",
+            "value_type": "STRING",
+            "description": "Last marketing medium value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "last",
+            "property": "mkt_medium",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "first_referrer_source_last_7_days",
+            "value_type": "STRING",
+            "description": "First referrer source value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "first",
+            "property": "refr_source",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "first_referrer_medium_last_7_days",
+            "value_type": "STRING",
+            "description": "First referrer medium value in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "first",
+            "property": "referrer_medium",
+            "filter": null,
+            "signals_derived": false,
+            "period": null
+        },
+        {
+            "name": "pricing_pageview_count_last_7_days",
+            "value_type": "INT32",
+            "description": "Number of pricing page_view visits in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "counter",
+            "property": null,
+            "filter": {
+                "combinator": "and",
+                "condition": [
+                    {
+                        "property": "event.type",
+                        "operator": "equals",
+                        "value": "page_view"
+                    },
+                    {
+                        "property": "page_url",
+                        "operator": "like",
+                        "value": "%pricing%"
+                    }
+                ]
+            },
+            "signals_derived": false,
+            "period": "P7D"
+        },
+        {
+            "name": "demo_pageview_count_last_7_days",
+            "value_type": "INT32",
+            "description": "Number of demo page_view visits in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0"
+            ],
+            "type": "counter",
+            "property": null,
+            "filter": {
+                "combinator": "and",
+                "condition": [
+                    {
+                        "property": "event.type",
+                        "operator": "equals",
+                        "value": "page_view"
+                    },
+                    {
+                        "property": "page_url",
+                        "operator": "like",
+                        "value": "%demo%"
+                    }
+                ]
+            },
+            "signals_derived": false,
+            "period": "P7D"
+        },
+        {
+            "name": "media_video_event_count_last_7_days",
+            "value_type": "INT32",
+            "description": "Number of media / video event counts in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/contexts_com_snowplowanalytics_snowplow_media_player_2",
+                "iglu:com.snowplowanalytics.snowplow/contexts_com_vimeo_meta_1/jsonschema/1-0-0"
+            ],
+            "type": "counter",
+            "property": null,
+            "filter": null,
+            "modeling_steps": [
+                {
+                    "step_type": "filtered_events",
+                    "enabled": true
+                },
+                {
+                    "step_type": "daily_aggregation",
+                    "enabled": true,
+                    "type": "counter",
+                    "column_name": "media_video_event_count",
+                    "filter": {
+                        "combinator": "and",
+                        "condition": [
+                            {
+                                "property": "event.type",
+                                "operator": "equals",
+                                "value": "media_player"
+                            },
+                            {
+                                "property": "page_url",
+                                "operator": "equals",
+                                "value": "vimeo_event"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "signals_derived": false,
+            "period": "P7D"
+        },
+        {
+            "name": "form_focus_change_event_count_last_7_days",
+            "value_type": "INT32",
+            "description": "Form focus or change event counts in the last 7 days",
+            "scope": "lifetime",
+            "events": [
+                "iglu:com.snowplowanalytics.snowplow/form_focus",
+                "iglu:com.snowplowanalytics.snowplow/change_form/jsonschema/1-0-0"
+            ],
+            "type": "counter",
+            "property": null,
+            "filter": {
+                "combinator": "or",
+                "condition": [
+                    {
+                        "property": "event.type",
+                        "operator": "equals",
+                        "value": "form_focus"
+                    },
+                    {
+                        "property": "page_url",
+                        "operator": "equals",
+                        "value": "change_form"
+                    }
+                ]
+            },
+            "signals_derived": false,
+            "period": "P7D"
+        }
+    ],
+    "fields": [
+        {
+            "name": "UPDATED_AT",
+            "value_type": "UNIX_TIMESTAMP",
+            "description": "Last updated at"
+        }
+    ]
+}
