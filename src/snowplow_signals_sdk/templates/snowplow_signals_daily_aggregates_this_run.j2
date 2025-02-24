@@ -1,0 +1,72 @@
+{% raw %}
+Copyright (c) 2023-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
+You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
+#}
+
+{{
+    config(
+        tags=["this_run"],
+        sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt'))
+    )
+}}
+
+with aggregations as (
+  
+  select
+    {{ dbt_utils.generate_surrogate_key(['domain_userid', 'event_date']) }} user_date_id,
+    event_date,
+    {% endraw %}
+    {% for feature in aggregate_features %}
+      ,{{ feature["type"] }}({{ feature["condition_clause"] }}) as {{ feature["column_name"] }}
+    {% endfor %}
+    {% raw %}
+  from {{ ref('snowplow_identity_events_this_run') }}
+
+  group by 1,2,3
+)
+
+--TODO: consider separating them to user_lasts and user_firsts to avoid having to do multiple window functions if these fields get bigger and the query optimizer does not catch them
+, window_calculations as (
+  
+  select
+    *,
+    last_value(derived_tstamp) over (partition by user_date_id order by derived_tstamp) as last_event_tstamp
+    {% endraw %}    
+    {% for feature in first_value_features %}
+      , first_value({{ feature['condition_clause'] }}) over (partition by user_date_id order by derived_tstamp) as {{ feature['column_name'] }}
+    {%- endfor %}
+    {% for feature in first_value_features %}
+      , last_value({{ feature['condition_clause'] }}) over (partition by user_date_id order by derived_tstamp) as {{ feature['column_name'] }}
+    {%- endfor %}
+  {% raw %}
+  from {{ ref('snowplow_identity_events_this_run') }}
+  
+)
+
+select distinct
+  a.user_date_id,
+  a.event_date,
+  a.snowplow_id,
+  a.sessions,
+  w.last_event_tstamp
+  
+  {% for item in get_aggregate_event_types() %}
+    , coalesce({{ item["aggregation_type"] }}_{{ item["name"] }}, 0) as {{ item["aggregation_type"] }}_{{ item["name"] }}
+  {% endfor %}
+  
+  {% for feature_def in var('snowplow__first_value_features', []) %}
+    , first_{{ feature_def['name'] }}
+  {%- endfor %}
+  
+  {% for feature_def in var('snowplow__last_value_features', []) %}
+    , last_{{ feature_def['name'] }}
+  {%- endfor %}
+
+from aggregations a
+
+left join window_calculations w
+on w.user_date_id = a.user_date_id
+
+    {% endraw %}

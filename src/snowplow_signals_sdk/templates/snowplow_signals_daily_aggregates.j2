@@ -1,0 +1,26 @@
+{% raw %}{{
+  config(
+    materialized='incremental',
+    sort='event_date',
+    dist='snowplow_id',
+    partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
+      "field": "event_date",
+      "data_type": "date"
+    }, databricks_val='event_date'),
+    unique_key='user_date_id',
+    upsert_date_key='event_date',
+    tags=["derived"],
+    on_schema_change='append_new_columns',
+    cluster_by=snowplow_utils.get_value_by_target_type(bigquery_val=["event_date","snowplow_id"], snowflake_val=["event_date"]),
+    sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
+    tblproperties={
+      'delta.autoOptimize.optimizeWrite' : 'true',
+      'delta.autoOptimize.autoCompact' : 'true'
+    },
+    snowplow_optimize = true
+  )
+}}
+
+select * from
+{{ ref('snowplow_signals_daily_aggregates_this_run') }}
+{% endraw %}

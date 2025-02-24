@@ -20,8 +20,8 @@ initialize:
 # fetch-features:
 # 	python3 -m scripts.fetch_features
 
-generate-dbt-config:
-	python3 -m scripts.generate_dbt_config
+generate-config-overview:
+	python3 -m scripts.generate_config_overview
 
 # Autogenerate dbt models
 generate-models:
@@ -32,6 +32,6 @@ clean:
 	rm -rf $(DBT_DIR)
 
 # Set up and autogenerate at once
-all: initialize generate-dbt-config generate-models
+all: initialize generate-config-overview generate-models
 
 
