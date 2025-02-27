@@ -32,7 +32,7 @@ class ApiClient(BaseModel):
         params: Optional[dict] = None,
         data: Optional[dict] = None,
     ) -> dict:
-        url = f"{self.connection_settings.SIGNALS_API_URL}/{endpoint}"
+        url = f"{self.connection_settings.SIGNALS_API_URL}/api/v1/{endpoint}"
         # TO-DO Add Auth headers
         headers = {"Content-Type": "application/json", "charset": "utf-8"}
         response = requests.request(
