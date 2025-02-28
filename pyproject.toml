@@ -10,12 +10,14 @@ packages = [{ include = "snowplow_signals", from = "src" }]
 python = "^3.12"
 pydantic = "^2.10.5"
 requests = "^2.32.3"
+pandas = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 black = "^24.10.0"
 pre-commit = "^4.1.0"
 isort = "^6.0.0"
+ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]
