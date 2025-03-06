@@ -6,19 +6,12 @@ from .api_client import DEFAULT_API_CLIENT, ApiClient
 from .models.base_signals_object import BaseSignalsObject
 from .models.feature_service import FeatureService
 from .models.feature_view import FeatureView
-from .models.online_feature_response import OnlineFeatureResponse
+from .models.online_features import GetOnlineFeatureResponse, GetOnlineFeaturesRequest
 from .settings.connection import ConnectionSettings
 
 
 class ApplyResponse(BaseModel):
     status: Literal["applied", "nothing to apply"]
-
-
-class GetOnlineFeaturesRequest(BaseModel):
-    entities: dict[str, list[Any]]
-    feature_service: str | None = None
-    features: list[str] | None = None
-    full_feature_names: bool = False
 
 
 class Signals(BaseModel):
@@ -50,7 +43,7 @@ class Signals(BaseModel):
         features: Union[FeatureService, list[FeatureView]],
         entity: Optional[str] = None,
         entity_type_id: str = "domain_userid",
-    ) -> Optional[OnlineFeatureResponse]:
+    ) -> Optional[GetOnlineFeatureResponse]:
 
         if entity is None:
             raise ValueError(f"Entity `{entity_type_id}` could not be determined.")
@@ -81,4 +74,4 @@ class Signals(BaseModel):
         response = self.api_client.make_post_request(
             endpoint="get-online-features", data=data.model_dump(mode="json")
         )
-        return OnlineFeatureResponse(data=response) if response else None
+        return GetOnlineFeatureResponse(data=response) if response else None

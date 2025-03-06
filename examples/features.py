@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 
-from .models.feature import Feature, FilterCombinator, FilterCondition
+from snowplow_signals.models.feature import Feature, FilterCombinator, FilterCondition
 
 
 class AddToCartCountFeature(Feature):
