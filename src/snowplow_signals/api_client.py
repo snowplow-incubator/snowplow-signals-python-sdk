@@ -51,12 +51,16 @@ class ApiClient(BaseModel):
     def make_get_request(
         self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
     ) -> dict:
-        return self._request(method="get", endpoint=endpoint, params=params, data=data)
+        return self._request(
+            method=Methods.get, endpoint=endpoint, params=params, data=data
+        )
 
     def make_post_request(
         self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
     ) -> dict:
-        return self._request(method="post", endpoint=endpoint, params=params, data=data)
+        return self._request(
+            method=Methods.post, endpoint=endpoint, params=params, data=data
+        )
 
 
 DEFAULT_API_CLIENT = ApiClient()

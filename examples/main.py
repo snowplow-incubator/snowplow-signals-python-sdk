@@ -1,6 +1,6 @@
 from pydantic import ValidationError
 
-from snowplow_signals.features import (
+from .features import (
     AverageProductPrice,
     CheapProductsCount,
     ExpensiveProductsCount,
@@ -59,4 +59,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
