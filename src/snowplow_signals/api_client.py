@@ -1,66 +1,60 @@
-from enum import Enum
-from typing import Optional
+import json
+from typing import Literal, Optional
 
-import requests
-from pydantic import BaseModel
+import httpx
 
-from .settings.connection import DEFAULT_CONNECTION_SETTINGS, ConnectionSettings
-
-
-class Methods(Enum):
-    get = "get"
-    post = "post"
-    put = "put"
-    delete = "delete"
+type HTTP_METHODS = Literal["GET", "POST", "PUT", "DELETE"]
 
 
 class NotFoundException(Exception):
     pass
 
 
-class ApiClient(BaseModel):
-    connection_settings: ConnectionSettings = DEFAULT_CONNECTION_SETTINGS
+class ApiClient:
 
-    def __init__(self, connection_settings: Optional[ConnectionSettings] = None):
-        super().__init__()
-        self.connection_settings = connection_settings or DEFAULT_CONNECTION_SETTINGS
+    def __init__(self, api_url: str):
+        self.api_url = api_url
+
+    def _get_headers(self):
+        # TODO Add Auth headers
+        return {"Content-Type": "application/json", "charset": "utf-8"}
 
     def _request(
         self,
-        method: Methods,
+        method: HTTP_METHODS,
         endpoint: str,
         params: Optional[dict] = None,
         data: Optional[dict] = None,
     ) -> dict:
-        url = f"{self.connection_settings.SIGNALS_API_URL}/api/v1/{endpoint}"
-        # TO-DO Add Auth headers
-        headers = {"Content-Type": "application/json", "charset": "utf-8"}
-        response = requests.request(
-            method=method, url=url, headers=headers, params=params, json=data
+        url = f"{self.api_url}/api/v1/{endpoint}"
+        response = httpx.request(
+            method=method,
+            url=url,
+            headers=self._get_headers(),
+            params=params,
+            json=data,
         )
 
-        if response.status_code == 404:
-            raise NotFoundException()
-        elif response.status_code != 200:
+        if response.status_code in (200, 201):
+            try:
+                return response.json()
+            except json.JSONDecodeError:
+                raise Exception(f"Failed to decode response: {response.text}")
+        try:
+            payload = response.json()
             raise Exception(
-                f"Request failed with status code {response.status_code}, {response.text}"
+                f"Request failed with status {response.status_code}: {payload}"
             )
-        else:
-            return response.json()
+        except (KeyError, ValueError):
+            raise Exception(
+                f"Request failed with status {response.status_code}: {response.text}"
+            )
 
-    def make_get_request(
-        self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
+    def make_request(
+        self,
+        method: HTTP_METHODS,
+        endpoint: str,
+        params: Optional[dict] = None,
+        data: Optional[dict] = None,
     ) -> dict:
-        return self._request(
-            method=Methods.get, endpoint=endpoint, params=params, data=data
-        )
-
-    def make_post_request(
-        self, endpoint: str, params: Optional[dict] = None, data: Optional[dict] = None
-    ) -> dict:
-        return self._request(
-            method=Methods.post, endpoint=endpoint, params=params, data=data
-        )
-
-
-DEFAULT_API_CLIENT = ApiClient()
+        return self._request(method=method, endpoint=endpoint, params=params, data=data)

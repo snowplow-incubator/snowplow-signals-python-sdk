@@ -30,12 +30,14 @@ class Entity(BaseSignalsObject):
 
     def register_to_store(self, api_client: ApiClient) -> Optional["Entity"]:
         try:
-            response = api_client.make_get_request(
-                endpoint=f"registry/entities/{self.name}"
+            response = api_client.make_request(
+                method="GET", endpoint=f"registry/entities/{self.name}"
             )
         except NotFoundException:
-            response = api_client.make_post_request(
-                endpoint="registry/entities/", data=self.model_dump(mode="json")
+            response = api_client.make_request(
+                method="POST",
+                endpoint="registry/entities/",
+                data=self.model_dump(mode="json"),
             )
 
         response = Entity.model_validate(response)

@@ -76,12 +76,14 @@ class DataSource(BaseSignalsObject):
             self.batch_source.register_to_store(api_client)
 
         try:
-            response = api_client.make_get_request(
-                endpoint=f"registry/data_sources/{self.name}"
+            response = api_client.make_request(
+                method="GET", endpoint=f"registry/data_sources/{self.name}"
             )
         except NotFoundException:
-            response = api_client.make_post_request(
-                endpoint="registry/data_sources/", data=self.model_dump(mode="json")
+            response = api_client.make_request(
+                method="POST",
+                endpoint="registry/data_sources/",
+                data=self.model_dump(mode="json"),
             )
 
         response = DataSource.model_validate(response)

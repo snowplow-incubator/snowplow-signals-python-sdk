@@ -69,12 +69,15 @@ class FeatureView(BaseSignalsObject):
             entity.register_to_store(api_client)
 
         try:
-            response = api_client.make_get_request(
-                endpoint=f"registry/feature_views/{self.name}/versions/{self.version}"
+            response = api_client.make_request(
+                method="GET",
+                endpoint=f"registry/feature_views/{self.name}/versions/{self.version}",
             )
         except NotFoundException:
-            response = api_client.make_post_request(
-                endpoint="registry/feature_views/", data=self.model_dump(mode="json")
+            response = api_client.make_request(
+                method="POST",
+                endpoint="registry/feature_views/",
+                data=self.model_dump(mode="json"),
             )
 
         response = FeatureView.model_validate(response)
