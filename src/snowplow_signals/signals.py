@@ -1,4 +1,4 @@
-from typing import Any, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from pydantic import BaseModel
 
@@ -28,7 +28,8 @@ class Signals:
             for object in objects:
                 object.register_to_store(api_client=self.api_client)
 
-        response = self.api_client.make_post_request(
+        response = self.api_client.make_request(
+            method="POST",
             endpoint="feature_store/apply",
         )
         return ApplyResponse(**response)
@@ -66,7 +67,9 @@ class Signals:
             raise TypeError(
                 "Features must be a FeatureService or a list of FeatureView."
             )
-        response = self.api_client.make_post_request(
-            endpoint="get-online-features", data=data.model_dump(mode="json")
+        response = self.api_client.make_request(
+            method="POST",
+            endpoint="get-online-features",
+            data=data.model_dump(mode="json"),
         )
         return GetOnlineFeatureResponse(data=response) if response else None

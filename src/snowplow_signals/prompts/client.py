@@ -1,8 +1,11 @@
+from typing import overload
+
 from ..api_client import ApiClient
 from .models.api import (
     EntityIdentifiers,
     PromptBase,
     PromptDeletedResponse,
+    PromptHydrateResponse,
     PromptResponse,
 )
 
@@ -36,12 +39,40 @@ class PromptsClient:
         )
         return [PromptResponse(**prompt) for prompt in response]
 
-    def delete(self, name: str, version: int) -> dict[str, bool]:
+    def delete(self, name: str, version: int) -> PromptDeletedResponse:
         response = self.api_client.make_request(
             method="DELETE",
             endpoint=f"prompts/{name}/version/{version}",
         )
-        return PromptDeletedResponse(**response).model_dump()
+        return PromptDeletedResponse(**response)
+
+    @overload
+    def hydrate(
+        self,
+        name: str,
+        *,
+        session: str,
+        version: int | None = None,
+    ) -> PromptHydrateResponse: ...
+
+    @overload
+    def hydrate(
+        self,
+        name: str,
+        *,
+        user: str,
+        version: int | None = None,
+    ) -> PromptHydrateResponse: ...
+
+    @overload
+    def hydrate(
+        self,
+        name: str,
+        *,
+        session: str,
+        user: str,
+        version: int | None = None,
+    ) -> PromptHydrateResponse: ...
 
     def hydrate(
         self,
@@ -50,11 +81,12 @@ class PromptsClient:
         session: str | None = None,
         user: str | None = None,
         version: int | None = None,
-    ) -> dict:
+    ) -> PromptHydrateResponse:
         if not session and not user:
             raise ValueError("At least one of `session` or `user` must be provided.")
-        entity_identifiers = EntityIdentifiers().model_validate(
-            {"session": [session], "user": [user]}
+
+        entity_identifiers = EntityIdentifiers(
+            session=[session] if session else None, user=[user] if user else None
         )
         response = self.api_client.make_request(
             method="POST",
@@ -65,4 +97,4 @@ class PromptsClient:
             ),
             data=entity_identifiers.model_dump(exclude_none=True),
         )
-        return response
+        return PromptHydrateResponse(**response)

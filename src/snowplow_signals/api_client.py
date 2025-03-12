@@ -17,7 +17,7 @@ class ApiClient:
 
     def _get_headers(self):
         # TODO Add Auth headers
-        return {"Content-Type": "application/json", "charset": "utf-8"}
+        return {"Content-Type": "application/json; charset=utf-8"}
 
     def _request(
         self,

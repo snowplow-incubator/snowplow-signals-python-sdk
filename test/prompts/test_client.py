@@ -63,7 +63,7 @@ def test_delete_prompt(respx_mock):
     )
     signals = Signals(api_url="http://localhost:8000")
     prompt_deleted = signals.prompts.delete("my_prompt", 1)
-    assert prompt_deleted == {"ok": True}
+    assert prompt_deleted.ok is True
 
 
 def test_hydrate_prompt(respx_mock):
@@ -75,7 +75,7 @@ def test_hydrate_prompt(respx_mock):
     prompt_hydrated = signals.prompts.hydrate(
         "foo_prompt", session="test_session", user="test_user"
     )
-    assert prompt_hydrated == {"prompt": "hello 5, the count is 10"}
+    assert prompt_hydrated.prompt == "hello 5, the count is 10"
 
 
 def test_hydrate_prompt_input(respx_mock):
