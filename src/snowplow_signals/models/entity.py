@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import Field as PydanticField
 
-from snowplow_signals.api_client import ApiClient, NotFoundException
+from snowplow_signals.api_client import ApiClient, SignalsAPIError
 from snowplow_signals.models.types import ValueType
 
 from .base_signals_object import BaseSignalsObject
@@ -33,12 +33,15 @@ class Entity(BaseSignalsObject):
             response = api_client.make_request(
                 method="GET", endpoint=f"registry/entities/{self.name}"
             )
-        except NotFoundException:
-            response = api_client.make_request(
-                method="POST",
-                endpoint="registry/entities/",
-                data=self.model_dump(mode="json"),
-            )
+        except SignalsAPIError as e:
+            if e.status_code == 404:
+                response = api_client.make_request(
+                    method="POST",
+                    endpoint="registry/entities/",
+                    data=self.model_dump(mode="json"),
+                )
+            else:
+                raise e
 
         response = Entity.model_validate(response)
         self.__dict__.update(response)

@@ -6,10 +6,6 @@ import httpx
 type HTTP_METHODS = Literal["GET", "POST", "PUT", "DELETE"]
 
 
-class NotFoundException(Exception):
-    pass
-
-
 class ApiClient:
 
     def __init__(self, api_url: str):
@@ -39,15 +35,15 @@ class ApiClient:
             try:
                 return response.json()
             except json.JSONDecodeError:
-                raise Exception(f"Failed to decode response: {response.text}")
+                raise SignalsAPIError(
+                    response.status_code, f"Failed to decode response: {response.text}"
+                )
         try:
             payload = response.json()
-            raise Exception(
-                f"Request failed with status {response.status_code}: {payload}"
-            )
+            raise SignalsAPIError(response.status_code, payload)
         except (KeyError, ValueError):
-            raise Exception(
-                f"Request failed with status {response.status_code}: {response.text}"
+            raise SignalsAPIError(
+                response.status_code, f"Failed to decode response: {response.text}"
             )
 
     def make_request(
@@ -58,3 +54,13 @@ class ApiClient:
         data: Optional[dict] = None,
     ) -> dict:
         return self._request(method=method, endpoint=endpoint, params=params, data=data)
+
+
+class SignalsAPIError(Exception):
+    def __init__(self, status_code: int, message: str):
+        self.status_code = status_code
+        self.message = message
+
+    def __str__(self):
+        msg = "[Signals API] {0}: {1}"
+        return msg.format(self.status_code, self.message)

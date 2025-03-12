@@ -4,7 +4,7 @@ from typing import Literal, Optional, Union
 from pydantic import Field as PydanticField
 from pydantic import computed_field
 
-from snowplow_signals.api_client import ApiClient, NotFoundException
+from snowplow_signals.api_client import ApiClient, SignalsAPIError
 from snowplow_signals.models.feature import Feature
 from snowplow_signals.models.field import Field
 
@@ -73,12 +73,15 @@ class FeatureView(BaseSignalsObject):
                 method="GET",
                 endpoint=f"registry/feature_views/{self.name}/versions/{self.version}",
             )
-        except NotFoundException:
-            response = api_client.make_request(
-                method="POST",
-                endpoint="registry/feature_views/",
-                data=self.model_dump(mode="json"),
-            )
+        except SignalsAPIError as e:
+            if e.status_code == 404:
+                response = api_client.make_request(
+                    method="POST",
+                    endpoint="registry/feature_views/",
+                    data=self.model_dump(mode="json"),
+                )
+            else:
+                raise e
 
         response = FeatureView.model_validate(response)
         self.__dict__.update(response)
