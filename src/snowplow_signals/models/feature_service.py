@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import Field as PydanticField
 
-from snowplow_signals.api_client import ApiClient, NotFoundException
+from snowplow_signals.api_client import ApiClient, SignalsAPIError
 
 from .base_signals_object import BaseSignalsObject
 from .feature_view import FeatureView
@@ -25,14 +25,18 @@ class FeatureService(BaseSignalsObject):
             feature_view.register_to_store(api_client)
 
         try:
-            response = api_client.make_get_request(
-                endpoint=f"registry/feature_services/{self.name}"
+            response = api_client.make_request(
+                method="GET", endpoint=f"registry/feature_services/{self.name}"
             )
-        except NotFoundException:
-            response = api_client.make_post_request(
-                endpoint="registry/feature_services/",
-                data=self.model_dump(mode="json"),
-            )
+        except SignalsAPIError as e:
+            if e.status_code == 404:
+                response = api_client.make_request(
+                    method="POST",
+                    endpoint="registry/feature_services/",
+                    data=self.model_dump(mode="json"),
+                )
+            else:
+                raise e
 
         response = FeatureService.model_validate(response)
         self.__dict__.update(response)

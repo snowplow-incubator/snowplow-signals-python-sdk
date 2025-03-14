@@ -1,30 +1,25 @@
-from typing import Any, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from pydantic import BaseModel
 
-from .api_client import DEFAULT_API_CLIENT, ApiClient
+from .api_client import ApiClient
 from .models.base_signals_object import BaseSignalsObject
 from .models.feature_service import FeatureService
 from .models.feature_view import FeatureView
 from .models.online_features import GetOnlineFeatureResponse, GetOnlineFeaturesRequest
-from .settings.connection import ConnectionSettings
+from .prompts.client import PromptsClient
 
 
 class ApplyResponse(BaseModel):
     status: Literal["applied", "nothing to apply"]
 
 
-class Signals(BaseModel):
+class Signals:
     """Interface to interact with Snowplow Signals AI"""
 
-    api_client: ApiClient = DEFAULT_API_CLIENT
-
-    def __init__(self, signals_api_url: Optional[str] = None):
-        super().__init__()
-        if signals_api_url:
-            self.api_client = ApiClient(
-                connection_settings=ConnectionSettings(SIGNALS_API_URL=signals_api_url)
-            )
+    def __init__(self, api_url: str):
+        self.api_client = ApiClient(api_url=api_url)
+        self.prompts = PromptsClient(api_client=self.api_client)
 
     def apply(
         self, objects: Optional[list[BaseSignalsObject]] = None
@@ -33,7 +28,8 @@ class Signals(BaseModel):
             for object in objects:
                 object.register_to_store(api_client=self.api_client)
 
-        response = self.api_client.make_post_request(
+        response = self.api_client.make_request(
+            method="POST",
             endpoint="feature_store/apply",
         )
         return ApplyResponse(**response)
@@ -71,7 +67,9 @@ class Signals(BaseModel):
             raise TypeError(
                 "Features must be a FeatureService or a list of FeatureView."
             )
-        response = self.api_client.make_post_request(
-            endpoint="get-online-features", data=data.model_dump(mode="json")
+        response = self.api_client.make_request(
+            method="POST",
+            endpoint="get-online-features",
+            data=data.model_dump(mode="json"),
         )
         return GetOnlineFeatureResponse(data=response) if response else None

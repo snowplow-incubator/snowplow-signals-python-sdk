@@ -2,7 +2,7 @@ from typing import Literal, Optional, Self
 
 from pydantic import Field as PydanticField
 
-from snowplow_signals.api_client import ApiClient, NotFoundException
+from snowplow_signals.api_client import ApiClient, SignalsAPIError
 
 from .base_signals_object import BaseSignalsObject
 
@@ -76,13 +76,18 @@ class DataSource(BaseSignalsObject):
             self.batch_source.register_to_store(api_client)
 
         try:
-            response = api_client.make_get_request(
-                endpoint=f"registry/data_sources/{self.name}"
+            response = api_client.make_request(
+                method="GET", endpoint=f"registry/data_sources/{self.name}"
             )
-        except NotFoundException:
-            response = api_client.make_post_request(
-                endpoint="registry/data_sources/", data=self.model_dump(mode="json")
-            )
+        except SignalsAPIError as e:
+            if e.status_code == 404:
+                response = api_client.make_request(
+                    method="POST",
+                    endpoint="registry/data_sources/",
+                    data=self.model_dump(mode="json"),
+                )
+            else:
+                raise e
 
         response = DataSource.model_validate(response)
         self.__dict__.update(response)
