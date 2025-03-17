@@ -19,8 +19,11 @@ from .testing_client import TestingClient
 class Signals:
     """Interface to interact with Snowplow Signals AI"""
 
-    def __init__(self, api_url: str):
-        self.api_client = ApiClient(api_url=api_url)
+    def __init__(self, *, api_url: str, api_key: str, api_key_id: str, org_id: str):
+        # TODO, if not enough args raise and send to documentation ?
+        self.api_client = ApiClient(
+            api_url=api_url, api_key=api_key, api_key_id=api_key_id, org_id=org_id
+        )
         self.prompts = PromptsClient(api_client=self.api_client)
         self.registry = RegistryClient(api_client=self.api_client)
         self.feature_store = FeatureStoreClient(api_client=self.api_client)
