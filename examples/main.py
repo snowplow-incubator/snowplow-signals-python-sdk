@@ -27,7 +27,6 @@ def main():
 
     add_to_cart_count_feature = Feature(
         name="add_to_cart_events_count",
-        scope="session",
         dtype="INT32",
         events=[
             "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
@@ -49,7 +48,6 @@ def main():
         name="new_feature_views",
         version=1,
         features=[add_to_cart_count_feature],
-        status="Live",
     )
 
     fs = FeatureService(name="new_fs", feature_views=[fv])

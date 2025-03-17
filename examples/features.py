@@ -5,7 +5,6 @@ from snowplow_signals.models.feature import Feature, FilterCombinator, FilterCon
 
 class AddToCartCountFeature(Feature):
     name: str = "add_to_cart_events_count"
-    scope: str = "session"
     events: List[str] = [
         "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
     ]
@@ -24,7 +23,6 @@ class AddToCartCountFeature(Feature):
 
 class AverageProductPrice(Feature):
     name: str = "avg_product_price"
-    scope: str = "session"
     events: List[str] = [
         "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
     ]
@@ -45,7 +43,6 @@ class AverageProductPrice(Feature):
 
 class LastCartValue(Feature):
     name: str = "last_cart_value"
-    scope: str = "session"
     events: List[str] = [
         "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
     ]
@@ -66,7 +63,6 @@ class LastCartValue(Feature):
 
 class MaxCartValue(Feature):
     name: str = "max_cart_value"
-    scope: str = "session"
     events: List[str] = [
         "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
     ]
@@ -87,7 +83,6 @@ class MaxCartValue(Feature):
 
 class MinCartValue(Feature):
     name: str = "min_cart_value"
-    scope: str = "session"
     events: List[str] = [
         "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
     ]
@@ -108,7 +103,6 @@ class MinCartValue(Feature):
 
 class TotalProductPrice(Feature):
     name: str = "total_product_price"
-    scope: str = "session"
     events: List[str] = [
         "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
     ]
@@ -127,7 +121,6 @@ class TotalProductPrice(Feature):
 
 class UniqueProductNames(Feature):
     name: str = "unique_product_names"
-    scope: str = "session"
     events: List[str] = [
         "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
     ]
@@ -146,7 +139,6 @@ class UniqueProductNames(Feature):
 
 class ExpensiveProductsCount(Feature):
     name: str = "expensive_products_count"
-    scope: str = "session"
     events: List[str] = [
         "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
     ]
@@ -169,7 +161,6 @@ class ExpensiveProductsCount(Feature):
 
 class CheapProductsCount(Feature):
     name: str = "cheap_products_count"
-    scope: str = "session"
     events: List[str] = [
         "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-2"
     ]

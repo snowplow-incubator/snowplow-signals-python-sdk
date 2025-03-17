@@ -54,11 +54,6 @@ class FeatureView(BaseSignalsObject):
         default_factory=list,
     )
 
-    status: Literal["Draft", "QA", "Live"] = PydanticField(
-        description="The status of the feature view.",
-        default="Live",
-    )
-
     @computed_field
     @property
     def feast_name(self) -> str:
