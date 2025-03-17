@@ -34,10 +34,6 @@ class FilterCombinator(BaseModel):
 
 
 class Feature(Field):
-    scope: Literal["session", "lifetime"] = PydanticField(
-        description="The scope of the feature, either session or lifetime."
-    )
-
     events: list[str] = PydanticField(
         description="An array of events used to calculate this trait.",
         min_length=1,
