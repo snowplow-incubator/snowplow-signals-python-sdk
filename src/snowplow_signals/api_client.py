@@ -29,6 +29,7 @@ class ApiClient:
             headers=self._get_headers(),
             params=params,
             json=data,
+            timeout=30.0,
         )
 
         if response.status_code in (200, 201):
