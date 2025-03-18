@@ -1,4 +1,6 @@
 from typing import Literal, Optional, Union
+from datetime import timedelta
+import pandas as pd
 
 from pydantic import BaseModel
 
@@ -7,6 +9,7 @@ from .models.base_signals_object import BaseSignalsObject
 from .models.feature_service import FeatureService
 from .models.feature_view import FeatureView
 from .models.online_features import GetOnlineFeatureResponse, GetOnlineFeaturesRequest
+from .models.test_feature_view import TestFeatureViewRequest
 from .prompts.client import PromptsClient
 
 
@@ -73,3 +76,34 @@ class Signals:
             data=data.model_dump(mode="json"),
         )
         return GetOnlineFeatureResponse(data=response) if response else None
+
+    def test(
+        self,
+        feature_view: FeatureView,
+        entity_ids: list[str] = [],
+        app_ids: list[str] = [],
+        window: timedelta = timedelta(hours=1),
+    ) -> pd.DataFrame:
+        """
+        Tests the feature view by extracting the features from the latest window of events in the atomic events table in warehouse.
+
+        Args:
+            feature_view: The feature view to test.
+            entity_ids: The list of entity ids (e.g., domain_userid values) to extract features for. If empty, random 10 IDs will be used.
+            app_ids: The list of app ids to extract features for.
+            window: The time window to extract features from.
+        """
+        request = TestFeatureViewRequest(
+            feature_view=feature_view,
+            entity_ids=entity_ids,
+            window=window,
+            app_ids=app_ids,
+        )
+
+        data = self.api_client.make_request(
+            method="POST",
+            endpoint="testing/feature_views/",
+            data=request.model_dump(mode="json"),
+        )
+
+        return pd.DataFrame(data)
