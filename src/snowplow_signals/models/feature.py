@@ -1,4 +1,5 @@
 from typing import Literal
+from datetime import timedelta
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -66,4 +67,9 @@ class Feature(Field):
     signals_derived: bool = PydanticField(
         description="Determines if the trait should be inferred from signals",
         default=False,
+    )
+
+    period: timedelta | None = PydanticField(
+        description="Defines the time period, further refining the scope of the feature.",
+        default=None,
     )
