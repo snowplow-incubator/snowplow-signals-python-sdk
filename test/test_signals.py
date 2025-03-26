@@ -6,7 +6,7 @@ from snowplow_signals.models import ViewOutput
 
 class TestSignalsApply:
 
-    def test_get_prompt(self, respx_mock):
+    def test_apply_view_and_service(self, respx_mock):
         view = View(
             name="my_view",
             entity=user_entity,
@@ -16,6 +16,8 @@ class TestSignalsApply:
             entity=LinkEntity(name="user"),
             feast_name="my_view_v1",
             offline=True,
+            stream_source_name="my_stream",
+            entity_key="user_id",
         )
         service = Service(
             name="my_service",
@@ -55,6 +57,8 @@ class TestSignalsApply:
             entity=LinkEntity(name="user"),
             feast_name="my_view_v1",
             offline=True,
+            stream_source_name="my_stream",
+            entity_key="user_id",
         )
 
         view_post_mock = respx_mock.post(
