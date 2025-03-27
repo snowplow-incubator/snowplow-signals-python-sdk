@@ -2,8 +2,7 @@ import httpx
 import jwt
 import pytest
 
-from ..utils import MOCK_ORG_ID
-from .utils import utc_timestamp
+from ..utils import MOCK_ORG_ID, utc_timestamp
 
 
 @pytest.fixture
