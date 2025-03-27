@@ -14,7 +14,7 @@ from .registry_client import RegistryClient
 from .feature_store_client import FeatureStoreClient
 from .attributes_client import AttributesClient
 from .testing_client import TestingClient
-
+from .dbt import DbtClient
 
 class Signals:
     """Interface to interact with Snowplow Signals AI"""
@@ -24,11 +24,13 @@ class Signals:
         self.api_client = ApiClient(
             api_url=api_url, api_key=api_key, api_key_id=api_key_id, org_id=org_id
         )
+
         self.prompts = PromptsClient(api_client=self.api_client)
         self.registry = RegistryClient(api_client=self.api_client)
         self.feature_store = FeatureStoreClient(api_client=self.api_client)
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
+        self._dbt = DbtClient(api_url=self.api_client.api_url)
 
     def apply(self, objects: list[View | Service]) -> list[ViewOutput | Service]:
         """
