@@ -15,7 +15,6 @@ from .models import (
 from .prompts.client import PromptsClient
 from .registry_client import RegistryClient
 from .testing_client import TestingClient
-
 class Signals:
     """Interface to interact with Snowplow Signals AI"""
 

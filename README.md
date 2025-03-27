@@ -104,4 +104,3 @@ To make a new release:
 2. **Create a release PR**: Open a pull request to the `main` branch with your changelog and any other release-related changes.
 3. **Merge the PR**: Merge the release PR using a merge commit. _Do not use squash or rebase._
 4. **Run the Release workflow**: Trigger the "Release" workflow in GitHub Actions to publish the new version to PyPI.
-   As per the feature store [Spike](https://www.notion.so/keep-in-the-snow/Spike-Feature-Store-API-17d07af295a280e28c80cd3533f05d09)
