@@ -66,11 +66,11 @@ class DbtClient:
                 logger.error(f"Project not found: {project_name}")
                 return False
         else:
-            # Process all project directories (any directory with a utils/base_config.json file)
+            # Process all project directories (any directory with a configs/base_config.json file)
             project_dirs = []
             for item in os.listdir(repo_path):
                 if os.path.isdir(os.path.join(repo_path, item)) and os.path.exists(
-                    os.path.join(repo_path, item, "utils", "base_config.json")
+                    os.path.join(repo_path, item, "configs", "base_config.json")
                 ):
                     project_dirs.append(item)
 
@@ -102,8 +102,8 @@ class DbtClient:
             bool: Whether the generation was successful
         """
         project_path = os.path.join(repo_path, project_name)
-        base_config_path = os.path.join(project_path, "utils/base_config.json")
-        dbt_config_path = os.path.join(project_path, "utils/dbt_config.json")
+        base_config_path = os.path.join(project_path, "configs/base_config.json")
+        dbt_config_path = os.path.join(project_path, "configs/dbt_config.json")
 
         if not os.path.exists(base_config_path):
             logger.warning(f"No base_config.json found for project {project_name}, skipping...")
@@ -119,7 +119,7 @@ class DbtClient:
         generator = DbtConfigGenerator(base_config_data=data)
         output = generator.create_dbt_config()
 
-        # Ensure utils directory exists
+        # Ensure configs directory exists
         os.makedirs(os.path.dirname(dbt_config_path), exist_ok=True)
 
         with open(dbt_config_path, "w") as f:
