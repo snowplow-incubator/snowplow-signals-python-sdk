@@ -4,7 +4,6 @@ import pandas as pd
 
 from .api_client import ApiClient
 from .attributes_client import AttributesClient
-from .batch_autogen import BatchAutogenClient
 from .feature_store_client import FeatureStoreClient
 from .models import (
     OnlineAttributesResponse,
@@ -16,7 +15,6 @@ from .models import (
 from .prompts.client import PromptsClient
 from .registry_client import RegistryClient
 from .testing_client import TestingClient
-
 
 class Signals:
     """Interface to interact with Snowplow Signals AI"""
@@ -32,12 +30,6 @@ class Signals:
         self.feature_store = FeatureStoreClient(api_client=self.api_client)
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
-        self._batch_autogen = BatchAutogenClient(api_client=self.api_client)
-
-    @property
-    def batch_autogen(self) -> BatchAutogenClient:
-        """Get the batch project auto-generation client."""
-        return self._batch_autogen
 
     def apply(self, objects: list[View | Service]) -> list[ViewOutput | Service]:
         """
