@@ -36,19 +36,12 @@ class DbtProjectSetup(BaseModel):
         print("-------------------------------------------------------------------------------")
         logger.info(f"Setting up dbt structure for project: {setup_project_name}")
 
-        # Copy dummy dbt_project to create folder structure for the project
-        src = files("snowplow_signals.dbt.dbt_project")
-        dest = Path(self.repo_path, setup_project_name)
-
-        with as_file(src) as dbt_template_path:
-            shutil.copytree(dbt_template_path, dest, dirs_exist_ok=True)
-
         # Generate config for this project
         generator = BaseConfigGenerator(data=data)
         output = generator.create_base_config()
 
         # Create project-specific output directory
-        project_output_dir = os.path.join(self.repo_path, setup_project_name, "utils")
+        project_output_dir = os.path.join(self.repo_path, setup_project_name, "configs")
         if not os.path.exists(project_output_dir):
             logger.info(f"Creating output directory: {project_output_dir}")
             os.makedirs(project_output_dir)
@@ -84,6 +77,7 @@ class DbtProjectSetup(BaseModel):
                 continue
 
         logger.info("✅ Dbt project generation is finished!")
+        return True
 
     def _get_attribute_data(self):
 
