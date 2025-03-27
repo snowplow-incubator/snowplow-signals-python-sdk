@@ -1,0 +1,15 @@
+# Core SDK dependencies are already installed via the main package
+# These are additional requirements for testing
+
+# dbt
+dbt-core>=1.4.0,<2.0.0
+dbt-snowflake>=1.4.0,<2.0.0
+
+# Web server for the mock API
+fastapi
+uvicorn
+
+# For integration testing
+pytest
+pytest-mock
+httpx
