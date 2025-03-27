@@ -12,8 +12,8 @@ from snowplow_signals.models import (
     View,
 )
 from snowplow_signals.signals import Signals
-
 from .definitions import session_entity, user_entity
+
 
 Signals
 View
@@ -28,4 +28,3 @@ LinkEntity
 Event
 user_entity
 session_entity
-BatchAutogenClient

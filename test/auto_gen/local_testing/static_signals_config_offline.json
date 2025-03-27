@@ -1,0 +1,453 @@
+[
+    {
+        "name": "ecommerce",
+        "version": 1,
+        "subject": "user",
+        "online": true,
+        "offline": true,
+        "status": "Live",
+        "description": "Example simple attributes",
+        "attributes": [
+            {
+                "name": "page_view_events_count_last_8_days",
+                "type": "INT32",
+                "description": "Number of page_view events in the last 8 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "counter",
+                "property": null,
+                "criteria": null,
+                "period": "P8D"
+            },
+            {
+                "name": "page_ping_events_count_last_8_days",
+                "type": "INT32",
+                "description": "Number of page_ping events in the last 8 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_ping",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "counter",
+                "property": null,
+                "criteria": null,
+                "period": "P7D"
+            },
+            {
+                "name": "last_geo_country_last_8_days",
+                "type": "STRING",
+                "description": "Last geo_country value in the last 8 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "last",
+                "property": "geo_country",
+                "criteria": null,
+                "period": null
+            }
+        ],
+        "fields": [
+            {
+                "name": "UPDATED_AT",
+                "type": "UNIX_TIMESTAMP",
+                "description": "Last updated at"
+            }
+        ]
+    },
+    {
+        "name": "support_agent",
+        "version": 1,
+        "subject": "user",
+        "online": true,
+        "offline": true,
+        "status": "Live",
+        "description": "Example custom service agent batch attributes",
+        "attributes": [
+            {
+                "name": "page_view_events_count_last_7_days",
+                "type": "INT32",
+                "description": "Number of page_view events in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "counter",
+                "property": null,
+                "criteria": null,
+                "period": "P7D"
+            },
+            {
+                "name": "page_ping_events_count_last_7_days",
+                "type": "INT32",
+                "description": "Number of page_ping events in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_ping",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "counter",
+                "property": null,
+                "criteria": null,
+                "period": "P7D"
+            },
+            {
+                "name": "last_geo_country_last_7_days",
+                "type": "STRING",
+                "description": "Last geo_country value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "last",
+                "property": "geo_country",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "last_timezone_last_7_days",
+                "type": "STRING",
+                "description": "Last time_zone value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "last",
+                "property": "geo_timezone",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "last_os_last_7_days",
+                "type": "STRING",
+                "description": "Last operating system value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "last",
+                "property": "contexts_nl_basjes_yauaa_context_1[0]:operatingSystemName",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "last_device_class_last_7_days",
+                "type": "STRING",
+                "description": "Last device class value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "last",
+                "property": "contexts_nl_basjes_yauaa_context_1[0]:deviceClass",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "first_mkt_source_last_7_days",
+                "type": "STRING",
+                "description": "First marketing source value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "first",
+                "property": "mkt_source",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "first_mkt_medium_last_7_days",
+                "type": "STRING",
+                "description": "First marketing medium value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "first",
+                "property": "mkt_medium",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "last_mkt_source_last_7_days",
+                "type": "STRING",
+                "description": "Last marketing source value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "last",
+                "property": "mkt_source",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "last_mkt_medium_last_7_days",
+                "type": "STRING",
+                "description": "Last marketing medium value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "last",
+                "property": "mkt_medium",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "first_referrer_source_last_7_days",
+                "type": "STRING",
+                "description": "First referrer source value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "first",
+                "property": "refr_source",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "first_referrer_medium_last_7_days",
+                "type": "STRING",
+                "description": "First referrer medium value in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "first",
+                "property": "refr_medium",
+                "criteria": null,
+                "period": null
+            },
+            {
+                "name": "pricing_pageview_count_last_7_days",
+                "type": "INT32",
+                "description": "Number of pricing page_view visits in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "counter",
+                "property": null,
+                "criteria": {
+                    "all": [
+                        {
+                            "property": "page_url",
+                            "operator": "like",
+                            "value": "%pricing%"
+                        }
+                    ]
+                },
+                "period": "P7D"
+            },
+            {
+                "name": "demo_pageview_count_last_7_days",
+                "type": "INT32",
+                "description": "Number of demo page_view visits in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "page_view",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "counter",
+                "property": null,
+                "criteria": {
+                    "all": [
+                        {
+                            "property": "page_url",
+                            "operator": "like",
+                            "value": "%demo%"
+                        }
+                    ]
+                },
+                "period": "P7D"
+            },
+            {
+                "name": "media_video_event_count_last_7_days",
+                "type": "INT32",
+                "description": "Number of media / video event counts in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "quality_change_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "pause_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "volume_change_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "percent_progress_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "ad_quartile_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "ping_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "seek_start_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "seek_end_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "end_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "ad_start_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "play_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "ready_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "playback_rate_change_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "ad_break_start_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "ad_complete_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "ad_skip_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "buffer_start_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "buffer_end_event",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow.media",
+                        "name": "ad_break_end_event",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "counter",
+                "property": null,
+                "criteria": null,
+                "period": "P7D"
+            },
+            {
+                "name": "form_focus_change_event_count_last_7_days",
+                "type": "INT32",
+                "description": "Form focus or change event counts in the last 7 days",
+                "events": [
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "focus_form",
+                        "version": "1-0-0"
+                    },
+                    {
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "name": "change_form",
+                        "version": "1-0-0"
+                    }
+                ],
+                "aggregation": "counter",
+                "property": null,
+                "criteria": null,
+                "period": "P7D"
+            }
+        ],
+        "fields": [
+            {
+                "name": "UPDATED_AT",
+                "type": "UNIX_TIMESTAMP",
+                "description": "Last updated at"
+            }
+        ]
+    }
+]
