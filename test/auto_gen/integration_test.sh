@@ -84,25 +84,14 @@ echo -e "${GREEN}Created customer repository at $CUSTOMER_REPO_DIR${NC}"
 print_header "Initializing dbt project with the SDK"
 echo -e "${BLUE}Initializing dbt project at $CUSTOMER_REPO_DIR${NC}"
 
-# Verify SDK import and use it
-python3 -c "
-from snowplow_signals import Signals
-print('Successfully imported Signals from snowplow_signals')
-client = Signals('$API_URL').dbt
-# Use the API to fetch signals config
-client.init_project('$CUSTOMER_REPO_DIR')
-"
+# Use CLI instead of Python script
+snowplow-dbt init --repo-path "$CUSTOMER_REPO_DIR" --api-url "$API_URL"
 echo -e "${GREEN}Successfully initialized dbt project${NC}"
 
 # 4. Generate the dbt models
 print_header "Generating dbt models"
 echo -e "${BLUE}Generating dbt models at $CUSTOMER_REPO_DIR${NC}"
-python3 -c "
-from snowplow_signals import Signals
-client = Signals('$API_URL').dbt
-# Use the API to fetch signals config
-client.generate_models('$CUSTOMER_REPO_DIR', update=True)
-"
+snowplow-dbt generate --repo-path "$CUSTOMER_REPO_DIR" --update
 echo -e "${GREEN}Successfully generated dbt models${NC}"
 
 # 5. Find and run dbt models for all projects
