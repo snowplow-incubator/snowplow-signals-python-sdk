@@ -49,3 +49,41 @@ print(feature_data)
 ### Feature Store Integration
 
 As per the feature store [Spike](https://www.notion.so/keep-in-the-snow/Spike-Feature-Store-API-17d07af295a280e28c80cd3533f05d09)
+
+### DBT Project Generation
+
+The SDK includes functionality to automatically generate DBT projects for Snowplow data. This makes it easy to set up and maintain DBT projects that work with Snowplow data.
+
+#### Using the SDK
+
+```python
+from snowplow_signals import Signals
+
+# Initialize the signals client
+signals = Signals(api_url="https://your-api-url.com")
+
+# Initialize a DBT project
+signals.dbt.init_project(
+    repo_path="path/to/your/repo",
+    project_name="your_project_name"  # Optional
+)
+
+# Generate DBT models
+signals.dbt.generate_models(
+    repo_path="path/to/your/repo",
+    project_name="your_project_name",  # Optional
+    update=True  # Whether to update existing files
+)
+```
+
+#### Using the Command Line
+
+The SDK also includes a command-line interface for DBT project generation:
+
+```bash
+# Initialize a DBT project
+snowplow-dbt init --repo-path=path/to/your/repo [--project-name=your_project_name] [--api-url=https://your-api-url.com]
+
+# Generate DBT models
+snowplow-dbt generate --repo-path=path/to/your/repo [--project-name=your_project_name] [--update]
+```

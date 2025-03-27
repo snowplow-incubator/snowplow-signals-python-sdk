@@ -5,3 +5,6 @@ dist
 
 # Environments
 .env.dev
+
+# Autogen
+test/auto_gen/customer_repo/

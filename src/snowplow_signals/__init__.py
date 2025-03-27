@@ -12,6 +12,7 @@ from snowplow_signals.models import (
 )
 from snowplow_signals.signals import Signals
 from .definitions import user_entity, session_entity
+from snowplow_signals.dbt import DbtClient
 
 Signals
 View
@@ -26,3 +27,4 @@ LinkEntity
 Event
 user_entity
 session_entity
+DbtClient
