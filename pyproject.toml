@@ -19,6 +19,7 @@ pre-commit = "^4.1.0"
 isort = "^6.0.0"
 ipykernel = "^6.29.5"
 respx = "^0.22.0"
+datamodel-code-generator = "^0.28.4"
 
 [build-system]
 requires = ["poetry-core"]

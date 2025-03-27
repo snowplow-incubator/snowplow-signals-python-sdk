@@ -1,27 +1,28 @@
-from snowplow_signals.models.data_source import DataSource
-from snowplow_signals.models.entity import (
+from snowplow_signals.models import (
+    View,
+    Service,
+    Attribute,
+    Criteria,
+    Criterion,
     Entity,
-    session_entity,
-    user_entity,
+    BatchSource,
+    Field,
+    LinkEntity,
+    Event,
 )
-from snowplow_signals.models.feature import (
-    Feature,
-    FilterCombinator,
-    FilterCondition,
-)
-from snowplow_signals.models.feature_service import FeatureService
-from snowplow_signals.models.feature_view import FeatureView
-from snowplow_signals.models.field import Field
 from snowplow_signals.signals import Signals
+from .definitions import user_entity, session_entity
 
 Signals
-FeatureView
-FeatureService
-Feature
+View
+Service
+Attribute
+Criteria
+Criterion
 Field
-FilterCombinator
-FilterCondition
-DataSource
+BatchSource
 Entity
+LinkEntity
+Event
 user_entity
 session_entity
