@@ -4,13 +4,12 @@ from .models import View, ViewOutput, Service
 
 # TODO: When PUT endponts are available in the registry API, update existing objects with the input.
 
+
 class RegistryClient:
     def __init__(self, api_client: ApiClient):
         self.api_client = api_client
 
-    def apply(
-        self, objects: list[View | Service]
-    ) -> list[ViewOutput | Service]:
+    def apply(self, objects: list[View | Service]) -> list[ViewOutput | Service]:
         updated_objects: list[View | Service] = []
 
         # First apply all views in case they are dependencies of services
@@ -29,7 +28,7 @@ class RegistryClient:
             response = self.api_client.make_request(
                 method="POST",
                 endpoint="registry/views/",
-                data=view.model_dump(exclude_none=True),
+                data=view.model_dump(mode="json", exclude_none=True),
             )
         except SignalsAPIError as e:
             if e.status_code == 400:
@@ -47,7 +46,7 @@ class RegistryClient:
             response = self.api_client.make_request(
                 method="POST",
                 endpoint="registry/services/",
-                data=service.model_dump(exclude_none=True),
+                data=service.model_dump(mode="json", exclude_none=True),
             )
         except SignalsAPIError as e:
             if e.status_code == 400:
