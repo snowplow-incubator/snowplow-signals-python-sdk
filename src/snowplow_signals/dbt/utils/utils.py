@@ -1,6 +1,5 @@
-import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 
 def write_file(file_path: Path, content: Optional[str]) -> None:

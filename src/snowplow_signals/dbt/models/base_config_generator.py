@@ -47,7 +47,9 @@ class BaseConfigGenerator(BaseModel):
 
         if ":" in property:
             suffix = property.split(":")[1]  # Take the part after ':'
-            return re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()  # Convert to snake_case
+            return re.sub(
+                r"([a-z])([A-Z])", r"\1_\2", suffix
+            ).lower()  # Convert to snake_case
         elif "." in property:
             suffix = property.split(".")[-1]
             return re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
@@ -57,7 +59,9 @@ class BaseConfigGenerator(BaseModel):
     def add_to_properties(self, new_entry: Dict[str, str]):
         """Dynamically add a new property while ensuring deduplication to create a unique list of cleaned properties."""
         filtered_entry = {
-            k: v for k, v in new_entry.items() if k not in {None, ""} and v not in {None, ""}
+            k: v
+            for k, v in new_entry.items()
+            if k not in {None, ""} and v not in {None, ""}
         }
 
         if not filtered_entry:
@@ -74,12 +78,16 @@ class BaseConfigGenerator(BaseModel):
 
         event_strings = []
         for event in event_object_list:
-            event_str = f'iglu:{event["vendor"]}/{event["name"]}/jsonschema/{event["version"]}'
+            event_str = (
+                f'iglu:{event["vendor"]}/{event["name"]}/jsonschema/{event["version"]}'
+            )
             event_strings.append(event_str)
 
         return event_strings
 
-    def _get_filter_condition_name_component(self, filter_condition: Dict[str, Any]) -> str:
+    def _get_filter_condition_name_component(
+        self, filter_condition: Dict[str, Any]
+    ) -> str:
         """Generate a SQL-friendly name component from a filter condition"""
         if not filter_condition:
             return ""
@@ -96,7 +104,9 @@ class BaseConfigGenerator(BaseModel):
 
         property_name = self.get_cleaned_property_name(filter_condition["property"])
 
-        operator = operator_map.get(filter_condition["operator"], filter_condition["operator"])
+        operator = operator_map.get(
+            filter_condition["operator"], filter_condition["operator"]
+        )
 
         # Clean the value to be SQL-friendly
         value = str(filter_condition["value"]).lower()
@@ -111,7 +121,9 @@ class BaseConfigGenerator(BaseModel):
 
         return f"{property_name}_{operator}_{value}"
 
-    def _generate_column_name(self, attribute: Dict[str, Any], agg_short_name: str) -> str:
+    def _generate_column_name(
+        self, attribute: Dict[str, Any], agg_short_name: str
+    ) -> str:
         """Generate a unique SQL-friendly column name incorporating filter conditions"""
         name_components = []
 
@@ -120,7 +132,9 @@ class BaseConfigGenerator(BaseModel):
 
         # Add attribute property if it exists
         if attribute.get("property"):
-            name_components.append(self.get_cleaned_property_name(attribute["property"]))
+            name_components.append(
+                self.get_cleaned_property_name(attribute["property"])
+            )
 
         # Add event filters
         for event in attribute.get("events"):
@@ -134,7 +148,9 @@ class BaseConfigGenerator(BaseModel):
             )  # if any is not found use ALL, only one is allowed in the API
 
             for condition in attribute["criteria"].get(combinator, []):
-                filter_components.append(self._get_filter_condition_name_component(condition))
+                filter_components.append(
+                    self._get_filter_condition_name_component(condition)
+                )
 
             if filter_components:
                 # Sort filter components to ensure consistent naming
@@ -154,7 +170,7 @@ class BaseConfigGenerator(BaseModel):
         else:
             return column_name
 
-    def _generate_modeling_steps(self, attribute: Dict[str, Any]) -> [ModelingStep]:
+    def _generate_modeling_steps(self, attribute: Dict[str, Any]) -> list[ModelingStep]:
         """Generate 3 modeling steps based on attribute type and attributes defined as part of the JSON.
         Through looping through the attributes, events, properties and periods are also extracted.
         """
@@ -208,7 +224,11 @@ class BaseConfigGenerator(BaseModel):
                     modified_condition.property
                 )
                 self.add_to_properties(
-                    {condition["property"]: self.get_cleaned_property_name(condition["property"])}
+                    {
+                        condition["property"]: self.get_cleaned_property_name(
+                            condition["property"]
+                        )
+                    }
                 )
                 modified_conditions.append(modified_condition)
             criteria.add_conditions(
@@ -221,7 +241,9 @@ class BaseConfigGenerator(BaseModel):
             column_name = f"{attribute_agg_short_name}_{self.get_cleaned_property_name(attribute['property'])}"
         else:
             # For other aggregation types (count, sum, etc), use the full column name generation
-            column_name = self._generate_column_name(attribute, attribute_agg_short_name)
+            column_name = self._generate_column_name(
+                attribute, attribute_agg_short_name
+            )
 
         steps.append(
             ModelingStep(
@@ -265,7 +287,11 @@ class BaseConfigGenerator(BaseModel):
         self.events.update(self._get_full_event_reference_array(attribute["events"]))
         if "property" in attribute:
             self.add_to_properties(
-                {attribute["property"]: self.get_cleaned_property_name(attribute["property"])}
+                {
+                    attribute["property"]: self.get_cleaned_property_name(
+                        attribute["property"]
+                    )
+                }
             )
         if attribute["period"] is not None:
             self.periods.add(attribute["period"])
