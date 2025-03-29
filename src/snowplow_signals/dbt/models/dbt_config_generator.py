@@ -1,13 +1,6 @@
-import re
-from typing import Any, Dict, FrozenSet, List, Set
+from typing import Any, Dict
 
 from pydantic import BaseModel
-
-from snowplow_signals.dbt.models.modeling_step import (
-    FilterCondition,
-    ModelingCriteria,
-    ModelingStep,
-)
 
 
 class DbtConfigGenerator(BaseModel):
@@ -162,9 +155,13 @@ class DbtConfigGenerator(BaseModel):
                         # For first/last values, we need to reference the column directly
                         ref_column_name = step["column_name"]
                         if ref_column_name.startswith("first_"):
-                            ref_column_name = ref_column_name[6:]  # Remove 'first_' prefix
+                            ref_column_name = ref_column_name[
+                                6:
+                            ]  # Remove 'first_' prefix
                         elif ref_column_name.startswith("last_"):
-                            ref_column_name = ref_column_name[5:]  # Remove 'last_' prefix
+                            ref_column_name = ref_column_name[
+                                5:
+                            ]  # Remove 'last_' prefix
 
                         attribute_dict = {
                             "step_type": step["step_type"],
@@ -182,12 +179,19 @@ class DbtConfigGenerator(BaseModel):
                         if modeling_criteria:
                             if "all" in modeling_criteria:
                                 and_conditions = modeling_criteria.get("all", [])
-                                and_sql_conditions = self._get_condition_sql(and_conditions, "and")
+                                and_sql_conditions = self._get_condition_sql(
+                                    and_conditions, "and"
+                                )
                             if "any" in modeling_criteria:
                                 or_conditions = modeling_criteria.get("any", [])
-                                or_sql_conditions = self._get_condition_sql(or_conditions, "or")
+                                or_sql_conditions = self._get_condition_sql(
+                                    or_conditions, "or"
+                                )
                             # If both "all" and "any" conditions are present, it means they have OR conditions and also a list of events to filter on using a logical AND, the safest is to wrap the OR conditions in brackets
-                            if len(and_sql_conditions) > 0 and len(or_sql_conditions) > 0:
+                            if (
+                                len(and_sql_conditions) > 0
+                                and len(or_sql_conditions) > 0
+                            ):
                                 condition_statement = (
                                     f"{and_sql_conditions} and ({or_sql_conditions})"
                                 )
@@ -200,7 +204,9 @@ class DbtConfigGenerator(BaseModel):
 
                             if step["aggregation"] == "unique_list":
                                 # Use a property name from the current context
-                                property_name = step.get("property_name", "value")  # Default to "value" if not specified
+                                property_name = step.get(
+                                    "property_name", "value"
+                                )  # Default to "value" if not specified
                                 condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
                                 aggregate_attributes.append(
                                     {
@@ -244,10 +250,18 @@ class DbtConfigGenerator(BaseModel):
                 "daily_last_value_attributes": last_value_attributes,
             },
             "attributes": {
-                "lifetime_aggregates": self.get_attributes_by_type("lifetime_aggregates"),
-                "last_n_day_aggregates": self.get_attributes_by_type("last_n_day_aggregates"),
-                "first_value_attributes": self.get_attributes_by_type("first_value_attributes"),
-                "last_value_attributes": self.get_attributes_by_type("last_value_attributes"),
+                "lifetime_aggregates": self.get_attributes_by_type(
+                    "lifetime_aggregates"
+                ),
+                "last_n_day_aggregates": self.get_attributes_by_type(
+                    "last_n_day_aggregates"
+                ),
+                "first_value_attributes": self.get_attributes_by_type(
+                    "first_value_attributes"
+                ),
+                "last_value_attributes": self.get_attributes_by_type(
+                    "last_value_attributes"
+                ),
             },
         }
 
