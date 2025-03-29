@@ -42,9 +42,6 @@ semver = "^3.0.2"
 [tool.poetry.scripts]
 snowplow-batch-autogen = "snowplow_signals.batch_autogen.cli:app"
 
-[tool.poetry.scripts]
-snowplow-dbt = "snowplow_signals.dbt.cli:app"
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
