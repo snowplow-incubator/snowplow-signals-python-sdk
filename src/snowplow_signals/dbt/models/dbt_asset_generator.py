@@ -1,5 +1,4 @@
 import logging
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -42,7 +41,9 @@ class DbtAssetGenerator(BaseModel):
         """Private helper to construct the dbt asset file path."""
         if (self._get_file_type() == "yml") or (self.asset_type == "macro"):
             return Path(
-                self.project_path / self.asset_subpath / f"{self.filename}.{self._get_file_type()}"
+                self.project_path
+                / self.asset_subpath
+                / f"{self.filename}.{self._get_file_type()}"
             )
         else:
             return Path(
