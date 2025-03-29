@@ -1,14 +1,9 @@
-import argparse
 import json
 import logging
 import os
-import shutil
-from importlib.resources import as_file, files
-from pathlib import Path
 from typing import Optional
 
 import typer
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel
 from typing_extensions import Annotated
 
@@ -16,7 +11,6 @@ from snowplow_signals.dbt.models.base_config_generator import (
     BaseConfigGenerator,
 )
 from snowplow_signals.dbt.scripts.fetch_attributes import fetch_attributes
-from snowplow_signals.dbt.utils.utils import write_file
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +27,9 @@ class DbtProjectSetup(BaseModel):
 
     def setup_project(self, data, setup_project_name):
         """Creates the dbt project directory and required subdirectories."""
-        print("-------------------------------------------------------------------------------")
+        print(
+            "-------------------------------------------------------------------------------"
+        )
         logger.info(f"Setting up dbt structure for project: {setup_project_name}")
 
         # Generate config for this project
@@ -47,11 +43,15 @@ class DbtProjectSetup(BaseModel):
             os.makedirs(project_output_dir)
 
         # Save helper configs for this project (for debugging mainly)
-        attribute_definitions_path = os.path.join(project_output_dir, "attribute_definitions.json")
+        attribute_definitions_path = os.path.join(
+            project_output_dir, "attribute_definitions.json"
+        )
         with open(attribute_definitions_path, "w") as f:
             json.dump(data, f, indent=4)
         base_config_path = os.path.join(project_output_dir, "base_config.json")
-        logger.info(f"✅ Attribute definitions saved for {setup_project_name}: {base_config_path}")
+        logger.info(
+            f"✅ Attribute definitions saved for {setup_project_name}: {base_config_path}"
+        )
 
         with open(base_config_path, "w") as f:
             json.dump(output, f, indent=4)

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, Optional
+from typing import List, Literal
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -17,7 +17,9 @@ class FilterCondition(BaseModel):
         ">=",
         "like",
         "in",
-    ] = PydanticField(description="The operator used to compare the property to the value.")
+    ] = PydanticField(
+        description="The operator used to compare the property to the value."
+    )
     value: str | int | float | bool = PydanticField(
         description="The value to compare the property to."
     )
@@ -27,7 +29,9 @@ class ModelingCriteria(BaseModel):
     all: List[FilterCondition] = PydanticField(default_factory=list)
     any: List[FilterCondition] = PydanticField(default_factory=list)
 
-    def add_condition(self, condition: FilterCondition, target_group: Literal["all", "any"]):
+    def add_condition(
+        self, condition: FilterCondition, target_group: Literal["all", "any"]
+    ):
         if target_group == "all":
             self.all.append(condition)
         elif target_group == "any":
@@ -55,9 +59,12 @@ class ModelingCriteria(BaseModel):
 
 class ModelingStep(BaseModel):
     step_type: Literal["filtered_events", "daily_aggregation", "attribute_aggregation"]
-    enabled: bool = True  # Whether the user would like to materialize that level of aggregation
+    enabled: bool = (
+        True  # Whether the user would like to materialize that level of aggregation
+    )
     aggregation: (
-        Literal["count", "sum", "min", "max", "avg", "first", "last", "unique_list"] | None
+        Literal["count", "sum", "min", "max", "avg", "first", "last", "unique_list"]
+        | None
     ) = PydanticField(description="The calculation type of the attribute.")
     column_name: str | None = PydanticField(
         description="The column name of the attribute",
