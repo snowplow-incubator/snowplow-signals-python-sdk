@@ -12,7 +12,7 @@ from snowplow_signals.dbt import DbtClient
 
 # Create the main Typer app with metadata
 app = typer.Typer(
-    help="Generate dbt projects for Snowplow data",
+    help="Generate dbt projects for Snowplow signals data",
     add_completion=False,
     no_args_is_help=True,
 )
