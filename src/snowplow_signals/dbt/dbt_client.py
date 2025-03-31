@@ -19,10 +19,8 @@ class DbtClient:
 
         Args:
             api_url: URL of the API server to fetch schema information.
-                     If None, local file mode will be used.
         """
         self.api_url = api_url
-        self.use_api = self.api_url is not None
 
     def init_project(self, repo_path: str, project_name: Optional[str] = None):
         """
@@ -35,7 +33,6 @@ class DbtClient:
         """
         setup = DbtProjectSetup(
             api_url=self.api_url,
-            use_api=self.use_api,
             repo_path=repo_path,
             project_name=project_name,
         )

@@ -21,7 +21,6 @@ class DbtProjectSetup(BaseModel):
     """
 
     api_url: Optional[str] = None
-    use_api: bool = True
     repo_path: Annotated[str, typer.Option()] = "customer_repo"
     project_name: Optional[str] = None
 
@@ -80,28 +79,9 @@ class DbtProjectSetup(BaseModel):
         return True
 
     def _get_attribute_data(self):
-
         try:
-            # Either fetch from API or load from local file
-            if self.use_api:
-                logger.info("Fetching attribute definitions from API")
-                data = fetch_attributes(api_url=self.api_url, source_type="offline")
-
-            else:
-                logger.info("Loading attribute definitions from static config file")
-                script_dir = os.path.dirname(os.path.abspath(__file__))
-                static_config_path = os.path.join(
-                    script_dir,
-                    "..",
-                    "..",
-                    "..",
-                    "integration_tests",
-                    "local_testing",
-                    "static_signals_config_offline.json",
-                )
-
-                with open(static_config_path) as f:
-                    data = json.load(f)
+            logger.info("Fetching attribute definitions from API")
+            data = fetch_attributes(api_url=self.api_url, source_type="offline")
 
             # Filter by project name if specified
             if self.project_name:
