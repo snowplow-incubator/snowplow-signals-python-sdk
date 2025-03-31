@@ -1,30 +1,38 @@
 import json
 import logging
 import os
-from typing import Optional
 
 import typer
-from pydantic import BaseModel
 from typing_extensions import Annotated
 
 from snowplow_signals.dbt.models.base_config_generator import (
     BaseConfigGenerator,
 )
-from snowplow_signals.dbt.scripts.fetch_attributes import fetch_attributes
+
+from ...api_client import ApiClient
+from ...models import ViewOutput
 
 logger = logging.getLogger(__name__)
 
 
-class DbtProjectSetup(BaseModel):
+class DbtProjectSetup:
     """
     Base class for setting up the base dbt project(s) including the base config.
     """
 
-    api_url: Optional[str] = None
-    repo_path: Annotated[str, typer.Option()] = "customer_repo"
-    project_name: Optional[str] = None
+    def __init__(
+        self,
+        api_client: ApiClient,
+        repo_path: Annotated[str, typer.Option()] = "customer_repo",
+        project_name: str | None = None,
+    ):
+        self.api_client = api_client
+        self.repo_path = repo_path
+        self.project_name = project_name
 
-    def setup_project(self, data, setup_project_name):
+    def setup_attribute_view_project(
+        self, attribute_view: ViewOutput, setup_project_name: str
+    ):
         """Creates the dbt project directory and required subdirectories."""
         print(
             "-------------------------------------------------------------------------------"
@@ -32,7 +40,7 @@ class DbtProjectSetup(BaseModel):
         logger.info(f"Setting up dbt structure for project: {setup_project_name}")
 
         # Generate config for this project
-        generator = BaseConfigGenerator(data=data)
+        generator = BaseConfigGenerator(data=attribute_view)
         output = generator.create_base_config()
 
         # Create project-specific output directory
@@ -46,7 +54,7 @@ class DbtProjectSetup(BaseModel):
             project_output_dir, "attribute_definitions.json"
         )
         with open(attribute_definitions_path, "w") as f:
-            json.dump(data, f, indent=4)
+            json.dump(attribute_view, f, indent=4)
         base_config_path = os.path.join(project_output_dir, "base_config.json")
         logger.info(
             f"✅ Attribute definitions saved for {setup_project_name}: {base_config_path}"
@@ -62,36 +70,42 @@ class DbtProjectSetup(BaseModel):
         """Sets up dbt files for one or all projects."""
         logger.info("Setting up dbt project(s)...")
 
-        data = self._get_attribute_data()
+        attribute_views = self._get_attribute_views()
 
-        if self.project_name:
-            self.setup_project(project_path, data, self.project_name)
-        else:
-            for attribute_data in data:
-                current_project_name = attribute_data.get("name")
-                if not current_project_name:
-                    logger.warning("Found attribute data without name, skipping...")
-                else:
-                    self.setup_project(attribute_data, current_project_name)
-                continue
+        # FIXME What about versions ?
+        for attribute_view in attribute_views:
+            self.setup_attribute_view_project(attribute_view, attribute_view.name)
 
         logger.info("✅ Dbt project generation is finished!")
         return True
 
-    def _get_attribute_data(self):
-        try:
-            logger.info("Fetching attribute definitions from API")
-            data = fetch_attributes(api_url=self.api_url, source_type="offline")
+    def _fetch_attribute_views(self) -> list[ViewOutput]:
+        attribute_views = self.api_client.make_request(
+            method="GET",
+            endpoint="registry/views/",
+            params={"offline": True},
+        )
+        return [ViewOutput.model_validate(view) for view in attribute_views]
 
-            # Filter by project name if specified
-            if self.project_name:
-                data = [item for item in data if item.get("name") == self.project_name]
-                if not data:
-                    raise ValueError(
-                        f"No project/attribute view found with name: {self.project_name}"
-                    )
+    def _get_attribute_views(self):
+        logger.info("Fetching attribute views from API")
+        all_attribute_views = self._fetch_attribute_views()
+        logger.debug(
+            f"Received API response: {json.dumps(all_attribute_views, indent=2)}"
+        )
 
-        except Exception as e:
-            logger.error(f"Error generating config: {e}")
-            raise
-        return data
+        if len(all_attribute_views) == 0:
+            raise ValueError(f"No attribute views available.")
+
+        # Filter by project name if specified
+        if self.project_name:
+            project_views = [
+                view for view in all_attribute_views if view.name == self.project_name
+            ]
+            if not project_views:
+                raise ValueError(
+                    f"No project/attribute view found with name: {self.project_name}"
+                )
+            return project_views
+        else:
+            return all_attribute_views
