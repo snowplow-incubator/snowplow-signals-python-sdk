@@ -1,10 +1,18 @@
 [tool.poetry]
 name = "snowplow-signals"
 version = "0.1.0"
-description = ""
+description = "Snowplow Signals SDK - A Python package for working with Snowplow data, with optional dbt integration"
 authors = ["Jack Keene <jack.keene@snowplowanalytics.com>"]
 readme = "README.md"
 packages = [{ include = "snowplow_signals", from = "src" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -12,8 +20,12 @@ pydantic = "^2.10.5"
 pandas = "^2.2.0"
 httpx = "^0.28.1"
 pyjwt = "^2.10.1"
-jinja2 = "^3.1.3"
-typer = "^0.9.0"
+
+[tool.poetry.extras]
+dbt = [
+    "jinja2>=3.1.3",
+    "typer>=0.9.0"
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
