@@ -1,11 +1,14 @@
 """Client for interacting with dbt project generation"""
-import os
+
 import logging
+import os
 from typing import Optional
 
-from snowplow_signals.dbt.models.dbt_project_setup import DbtProjectSetup
 from snowplow_signals.dbt.models.dbt_asset_generator import DbtAssetGenerator
 from snowplow_signals.dbt.models.dbt_config_generator import DbtConfigGenerator
+from snowplow_signals.dbt.models.dbt_project_setup import DbtProjectSetup
+
+from ..api_client import ApiClient
 
 logger = logging.getLogger(__name__)
 
@@ -13,14 +16,8 @@ logger = logging.getLogger(__name__)
 class DbtClient:
     """Client for generating dbt projects for Snowplow data"""
 
-    def __init__(self, api_url: Optional[str] = None):
-        """
-        Initialize the dbt client.
-
-        Args:
-            api_url: URL of the API server to fetch schema information.
-        """
-        self.api_url = api_url
+    def __init__(self, api_client: ApiClient):
+        self.api_client = api_client
 
     def init_project(self, repo_path: str, project_name: Optional[str] = None):
         """
@@ -32,7 +29,7 @@ class DbtClient:
                          If None, all projects will be initialized.
         """
         setup = DbtProjectSetup(
-            api_url=self.api_url,
+            api_client=self.api_client,
             repo_path=repo_path,
             project_name=project_name,
         )
@@ -56,7 +53,9 @@ class DbtClient:
             if os.path.exists(os.path.join(repo_path, project_name)):
                 success = self._generate_project_assets(repo_path, project_name, update)
                 if not success:
-                    logger.error(f"Failed to generate models for project: {project_name}")
+                    logger.error(
+                        f"Failed to generate models for project: {project_name}"
+                    )
                     return False
                 return True
             else:
@@ -72,7 +71,9 @@ class DbtClient:
                     project_dirs.append(item)
 
             if not project_dirs:
-                logger.error(f"No project directories found with base_config.json in {repo_path}")
+                logger.error(
+                    f"No project directories found with base_config.json in {repo_path}"
+                )
                 return False
 
             success_count = 0
@@ -86,7 +87,9 @@ class DbtClient:
             )
             return success_count > 0
 
-    def _generate_project_assets(self, repo_path: str, project_name: str, update: bool = False):
+    def _generate_project_assets(
+        self, repo_path: str, project_name: str, update: bool = False
+    ):
         """
         Generate dbt project assets for a specific project/attribute view.
 
@@ -103,7 +106,9 @@ class DbtClient:
         dbt_config_path = os.path.join(project_path, "configs/dbt_config.json")
 
         if not os.path.exists(base_config_path):
-            logger.warning(f"No base_config.json found for project {project_name}, skipping...")
+            logger.warning(
+                f"No base_config.json found for project {project_name}, skipping..."
+            )
             return False
 
         logger.info(f"Processing project/attribute view: {project_name}")
@@ -111,6 +116,7 @@ class DbtClient:
         # Load base config and generate dbt config
         with open(base_config_path) as f:
             import json
+
             data = json.load(f)
 
         generator = DbtConfigGenerator(base_config_data=data)
@@ -236,4 +242,4 @@ class DbtClient:
 
         except ValueError as e:
             logger.error(f"Error generating models for {project_name}: {e}")
-            return False 
+            return False
