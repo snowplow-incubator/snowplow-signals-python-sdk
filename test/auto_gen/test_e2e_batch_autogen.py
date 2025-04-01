@@ -3,7 +3,6 @@ End-to-end tests for batch model generation functionality.
 These tests verify the complete flow of creating and generating dbt models.
 """
 
-import os
 import httpx
 from pathlib import Path
 

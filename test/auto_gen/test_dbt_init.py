@@ -1,9 +1,7 @@
 """Tests for the dbt module initialization."""
 
-import importlib
 import sys
 from unittest.mock import patch, Mock
-import pytest
 
 
 def test_successful_import():
