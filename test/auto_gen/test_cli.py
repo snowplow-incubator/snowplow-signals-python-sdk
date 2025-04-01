@@ -5,7 +5,7 @@ Verifies command-line argument handling and command execution.
 
 from pathlib import Path
 from typing import Generator, List
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 import typer
