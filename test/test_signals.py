@@ -1,6 +1,6 @@
 import httpx
 
-from snowplow_signals import LinkEntity, Service, Signals, View, user_entity
+from snowplow_signals import LinkEntity, Service, View, user_entity
 from snowplow_signals.models import ViewOutput
 
 
