@@ -11,6 +11,7 @@ from snowplow_signals.dbt.models.base_config_generator import (
 
 from ...api_client import ApiClient
 from ...models import ViewOutput
+from ..utils.utils import filter_latest_model_version_by_name
 
 logger = logging.getLogger(__name__)
 
@@ -24,47 +25,36 @@ class DbtProjectSetup:
         self,
         api_client: ApiClient,
         repo_path: Annotated[str, typer.Option()] = "customer_repo",
-        project_name: str | None = None,
+        view_name: str | None = None,
+        view_version: int | None = None,
     ):
         self.api_client = api_client
         self.repo_path = repo_path
-        self.project_name = project_name
+        self.view_name = view_name
+        self.view_version = view_version
 
-    def setup_attribute_view_project(
-        self, attribute_view: ViewOutput, setup_project_name: str
-    ):
+    def create_project_directories(self, setup_project_name: str, base_config: dict):
+        # Create project-specific output directory
+        project_output_dir = os.path.join(self.repo_path, setup_project_name, "configs")
+        if not os.path.exists(project_output_dir):
+            os.makedirs(project_output_dir)
+        base_config_path = os.path.join(project_output_dir, "base_config.json")
+        with open(base_config_path, "w") as f:
+            json.dump(base_config, f, indent=4)
+        logger.info(f"✅ Base config file generated for {setup_project_name}")
+
+    def get_attribute_view_project_config(
+        self,
+        attribute_view: ViewOutput,
+        setup_project_name: str,
+        # FIXME return type to be based on create_base_config typed value
+    ) -> dict:
         """Creates the dbt project directory and required subdirectories."""
-        print(
-            "-------------------------------------------------------------------------------"
-        )
         logger.info(f"Setting up dbt structure for project: {setup_project_name}")
 
         # Generate config for this project
         generator = BaseConfigGenerator(data=attribute_view)
-        output = generator.create_base_config()
-
-        # Create project-specific output directory
-        project_output_dir = os.path.join(self.repo_path, setup_project_name, "configs")
-        if not os.path.exists(project_output_dir):
-            logger.info(f"Creating output directory: {project_output_dir}")
-            os.makedirs(project_output_dir)
-
-        # Save helper configs for this project (for debugging mainly)
-        attribute_definitions_path = os.path.join(
-            project_output_dir, "attribute_definitions.json"
-        )
-        with open(attribute_definitions_path, "w") as f:
-            json.dump(attribute_view, f, indent=4)
-        base_config_path = os.path.join(project_output_dir, "base_config.json")
-        logger.info(
-            f"✅ Attribute definitions saved for {setup_project_name}: {base_config_path}"
-        )
-
-        with open(base_config_path, "w") as f:
-            json.dump(output, f, indent=4)
-        logger.info(
-            f"✅ Base config file generated for {setup_project_name}: {attribute_definitions_path}"
-        )
+        return generator.create_base_config()
 
     def setup_all_projects(self):
         """Sets up dbt files for one or all projects."""
@@ -72,9 +62,12 @@ class DbtProjectSetup:
 
         attribute_views = self._get_attribute_views()
 
-        # FIXME What about versions ?
         for attribute_view in attribute_views:
-            self.setup_attribute_view_project(attribute_view, attribute_view.name)
+            view_project_name = f"{attribute_view.name}_{attribute_view.version}"
+            project_config = self.get_attribute_view_project_config(
+                attribute_view, f"{attribute_view.name}_{attribute_view.version}"
+            )
+            self.create_project_directories(view_project_name, project_config)
 
         logger.info("✅ Dbt project generation is finished!")
         return True
@@ -87,7 +80,7 @@ class DbtProjectSetup:
         )
         return [ViewOutput.model_validate(view) for view in attribute_views]
 
-    def _get_attribute_views(self):
+    def _get_attribute_views(self) -> list[ViewOutput]:
         logger.info("Fetching attribute views from API")
         all_attribute_views = self._fetch_attribute_views()
         logger.debug(
@@ -97,15 +90,17 @@ class DbtProjectSetup:
         if len(all_attribute_views) == 0:
             raise ValueError(f"No attribute views available.")
 
+        latest_views = filter_latest_model_version_by_name(all_attribute_views)
+
         # Filter by project name if specified
-        if self.project_name:
+        if self.view_name:
             project_views = [
-                view for view in all_attribute_views if view.name == self.project_name
+                view for view in latest_views if view.name == self.view_name
             ]
             if not project_views:
                 raise ValueError(
-                    f"No project/attribute view found with name: {self.project_name}"
+                    f"No project/attribute view found with name: {self.view_name}"
                 )
             return project_views
         else:
-            return all_attribute_views
+            return latest_views
