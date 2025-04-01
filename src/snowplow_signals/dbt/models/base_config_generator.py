@@ -1,9 +1,6 @@
 import re
 from typing import Any, Dict, FrozenSet, Literal, Set
 
-import pandas as pd
-from pydantic import BaseModel
-
 from snowplow_signals.dbt.models.modeling_step import (
     FilterCondition,
     ModelingCriteria,
@@ -13,7 +10,7 @@ from snowplow_signals.dbt.models.modeling_step import (
 from ...models import AttributeOutput, CriterionOutput, Event, ViewOutput
 
 
-class BaseConfigGenerator(BaseModel):
+class BaseConfigGenerator:
     events: Set[str]
     properties: list[dict[str, str]]
     periods: Set[str]
@@ -145,22 +142,18 @@ class BaseConfigGenerator(BaseModel):
             name_components.append(self.get_cleaned_property_name(attribute.property))
 
         # Add event filters
-        # FIXME events can have empty names based on the type, what do we do in this case ?
         for event in attribute.events:
+            if not event.name:
+                raise ValueError("Event name cannot be empty.")
             name_components.append(event.name)
 
         # Add filter conditions if they exist
         if attribute.criteria:
             filter_components = []
-            # Old check
-            # combinator = attribute["criteria"].get(
-            # "any", "all"
-            # )  # if any is not found use ALL, only one is allowed in the API
 
             # if any is not found use ALL, only one is allowed in the API
             combinator = "any" if attribute.criteria.any else "all"
 
-            # This thing below probably never worked ? because of the commented about above condition
             for condition in attribute.criteria.any or attribute.criteria.all or []:
                 filter_components.append(
                     self._get_filter_condition_name_component(condition)
@@ -285,8 +278,7 @@ class BaseConfigGenerator(BaseModel):
                 condition=FilterCondition(
                     property="period",
                     operator=">",
-                    # FIXME do we need pandas for this ?
-                    value=pd.Timedelta(attribute.period).days,
+                    value=attribute.period.days,
                 ),
                 target_group="all",
             )
