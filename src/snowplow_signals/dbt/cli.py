@@ -9,6 +9,7 @@ import typer
 from typing_extensions import Annotated
 
 from snowplow_signals.dbt import DbtClient
+from snowplow_signals.api_client import ApiClient
 
 # Create the main Typer app with metadata
 app = typer.Typer(
@@ -63,29 +64,60 @@ def validate_repo_path(repo_path: str) -> Path:
     return path
 
 
+def create_api_client(
+    api_url: str,
+    api_key: str,
+    api_key_id: str,
+    org_id: str,
+) -> ApiClient:
+    """Create an API client with the given credentials.
+    
+    Args:
+        api_url: URL of the API server
+        api_key: API key for authentication
+        api_key_id: ID of the API key
+        org_id: Organization ID
+        
+    Returns:
+        ApiClient: Configured API client
+    """
+    return ApiClient(
+        api_url=api_url,
+        api_key=api_key,
+        api_key_id=api_key_id,
+        org_id=org_id,
+    )
+
+
 @app.command()
 def init(
+    api_url: Annotated[str, typer.Option(help="URL of the API server to fetch schema information")],
+    api_key: Annotated[str, typer.Option(help="API key for authentication")],
+    api_key_id: Annotated[str, typer.Option(help="ID of the API key")],
+    org_id: Annotated[str, typer.Option(help="Organization ID")],
     repo_path: Annotated[str, typer.Option(help="Path to the repository where projects will be stored")],
-    project_name: Annotated[Optional[str], typer.Option(help="Optional name of a specific project to initialize")] = None,
-    api_url: Annotated[Optional[str], typer.Option(help="URL of the API server to fetch schema information")] = None,
+    view_name: Annotated[Optional[str], typer.Option(help="Optional name of a specific attribute view project to initialize")] = None,
+    view_version: Annotated[Optional[int], typer.Option(help="Optional version of the attribute view to initialize. Only used if view_name is provided")] = None,
     debug: Annotated[bool, typer.Option(help="Enable debug logging")] = False,
 ) -> None:
     """Initialize dbt project structure and base configuration.
     
     This command sets up the basic dbt project structure including directories
     and configuration files. It can initialize either all projects or a specific
-    project if project_name is provided.
+    attribute view project if view_name is provided.
     """
     try:
         setup_logging(debug)
         validated_path = validate_repo_path(repo_path)
         
         logger.info(f"Initializing dbt project(s) in {validated_path}")
-        client = DbtClient(api_url=api_url)
+        api_client = create_api_client(api_url, api_key, api_key_id, org_id)
+        client = DbtClient(api_client=api_client)
         
         success = client.init_project(
             repo_path=str(validated_path),
-            project_name=project_name
+            view_name=view_name,
+            view_version=view_version
         )
         
         if not success:
@@ -101,10 +133,13 @@ def init(
 
 @app.command()
 def generate(
+    api_url: Annotated[str, typer.Option(help="URL of the API server to fetch schema information")],
+    api_key: Annotated[str, typer.Option(help="API key for authentication")],
+    api_key_id: Annotated[str, typer.Option(help="ID of the API key")],
+    org_id: Annotated[str, typer.Option(help="Organization ID")],
     repo_path: Annotated[str, typer.Option(help="Path to the repository where projects are stored")],
     project_name: Annotated[Optional[str], typer.Option(help="Optional name of a specific project to generate models for")] = None,
     update: Annotated[bool, typer.Option(help="Whether to update existing files")] = False,
-    api_url: Annotated[Optional[str], typer.Option(help="URL of the API server to fetch schema information")] = None,
     debug: Annotated[bool, typer.Option(help="Enable debug logging")] = False,
 ) -> None:
     """Generate dbt project assets such as data models, macros and config files.
@@ -118,7 +153,8 @@ def generate(
         validated_path = validate_repo_path(repo_path)
         
         logger.info(f"Generating dbt models in {validated_path}")
-        client = DbtClient(api_url=api_url)
+        api_client = create_api_client(api_url, api_key, api_key_id, org_id)
+        client = DbtClient(api_client=api_client)
         
         success = client.generate_models(
             repo_path=str(validated_path),
@@ -134,6 +170,51 @@ def generate(
         
     except Exception as e:
         logger.error(f"Error during model generation: {str(e)}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def test_connection(
+    api_url: Annotated[str, typer.Option(help="URL of the API server to test connection")],
+    api_key: Annotated[str, typer.Option(help="API key for authentication")],
+    api_key_id: Annotated[str, typer.Option(help="ID of the API key")],
+    org_id: Annotated[str, typer.Option(help="Organization ID")],
+    debug: Annotated[bool, typer.Option(help="Enable debug logging")] = False,
+) -> None:
+    """Test the connection to the API server and check its health status.
+    
+    This command attempts to connect to the API server and checks its health status
+    by calling the health endpoint. It will display the overall status and the status
+    of individual dependencies.
+    """
+    try:
+        setup_logging(debug)
+        logger.info("Testing API connection...")
+        
+        api_client = create_api_client(api_url, api_key, api_key_id, org_id)
+        
+        # Call the health endpoint using make_request
+        health_response = api_client.make_request(
+            method="GET",
+            endpoint="health-all"
+        )
+        
+        if health_response["status"] == "ok":
+            logger.info("✅ API connection successful!")
+            logger.info("Dependencies status:")
+            for dep, status in health_response["dependencies"].items():
+                status_symbol = "✅" if status == "ok" else "❌"
+                logger.info(f"  {status_symbol} {dep}: {status}")
+        else:
+            logger.error("❌ API connection failed!")
+            logger.error("Dependencies status:")
+            for dep, status in health_response["dependencies"].items():
+                status_symbol = "✅" if status == "ok" else "❌"
+                logger.error(f"  {status_symbol} {dep}: {status}")
+            raise typer.Exit(code=1)
+            
+    except Exception as e:
+        logger.error(f"❌ Error testing API connection: {str(e)}")
         raise typer.Exit(code=1)
 
 
