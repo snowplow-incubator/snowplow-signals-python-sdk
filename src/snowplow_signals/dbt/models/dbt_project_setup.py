@@ -84,7 +84,7 @@ class DbtProjectSetup:
         logger.info("Fetching attribute views from API")
         all_attribute_views = self._fetch_attribute_views()
         logger.debug(
-            f"Received API response: {json.dumps(all_attribute_views, indent=2)}"
+            f"Received API response: {[view.model_dump_json() for view in all_attribute_views]}"
         )
 
         if len(all_attribute_views) == 0:
