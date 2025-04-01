@@ -8,6 +8,7 @@ import httpx
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 from typing import List
+import typer
 
 from snowplow_signals.dbt.cli import app
 
@@ -486,4 +487,55 @@ def test_cli_test_connection_fails_with_non_200_status(api_params: List[str], re
     
     assert exc_info.value.code == 1
     assert token_mock.called
-    assert health_mock.called 
+    assert health_mock.called
+
+def test_create_api_client(respx_mock) -> None:
+    """Test the create_api_client function directly."""
+    from snowplow_signals.dbt.cli import create_api_client
+    from snowplow_signals.api_client import ApiClient
+    
+    # Mock the token request
+    token_mock = respx_mock.get(
+        f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{TEST_ORG_ID}/credentials/v3/token"
+    ).mock(return_value=httpx.Response(
+        200,
+        json={"accessToken": "test-token"}
+    ))
+    
+    # Create a client without any mocking
+    client = create_api_client(
+        api_url=TEST_API_URL,
+        api_key=TEST_API_KEY,
+        api_key_id=TEST_API_KEY_ID,
+        org_id=TEST_ORG_ID
+    )
+    
+    # Verify it's the correct type
+    assert isinstance(client, ApiClient)
+    
+    # Verify all attributes are set correctly
+    assert client.api_url == TEST_API_URL
+    assert client.api_key == TEST_API_KEY
+    assert client.api_key_id == TEST_API_KEY_ID
+    assert client.org_id == TEST_ORG_ID
+    
+    # Verify the client can fetch a token (this will hit line 63)
+    token = client._fetch_token()
+    assert token == "test-token"
+    assert token_mock.called
+
+def test_validate_repo_path_fails_with_file(test_repo_dir: Path) -> None:
+    """Test validate_repo_path when path exists but is not a directory."""
+    from snowplow_signals.dbt.cli import validate_repo_path
+    
+    # Create a file instead of a directory
+    test_file = test_repo_dir / "test_file.txt"
+    test_file.touch()
+    
+    with pytest.raises(typer.BadParameter) as exc_info:
+        validate_repo_path(str(test_file))
+    
+    assert "is not a directory" in str(exc_info.value)
+    
+    # Clean up
+    test_file.unlink() 
