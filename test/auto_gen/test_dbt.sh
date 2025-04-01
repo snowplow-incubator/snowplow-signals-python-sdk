@@ -26,7 +26,7 @@ print_header() {
 
 print_header "Installing the SDK in development mode"
 cd "$PROJECT_ROOT"
-pip install -e .
+pip install -e . --extras dbt
 pip install pytest
 echo -e "${GREEN}SDK installed in development mode${NC}"
 
