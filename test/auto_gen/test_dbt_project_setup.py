@@ -1,6 +1,7 @@
 import httpx
 import pytest
 
+from snowplow_signals.dbt.dbt_client import DbtClient
 from snowplow_signals.dbt.models.dbt_project_setup import DbtProjectSetup
 
 from .utils import get_attribute_view_response

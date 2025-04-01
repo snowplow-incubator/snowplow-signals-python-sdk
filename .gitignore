@@ -10,3 +10,5 @@ dist
 
 # Autogen
 test/auto_gen/customer_repo/
+
+/.vscode
