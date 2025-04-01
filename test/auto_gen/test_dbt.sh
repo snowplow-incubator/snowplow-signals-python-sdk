@@ -26,8 +26,6 @@ print_header() {
 
 print_header "Installing the SDK in development mode"
 cd "$PROJECT_ROOT"
-pip install -e ".[dbt]"
-pip install pytest
 echo -e "${GREEN}SDK installed in development mode${NC}"
 
 # Main execution starts here
@@ -37,7 +35,7 @@ echo "$(date)"
 # Run the test script with pytest to generate the dbt project
 print_header "Running test_e2e_batch_autogen.py"
 cd "$PROJECT_ROOT"
-pytest test/auto_gen/test_e2e_batch_autogen.py -v
+poetry run pytest test/auto_gen/test_e2e_batch_autogen.py -v
 
 # Check if test_dir was created successfully
 if [ ! -d "test/auto_gen/customer_repo" ]; then
