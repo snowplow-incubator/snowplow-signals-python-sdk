@@ -46,13 +46,8 @@ class DbtProjectSetup:
     def get_attribute_view_project_config(
         self,
         attribute_view: ViewOutput,
-        setup_project_name: str,
         # FIXME return type to be based on create_base_config typed value
     ) -> dict:
-        """Creates the dbt project directory and required subdirectories."""
-        logger.info(f"Setting up dbt structure for project: {setup_project_name}")
-
-        # Generate config for this project
         generator = BaseConfigGenerator(data=attribute_view)
         return generator.create_base_config()
 
@@ -64,9 +59,7 @@ class DbtProjectSetup:
 
         for attribute_view in attribute_views:
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
-            project_config = self.get_attribute_view_project_config(
-                attribute_view, f"{attribute_view.name}_{attribute_view.version}"
-            )
+            project_config = self.get_attribute_view_project_config(attribute_view)
             self.create_project_directories(view_project_name, project_config)
 
         logger.info("✅ Dbt project generation is finished!")
