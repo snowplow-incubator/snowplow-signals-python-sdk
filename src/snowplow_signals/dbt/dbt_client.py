@@ -19,19 +19,30 @@ class DbtClient:
     def __init__(self, api_client: ApiClient):
         self.api_client = api_client
 
-    def init_project(self, repo_path: str, project_name: Optional[str] = None):
+    def init_project(
+        self,
+        repo_path: str,
+        view_name: str | None = None,
+        view_version: int | None = None,
+    ):
         """
         Initialize dbt project structure and base configuration.
 
         Args:
             repo_path: Path to the repository where projects will be stored
-            project_name: Optional name of a specific project to initialize.
+            view_name: Optional name of a specific attribute view project to initialize.
                          If None, all projects will be initialized.
+            view_version: Optional version of the attribute view to initialize.
+                         If None, the latest version will be used.
+                         Only used if view_name is not None.
         """
+
+        # TODO - Throw if version with no name -> Add overloads
         setup = DbtProjectSetup(
             api_client=self.api_client,
             repo_path=repo_path,
-            project_name=project_name,
+            view_name=view_name,
+            view_version=view_version,
         )
 
         return setup.setup_all_projects()
