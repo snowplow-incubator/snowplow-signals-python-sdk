@@ -81,7 +81,7 @@ class DbtProjectSetup:
         )
 
         if len(all_attribute_views) == 0:
-            raise ValueError(f"No attribute views available.")
+            raise ValueError("No attribute views available.")
 
         latest_views = filter_latest_model_version_by_name(all_attribute_views)
 
