@@ -452,4 +452,38 @@ def test_cli_test_connection_with_custom_api_url(api_params: List[str], respx_mo
     
     assert exc_info.value.code == 0
     assert token_mock.called
+    assert health_mock.called
+
+def test_cli_test_connection_fails_with_non_200_status(api_params: List[str], respx_mock) -> None:
+    """
+    Test API connection check when API returns non-200 status code.
+    
+    Args:
+        api_params: API-related command line arguments
+        respx_mock: HTTPX mock fixture
+    """
+    # Mock token request
+    token_mock = respx_mock.get(
+        f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{TEST_ORG_ID}/credentials/v3/token"
+    ).mock(return_value=httpx.Response(
+        200,
+        json={"accessToken": "test-token"}
+    ))
+    
+    # Mock failed health check response with 500 status code
+    health_mock = respx_mock.get(
+        "http://localhost:8087/api/v1/health-all"
+    ).mock(return_value=httpx.Response(
+        500,
+        json={
+            "error": "Internal Server Error",
+            "message": "Something went wrong"
+        }
+    ))
+    
+    with pytest.raises(SystemExit) as exc_info:
+        app(['test-connection'] + api_params)
+    
+    assert exc_info.value.code == 1
+    assert token_mock.called
     assert health_mock.called 
