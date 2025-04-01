@@ -1,6 +1,7 @@
 name: dbt_test
 
-on: workflow_call
+on:
+  push:
 
 jobs:
   dbt_test:
