@@ -14,6 +14,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 -- depends_on: {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates_this_run') }}
 -- depends_on: {{ ref('{% endraw %}{{ project_name }}{% raw %}_filtered_events_this_run') }}
 -- depends_on: {{ ref('{% endraw %}{{ project_name }}{% raw %}_filtered_events') }}
+-- depends_on: {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates') }}
 
 {{
     config(
