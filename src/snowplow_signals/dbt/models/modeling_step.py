@@ -40,7 +40,9 @@ class ModelingCriteria(BaseModel):
             raise ValueError("target_group must be 'all' or 'any'")
 
     def add_conditions(
-        self, conditions: List[FilterCondition], target_group: Literal["all", "any"]
+        self,
+        conditions: List[FilterCondition],
+        target_group: Literal["all", "any"] | None,
     ):
 
         if target_group == "all":
