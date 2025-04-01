@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, FrozenSet, List, Set
+from typing import Any, Dict, FrozenSet, Literal, Set
 
 import pandas as pd
 from pydantic import BaseModel
@@ -10,12 +10,22 @@ from snowplow_signals.dbt.models.modeling_step import (
     ModelingStep,
 )
 
+from ...models import AttributeOutput, CriterionOutput, Event, ViewOutput
+
 
 class BaseConfigGenerator(BaseModel):
-    data: Dict[str, Any]
-    events: Set[str] = set()
-    properties: List[dict[str, str]] = []
-    periods: Set[str] = set()
+    events: Set[str]
+    properties: list[dict[str, str]]
+    periods: Set[str]
+
+    def __init__(
+        self,
+        data: ViewOutput,
+    ):
+        self.data = data
+        self.events = set()
+        self.properties = []
+        self.periods = set()
 
     def get_agg_short_name(self, aggregation: str) -> str:
         """Return the short name for a given attribute aggregation that is more fit to sql processing."""
@@ -74,19 +84,19 @@ class BaseConfigGenerator(BaseModel):
         if frozen_entry not in seen:
             self.properties.append(filtered_entry)
 
-    def _get_full_event_reference_array(self, event_object_list: str) -> str:
+    def _get_full_event_reference_array(
+        self, event_object_list: list[Event]
+    ) -> list[str]:
 
         event_strings = []
         for event in event_object_list:
-            event_str = (
-                f'iglu:{event["vendor"]}/{event["name"]}/jsonschema/{event["version"]}'
-            )
+            event_str = f"iglu:{event.vendor}/{event.name}/jsonschema/{event.version}"
             event_strings.append(event_str)
 
         return event_strings
 
     def _get_filter_condition_name_component(
-        self, filter_condition: Dict[str, Any]
+        self, filter_condition: CriterionOutput
     ) -> str:
         """Generate a SQL-friendly name component from a filter condition"""
         if not filter_condition:
@@ -102,14 +112,14 @@ class BaseConfigGenerator(BaseModel):
             "like": "like",
         }
 
-        property_name = self.get_cleaned_property_name(filter_condition["property"])
+        property_name = self.get_cleaned_property_name(filter_condition.property)
 
         operator = operator_map.get(
-            filter_condition["operator"], filter_condition["operator"]
+            filter_condition.operator, filter_condition.operator
         )
 
         # Clean the value to be SQL-friendly
-        value = str(filter_condition["value"]).lower()
+        value = str(filter_condition.value).lower()
         value = value.replace(" ", "_")
         value = value.replace("%", "pct")
         value = value.replace("-", "_")
@@ -122,7 +132,7 @@ class BaseConfigGenerator(BaseModel):
         return f"{property_name}_{operator}_{value}"
 
     def _generate_column_name(
-        self, attribute: Dict[str, Any], agg_short_name: str
+        self, attribute: AttributeOutput, agg_short_name: str
     ) -> str:
         """Generate a unique SQL-friendly column name incorporating filter conditions"""
         name_components = []
@@ -131,23 +141,27 @@ class BaseConfigGenerator(BaseModel):
         name_components.append(agg_short_name)
 
         # Add attribute property if it exists
-        if attribute.get("property"):
-            name_components.append(
-                self.get_cleaned_property_name(attribute["property"])
-            )
+        if attribute.property:
+            name_components.append(self.get_cleaned_property_name(attribute.property))
 
         # Add event filters
-        for event in attribute.get("events"):
-            name_components.append(event["name"])
+        # FIXME events can have empty names based on the type, what do we do in this case ?
+        for event in attribute.events:
+            name_components.append(event.name)
 
         # Add filter conditions if they exist
-        if attribute.get("criteria"):
+        if attribute.criteria:
             filter_components = []
-            combinator = attribute["criteria"].get(
-                "any", "all"
-            )  # if any is not found use ALL, only one is allowed in the API
+            # Old check
+            # combinator = attribute["criteria"].get(
+            # "any", "all"
+            # )  # if any is not found use ALL, only one is allowed in the API
 
-            for condition in attribute["criteria"].get(combinator, []):
+            # if any is not found use ALL, only one is allowed in the API
+            combinator = "any" if attribute.criteria.any else "all"
+
+            # This thing below probably never worked ? because of the commented about above condition
+            for condition in attribute.criteria.any or attribute.criteria.all or []:
                 filter_components.append(
                     self._get_filter_condition_name_component(condition)
                 )
@@ -166,18 +180,20 @@ class BaseConfigGenerator(BaseModel):
         if column_name[0].isdigit():
             column_name = f"n_{column_name}"
         if len(column_name) > 60:
-            return attribute["name"]
+            return attribute.name
         else:
             return column_name
 
-    def _generate_modeling_steps(self, attribute: Dict[str, Any]) -> list[ModelingStep]:
+    def _generate_modeling_steps(
+        self, attribute: AttributeOutput
+    ) -> list[ModelingStep]:
         """Generate 3 modeling steps based on attribute type and attributes defined as part of the JSON.
         Through looping through the attributes, events, properties and periods are also extracted.
         """
         steps = []
-        attribute_agg_short_name = self.get_agg_short_name(attribute["aggregation"])
+        attribute_agg_short_name = self.get_agg_short_name(attribute.aggregation)
         if attribute_agg_short_name == "not_found":
-            raise ValueError(f"Unsupported aggregation: {attribute['aggregation']}")
+            raise ValueError(f"Unsupported aggregation: {attribute.aggregation}")
 
         # Step 1: Filtered events setup
         steps.append(
@@ -197,8 +213,8 @@ class BaseConfigGenerator(BaseModel):
         modified_conditions = []
 
         # Define an artificial filter condition based on the list of events
-        for event in attribute.get("events"):
-            event_condition_array.append("'" + event["name"] + "'")
+        for event in attribute.events:
+            event_condition_array.append("'" + event.name + "'")
 
         event_condition = FilterCondition(
             property="event_name",
@@ -208,25 +224,25 @@ class BaseConfigGenerator(BaseModel):
         criteria.add_condition(condition=event_condition, target_group="all")
 
         # Get all the original conditions
-        original_criteria = attribute.get("criteria", {})
+        original_criteria = attribute.criteria
         if original_criteria:
-            combinator = (
+            combinator: Literal["all", "any"] | None = (
                 "all"
-                if "all" in original_criteria
-                else "any" if "any" in original_criteria else None
+                if original_criteria.all
+                else "any" if original_criteria.any else None
             )
-            conditions = original_criteria.get(combinator, [])
+            conditions = original_criteria.all or original_criteria.any or []
 
             # Loop through to clean up the property name (to be able to reference the unnested filtered event column)
             for condition in conditions:
-                modified_condition = FilterCondition(**condition)
+                modified_condition = FilterCondition(**condition.model_dump())
                 modified_condition.property = self.get_cleaned_property_name(
                     modified_condition.property
                 )
                 self.add_to_properties(
                     {
-                        condition["property"]: self.get_cleaned_property_name(
-                            condition["property"]
+                        condition.property: self.get_cleaned_property_name(
+                            condition.property
                         )
                     }
                 )
@@ -238,7 +254,8 @@ class BaseConfigGenerator(BaseModel):
         # Generate column name based on attribute aggregation
         if attribute_agg_short_name in ["first", "last"]:
             # For first/last, use the property name directly
-            column_name = f"{attribute_agg_short_name}_{self.get_cleaned_property_name(attribute['property'])}"
+            # FIXME Property can be none
+            column_name = f"{attribute_agg_short_name}_{self.get_cleaned_property_name(attribute.property)}"
         else:
             # For other aggregation types (count, sum, etc), use the full column name generation
             column_name = self._generate_column_name(
@@ -263,12 +280,13 @@ class BaseConfigGenerator(BaseModel):
             attribute_agg_short_name = "sum"
 
         # Get last n day type filters, they need artificial condition
-        if attribute["period"] is not None:
+        if attribute.period is not None:
             criteria.add_condition(
                 condition=FilterCondition(
                     property="period",
                     operator=">",
-                    value=pd.Timedelta(attribute["period"]).days,
+                    # FIXME do we need pandas for this ?
+                    value=pd.Timedelta(attribute.period).days,
                 ),
                 target_group="all",
             )
@@ -278,23 +296,19 @@ class BaseConfigGenerator(BaseModel):
                 step_type="attribute_aggregation",
                 enabled=True,
                 aggregation=attribute_agg_short_name,
-                column_name=attribute["name"],
+                column_name=attribute.name,
                 modeling_criteria=criteria,
             )
         )
 
-        # Add to sets
-        self.events.update(self._get_full_event_reference_array(attribute["events"]))
-        if "property" in attribute:
+        self.events.update(self._get_full_event_reference_array(attribute.events))
+        if attribute.property:
             self.add_to_properties(
-                {
-                    attribute["property"]: self.get_cleaned_property_name(
-                        attribute["property"]
-                    )
-                }
+                {attribute.property: self.get_cleaned_property_name(attribute.property)}
             )
-        if attribute["period"] is not None:
-            self.periods.add(attribute["period"])
+        if attribute.period is not None:
+            # FIXME timedelta to ISO8601 str
+            self.periods.add(attribute.period)
 
         return steps
 
@@ -303,7 +317,7 @@ class BaseConfigGenerator(BaseModel):
         Process attribute definitions and return the base config format (this would eventually allow for users to make changes, if needed).
         """
 
-        attributes = self.data.get("attributes", [])
+        attributes = self.data.attributes or []
         transformed_attributes = [
             [step.model_dump() for step in self._generate_modeling_steps(attribute)]
             for attribute in attributes

@@ -1,5 +1,7 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TypeVar
+
+from pydantic import BaseModel
 
 
 def write_file(file_path: Path, content: Optional[str]) -> None:
@@ -16,3 +18,17 @@ def write_file(file_path: Path, content: Optional[str]) -> None:
 
     with open(file_path, "w") as f:
         f.write(content)
+
+
+# FIXME fix better typings
+T = TypeVar("T", bound=BaseModel)
+
+
+def filter_latest_model_version_by_name(data: list[T]) -> list[T]:
+    latest_versions = {}
+    for item in data:
+        name = item.name
+        version = item.version
+        if name not in latest_versions or version > latest_versions[name].version:
+            latest_versions[name] = item
+    return list(latest_versions.values())
