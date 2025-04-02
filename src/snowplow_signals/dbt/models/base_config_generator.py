@@ -10,6 +10,14 @@ from snowplow_signals.dbt.models.modeling_step import (
 from ...models import AttributeOutput, CriterionOutput, Event, ViewOutput
 from ..utils.utils import timedelta_isoformat
 
+# FIXME can we extract from auto generated model attributes ?
+type AggregationLiteral = Literal[
+    "counter", "sum", "min", "max", "mean", "first", "last", "unique_list"
+]
+type SQLAggregationLiteral = Literal[
+    "count", "sum", "min", "max", "avg", "first", "last", "unique_list"
+]
+
 
 class BaseConfigGenerator:
     events: Set[str]
@@ -25,10 +33,12 @@ class BaseConfigGenerator:
         self.properties = []
         self.periods = set()
 
-    def get_agg_short_name(self, aggregation: str) -> str:
+    def get_agg_short_name(
+        self, aggregation: AggregationLiteral
+    ) -> SQLAggregationLiteral | None:
         """Return the short name for a given attribute aggregation that is more fit to sql processing."""
 
-        FEATURE_TYPE_SHORT_NAMES = {
+        FEATURE_TYPE_SHORT_NAMES: dict[AggregationLiteral, SQLAggregationLiteral] = {
             "counter": "count",
             "sum": "sum",
             "min": "min",
@@ -37,7 +47,7 @@ class BaseConfigGenerator:
             "last": "last",
             "unique_list": "unique_list",
         }
-        return FEATURE_TYPE_SHORT_NAMES.get(aggregation, "not_found")
+        return FEATURE_TYPE_SHORT_NAMES.get(aggregation, None)
 
     def get_cleaned_property_name(self, property: str) -> str:
         """Extracts the part after the colon or dot (:, .) in a property name and converts it to snake_case, otherwise it extracts the last bracketed value.
@@ -186,7 +196,7 @@ class BaseConfigGenerator:
         """
         steps = []
         attribute_agg_short_name = self.get_agg_short_name(attribute.aggregation)
-        if attribute_agg_short_name == "not_found":
+        if attribute_agg_short_name is None:
             raise ValueError(f"Unsupported aggregation: {attribute.aggregation}")
 
         # Step 1: Filtered events setup
