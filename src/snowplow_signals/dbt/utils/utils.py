@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 from typing import Optional, TypeVar
 
@@ -32,3 +33,9 @@ def filter_latest_model_version_by_name(data: list[T]) -> list[T]:
         if name not in latest_versions or version > latest_versions[name].version:
             latest_versions[name] = item
     return list(latest_versions.values())
+
+
+def timedelta_isoformat(td: datetime.timedelta) -> str:
+    minutes, seconds = divmod(td.seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    return f'{"-" if td.days < 0 else ""}P{abs(td.days)}DT{hours:d}H{minutes:d}M{seconds:d}.{td.microseconds:06d}S'
