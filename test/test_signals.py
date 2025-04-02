@@ -64,7 +64,7 @@ class TestSignalsApply:
             "http://localhost:8000/api/v1/registry/views/"
         ).mock(return_value=httpx.Response(400, json={}))
 
-        view_get_mock = respx_mock.get(
+        view_get_mock = respx_mock.put(
             "http://localhost:8000/api/v1/registry/views/my_view/versions/1"
         ).mock(return_value=httpx.Response(200, json=view_output.model_dump()))
 
