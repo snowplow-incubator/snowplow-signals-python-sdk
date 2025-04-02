@@ -8,6 +8,7 @@ from snowplow_signals.dbt.models.modeling_step import (
 )
 
 from ...models import AttributeOutput, CriterionOutput, Event, ViewOutput
+from ..utils.utils import timedelta_isoformat
 
 
 class BaseConfigGenerator:
@@ -299,8 +300,7 @@ class BaseConfigGenerator:
                 {attribute.property: self.get_cleaned_property_name(attribute.property)}
             )
         if attribute.period is not None:
-            # FIXME timedelta to ISO8601 str
-            self.periods.add(attribute.period)
+            self.periods.add(timedelta_isoformat(attribute.period))
 
         return steps
 
