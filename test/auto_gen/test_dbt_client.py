@@ -1,4 +1,4 @@
-"""Tests for the DbtClient class"""
+"""Tests for the BatchAutogenClient class"""
 
 import json
 import os
@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from snowplow_signals.dbt.dbt_client import DbtClient
 from snowplow_signals.api_client import ApiClient
+from snowplow_signals.batch_autogen.dbt_client import BatchAutogenClient
 
 
 @pytest.fixture
@@ -18,8 +18,8 @@ def mock_api_client():
 
 @pytest.fixture
 def dbt_client(mock_api_client):
-    """Create a DbtClient instance with mocked API client"""
-    return DbtClient(mock_api_client)
+    """Create a BatchAutogenClient instance with mocked API client"""
+    return BatchAutogenClient(mock_api_client)
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def temp_repo_path(tmp_path):
 @pytest.fixture
 def mock_project_setup():
     """Mock the DbtProjectSetup class"""
-    with patch("snowplow_signals.dbt.dbt_client.DbtProjectSetup") as mock:
+    with patch("snowplow_signals.batch_autogen.dbt_client.DbtProjectSetup") as mock:
         instance = mock.return_value
         instance.setup_all_projects.return_value = True
         yield mock
@@ -40,12 +40,12 @@ def mock_project_setup():
 @pytest.fixture
 def mock_dbt_config_generator():
     """Mock the DbtConfigGenerator class"""
-    with patch("snowplow_signals.dbt.dbt_client.DbtConfigGenerator") as mock:
+    with patch("snowplow_signals.batch_autogen.dbt_client.DbtConfigGenerator") as mock:
         instance = mock.return_value
         instance.create_dbt_config.return_value = {
             "filtered_events": {"test": "config"},
             "daily_agg": {"test": "config"},
-            "attributes": {"test": "config"}
+            "attributes": {"test": "config"},
         }
         yield mock
 
@@ -53,7 +53,7 @@ def mock_dbt_config_generator():
 @pytest.fixture
 def mock_dbt_asset_generator():
     """Mock the DbtAssetGenerator class"""
-    with patch("snowplow_signals.dbt.dbt_client.DbtAssetGenerator") as mock:
+    with patch("snowplow_signals.batch_autogen.dbt_client.DbtAssetGenerator") as mock:
         instance = mock.return_value
         instance.generate_asset.return_value = True
         yield mock
@@ -74,19 +74,21 @@ def test_init_project_with_view_name(dbt_client, temp_repo_path, mock_project_se
         api_client=dbt_client.api_client,
         repo_path=temp_repo_path,
         view_name="test_view",
-        view_version=None
+        view_version=None,
     )
 
 
 def test_init_project_with_view_version(dbt_client, temp_repo_path, mock_project_setup):
     """Test project initialization with specific view version"""
-    result = dbt_client.init_project(temp_repo_path, view_name="test_view", view_version=1)
+    result = dbt_client.init_project(
+        temp_repo_path, view_name="test_view", view_version=1
+    )
     assert result is True
     mock_project_setup.assert_called_once_with(
         api_client=dbt_client.api_client,
         repo_path=temp_repo_path,
         view_name="test_view",
-        view_version=1
+        view_version=1,
     )
 
 
@@ -98,7 +100,7 @@ def test_generate_models_single_project_success(
     project_name = "test_project"
     project_path = os.path.join(temp_repo_path, project_name)
     os.makedirs(os.path.join(project_path, "configs"), exist_ok=True)
-    
+
     # Create base config file
     with open(os.path.join(project_path, "configs", "base_config.json"), "w") as f:
         json.dump({"test": "config"}, f)
@@ -142,14 +144,15 @@ def test_generate_models_with_update_flag(
     project_name = "test_project"
     project_path = os.path.join(temp_repo_path, project_name)
     os.makedirs(os.path.join(project_path, "configs"), exist_ok=True)
-    
+
     with open(os.path.join(project_path, "configs", "base_config.json"), "w") as f:
         json.dump({"test": "config"}, f)
 
-    result = dbt_client.generate_models(temp_repo_path, project_name=project_name, update=True)
+    result = dbt_client.generate_models(
+        temp_repo_path, project_name=project_name, update=True
+    )
     assert result is True
     # Verify that generate_asset was called with update=True
     mock_dbt_asset_generator.return_value.generate_asset.assert_called_with(
-        update=True,
-        context=mock_dbt_asset_generator.return_value.custom_context
-    ) 
+        update=True, context=mock_dbt_asset_generator.return_value.custom_context
+    )
