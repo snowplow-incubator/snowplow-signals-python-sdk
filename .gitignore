@@ -21,3 +21,7 @@ integration_tests/ecommerce_transaction_interactions_features_1/*
 test/auto_gen/customer_repo/
 
 /.vscode
+
+# VSCode
+.vscode/*
+.vscode/settings.json
