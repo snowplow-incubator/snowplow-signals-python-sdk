@@ -20,10 +20,18 @@ jobs:
         uses: abatilo/actions-poetry@v3
 
       - name: Install dependencies
-        run: poetry install 
+        run: poetry install
 
-      - name: Run tests
-        run: poetry run pytest
+      - name: Run specific dbt test to generate the test dbt project
+        run: poetry run pytest test/auto_gen/test_e2e_batch_autogen.py::test_batch_model_generation_creates_project_structure -v
 
-      - name: Run test_dbt.sh
-        run: ./test/auto_gen/test_dbt.sh
+      - name: Install dbt
+        run: pip install dbt-core
+
+      - name: Run dbt commands
+        working-directory: integration_tests/customer_repo/ecommerce_transaction_interactions_features_1
+        run: |
+          dbt clean
+          dbt deps
+          dbt run --full-refresh
+          dbt run

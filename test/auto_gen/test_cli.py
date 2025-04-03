@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import typer
 
-from snowplow_signals.dbt.cli import app
+from snowplow_signals.batch_autogen.cli import app, validate_repo_path
 from test.utils import (
     MOCK_API_KEY,
     MOCK_API_KEY_ID,
@@ -48,12 +48,12 @@ def test_repo_dir() -> Generator[Path, None, None]:
 @pytest.fixture
 def mock_dbt_client() -> Generator[MagicMock, None, None]:
     """
-    Mock the DbtClient for testing.
+    Mock the BatchAutogenClient for testing.
 
     Returns:
-        Generator[MagicMock, None, None]: Mocked DbtClient instance
+        Generator[MagicMock, None, None]: Mocked BatchAutogenClient instance
     """
-    with patch("snowplow_signals.dbt.cli.DbtClient") as mock:
+    with patch("snowplow_signals.batch_autogen.cli.BatchAutogenClient") as mock:
         client = MagicMock()
         mock.return_value = client
         yield client
@@ -87,7 +87,7 @@ def test_cli_init_project_succeeds(
 
     Args:
         test_repo_dir: Path to test repository directory
-        mock_dbt_client: Mocked DbtClient
+        mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = True
@@ -109,7 +109,7 @@ def test_cli_init_project_with_view_name_succeeds(
 
     Args:
         test_repo_dir: Path to test repository directory
-        mock_dbt_client: Mocked DbtClient
+        mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = True
@@ -134,7 +134,7 @@ def test_cli_init_project_with_view_name_and_version_succeeds(
 
     Args:
         test_repo_dir: Path to test repository directory
-        mock_dbt_client: Mocked DbtClient
+        mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = True
@@ -169,7 +169,7 @@ def test_cli_init_project_fails(
 
     Args:
         test_repo_dir: Path to test repository directory
-        mock_dbt_client: Mocked DbtClient
+        mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = False
@@ -188,7 +188,7 @@ def test_cli_generate_models_succeeds(
 
     Args:
         test_repo_dir: Path to test repository directory
-        mock_dbt_client: Mocked DbtClient
+        mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.generate_models.return_value = True
@@ -210,7 +210,7 @@ def test_cli_generate_models_with_update_succeeds(
 
     Args:
         test_repo_dir: Path to test repository directory
-        mock_dbt_client: Mocked DbtClient
+        mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.generate_models.return_value = True
@@ -232,7 +232,7 @@ def test_cli_generate_models_fails(
 
     Args:
         test_repo_dir: Path to test repository directory
-        mock_dbt_client: Mocked DbtClient
+        mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.generate_models.return_value = False
@@ -269,7 +269,7 @@ def test_cli_commands_with_debug_logging_succeed(
 
     Args:
         test_repo_dir: Path to test repository directory
-        mock_dbt_client: Mocked DbtClient
+        mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = True
@@ -289,7 +289,7 @@ def test_cli_commands_with_custom_api_url_succeed(
 
     Args:
         test_repo_dir: Path to test repository directory
-        mock_dbt_client: Mocked DbtClient
+        mock_dbt_client: Mocked BatchAutogenClient
     """
     mock_dbt_client.init_project.return_value = True
     custom_api_params = [
@@ -312,8 +312,6 @@ def test_cli_commands_with_custom_api_url_succeed(
 
 def test_validate_repo_path_creates_directory(test_repo_dir: Path) -> None:
     """Test validate_repo_path creates directory when it doesn't exist."""
-    from snowplow_signals.dbt.cli import validate_repo_path
-
     # Create a non-existent path
     non_existent_path = test_repo_dir / "new_directory"
 
@@ -334,8 +332,6 @@ def test_validate_repo_path_creates_directory(test_repo_dir: Path) -> None:
 
 def test_validate_repo_path_fails_with_file(test_repo_dir: Path) -> None:
     """Test validate_repo_path when path exists but is not a directory."""
-    from snowplow_signals.dbt.cli import validate_repo_path
-
     # Create a file instead of a directory
     test_file = test_repo_dir / "test_file.txt"
     test_file.touch()
