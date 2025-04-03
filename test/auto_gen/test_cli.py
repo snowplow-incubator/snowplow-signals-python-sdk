@@ -58,6 +58,7 @@ def mock_dbt_client() -> Generator[MagicMock, None, None]:
         mock.return_value = client
         yield client
 
+
 @pytest.fixture
 def api_params() -> List[str]:
     """
