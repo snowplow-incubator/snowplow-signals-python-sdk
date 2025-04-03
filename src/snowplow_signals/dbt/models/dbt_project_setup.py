@@ -8,12 +8,13 @@ from typing_extensions import Annotated
 from snowplow_signals.dbt.models.base_config_generator import (
     BaseConfigGenerator,
 )
+from snowplow_signals.logging import get_logger
 
 from ...api_client import ApiClient
 from ...models import ViewOutput
 from ..utils.utils import filter_latest_model_version_by_name
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DbtProjectSetup:
@@ -41,7 +42,7 @@ class DbtProjectSetup:
         base_config_path = os.path.join(project_output_dir, "base_config.json")
         with open(base_config_path, "w") as f:
             json.dump(base_config, f, indent=4)
-        logger.info(f"✅ Base config file generated for {setup_project_name}")
+        logger.success(f"📄 Base config file generated for {setup_project_name}")
 
     def get_attribute_view_project_config(
         self,
@@ -53,7 +54,6 @@ class DbtProjectSetup:
 
     def setup_all_projects(self):
         """Sets up dbt files for one or all projects."""
-        logger.info("Setting up dbt project(s)...")
 
         attribute_views = self._get_attribute_views()
 
@@ -62,7 +62,6 @@ class DbtProjectSetup:
             project_config = self.get_attribute_view_project_config(attribute_view)
             self.create_project_directories(view_project_name, project_config)
 
-        logger.info("✅ Dbt project generation is finished!")
         return True
 
     def _fetch_attribute_views(self) -> list[ViewOutput]:
@@ -74,7 +73,7 @@ class DbtProjectSetup:
         return [ViewOutput.model_validate(view) for view in attribute_views]
 
     def _get_attribute_views(self) -> list[ViewOutput]:
-        logger.info("Fetching attribute views from API")
+        logger.info("🔗 Fetching attribute views from API")
         all_attribute_views = self._fetch_attribute_views()
         logger.debug(
             f"Received API response: {[view.model_dump_json() for view in all_attribute_views]}"
