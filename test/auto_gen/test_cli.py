@@ -310,6 +310,28 @@ def test_cli_commands_with_custom_api_url_succeed(
     mock_dbt_client.init_project.assert_called_once()
 
 
+def test_validate_repo_path_creates_directory(test_repo_dir: Path) -> None:
+    """Test validate_repo_path creates directory when it doesn't exist."""
+    from snowplow_signals.dbt.cli import validate_repo_path
+
+    # Create a non-existent path
+    non_existent_path = test_repo_dir / "new_directory"
+
+    # Ensure the path doesn't exist
+    if non_existent_path.exists():
+        non_existent_path.rmdir()
+
+    # Validate the path - should create the directory
+    result = validate_repo_path(str(non_existent_path))
+
+    # Verify the directory was created
+    assert result.exists()
+    assert result.is_dir()
+
+    # Clean up
+    non_existent_path.rmdir()
+
+
 def test_validate_repo_path_fails_with_file(test_repo_dir: Path) -> None:
     """Test validate_repo_path when path exists but is not a directory."""
     from snowplow_signals.dbt.cli import validate_repo_path
