@@ -29,9 +29,7 @@ def setup_logging(debug: bool = False) -> None:
         debug: Whether to enable debug logging
     """
     level = logging.DEBUG if debug else logging.INFO
-    formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-    )
+    formatter = logging.Formatter("%(message)s")  # Simplified format for cleaner output
 
     # Configure console handler
     console_handler = logging.StreamHandler(sys.stdout)
@@ -41,6 +39,11 @@ def setup_logging(debug: bool = False) -> None:
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
     root_logger.addHandler(console_handler)
+
+    # Suppress HTTP request logs unless in debug mode
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("http.client").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 def validate_repo_path(repo_path: str) -> Path:
@@ -57,7 +60,8 @@ def validate_repo_path(repo_path: str) -> Path:
     """
     path = Path(repo_path)
     if not path.exists():
-        raise typer.BadParameter(f"Repository path does not exist: {repo_path}")
+        path.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Created repository directory: {repo_path}")
     if not path.is_dir():
         raise typer.BadParameter(f"Repository path is not a directory: {repo_path}")
     return path
@@ -91,34 +95,63 @@ def create_api_client(
 @app.command()
 def init(
     api_url: Annotated[
-        str, typer.Option(help="URL of the API server to fetch schema information")
+        str,
+        typer.Option(
+            help="URL of the API server to fetch schema information",
+            envvar="SNOWPLOW_API_URL",
+        ),
     ],
-    api_key: Annotated[str, typer.Option(help="API key for authentication")],
-    api_key_id: Annotated[str, typer.Option(help="ID of the API key")],
-    org_id: Annotated[str, typer.Option(help="Organization ID")],
+    api_key: Annotated[
+        str,
+        typer.Option(
+            help="API key for authentication",
+            envvar="SNOWPLOW_API_KEY",
+        ),
+    ],
+    api_key_id: Annotated[
+        str,
+        typer.Option(
+            help="ID of the API key",
+            envvar="SNOWPLOW_API_KEY_ID",
+        ),
+    ],
+    org_id: Annotated[
+        str,
+        typer.Option(
+            help="Organization ID",
+            envvar="SNOWPLOW_ORG_ID",
+        ),
+    ],
     repo_path: Annotated[
-        str, typer.Option(help="Path to the repository where projects will be stored")
+        str,
+        typer.Option(
+            help="Path to the repository where projects will be stored",
+            envvar="SNOWPLOW_REPO_PATH",
+        ),
     ],
     view_name: Annotated[
         Optional[str],
         typer.Option(
-            help="Optional name of a specific attribute view project to initialize"
+            help="Optional name of a specific attribute view project to initialize",
+            envvar="SNOWPLOW_VIEW_NAME",
         ),
     ] = None,
     view_version: Annotated[
         Optional[int],
         typer.Option(
-            help="Optional version of the attribute view to initialize. Only used if view_name is provided"
+            help="Optional version of the attribute view to initialize. Only used if view_name is provided",
+            envvar="SNOWPLOW_VIEW_VERSION",
         ),
     ] = None,
-    debug: Annotated[bool, typer.Option(help="Enable debug logging")] = False,
+    debug: Annotated[
+        bool,
+        typer.Option(
+            help="Enable debug logging",
+            envvar="SNOWPLOW_DEBUG",
+        ),
+    ] = False,
 ) -> None:
-    """Initialize dbt project structure and base configuration.
-
-    This command sets up the basic dbt project structure including directories
-    and configuration files. It can initialize either all projects or a specific
-    attribute view project if view_name is provided.
-    """
+    """Initialize dbt project structure and base configuration."""
     try:
         setup_logging(debug)
         validated_path = validate_repo_path(repo_path)
@@ -147,29 +180,63 @@ def init(
 @app.command()
 def generate(
     api_url: Annotated[
-        str, typer.Option(help="URL of the API server to fetch schema information")
+        str,
+        typer.Option(
+            help="URL of the API server to fetch schema information",
+            envvar="SNOWPLOW_API_URL",
+        ),
     ],
-    api_key: Annotated[str, typer.Option(help="API key for authentication")],
-    api_key_id: Annotated[str, typer.Option(help="ID of the API key")],
-    org_id: Annotated[str, typer.Option(help="Organization ID")],
+    api_key: Annotated[
+        str,
+        typer.Option(
+            help="API key for authentication",
+            envvar="SNOWPLOW_API_KEY",
+        ),
+    ],
+    api_key_id: Annotated[
+        str,
+        typer.Option(
+            help="ID of the API key",
+            envvar="SNOWPLOW_API_KEY_ID",
+        ),
+    ],
+    org_id: Annotated[
+        str,
+        typer.Option(
+            help="Organization ID",
+            envvar="SNOWPLOW_ORG_ID",
+        ),
+    ],
     repo_path: Annotated[
-        str, typer.Option(help="Path to the repository where projects are stored")
+        str,
+        typer.Option(
+            help="Path to the repository where projects are stored",
+            envvar="SNOWPLOW_REPO_PATH",
+        ),
     ],
     project_name: Annotated[
         Optional[str],
-        typer.Option(help="Optional name of a specific project to generate models for"),
+        typer.Option(
+            help="Optional name of a specific project to generate models for",
+            envvar="SNOWPLOW_PROJECT_NAME",
+        ),
     ] = None,
     update: Annotated[
-        bool, typer.Option(help="Whether to update existing files")
+        bool,
+        typer.Option(
+            help="Whether to update existing files",
+            envvar="SNOWPLOW_UPDATE",
+        ),
     ] = False,
-    debug: Annotated[bool, typer.Option(help="Enable debug logging")] = False,
+    debug: Annotated[
+        bool,
+        typer.Option(
+            help="Enable debug logging",
+            envvar="SNOWPLOW_DEBUG",
+        ),
+    ] = False,
 ) -> None:
-    """Generate dbt project assets such as data models, macros and config files.
-
-    This command generates all necessary dbt assets including models, macros,
-    and configuration files. It can generate assets for either all projects
-    or a specific project if project_name is provided.
-    """
+    """Generate dbt project assets such as data models, macros and config files."""
     try:
         setup_logging(debug)
         validated_path = validate_repo_path(repo_path)
@@ -179,7 +246,9 @@ def generate(
         client = DbtClient(api_client=api_client)
 
         success = client.generate_models(
-            repo_path=str(validated_path), project_name=project_name, update=update
+            repo_path=str(validated_path),
+            project_name=project_name,
+            update=update,
         )
 
         if not success:
@@ -196,27 +265,56 @@ def generate(
 @app.command()
 def test_connection(
     api_url: Annotated[
-        str, typer.Option(help="URL of the API server to test connection")
+        str,
+        typer.Option(
+            help="URL of the API server to test connection",
+            envvar="SNOWPLOW_API_URL",
+        ),
     ],
-    api_key: Annotated[str, typer.Option(help="API key for authentication")],
-    api_key_id: Annotated[str, typer.Option(help="ID of the API key")],
-    org_id: Annotated[str, typer.Option(help="Organization ID")],
+    api_key: Annotated[
+        str,
+        typer.Option(
+            help="API key for authentication",
+            envvar="SNOWPLOW_API_KEY",
+        ),
+    ],
+    api_key_id: Annotated[
+        str,
+        typer.Option(
+            help="ID of the API key",
+            envvar="SNOWPLOW_API_KEY_ID",
+        ),
+    ],
+    org_id: Annotated[
+        str,
+        typer.Option(
+            help="Organization ID",
+            envvar="SNOWPLOW_ORG_ID",
+        ),
+    ],
     check_auth: Annotated[
-        bool, typer.Option(help="Whether to check authentication service")
+        bool,
+        typer.Option(
+            help="Whether to check authentication service",
+            envvar="SNOWPLOW_CHECK_AUTH",
+        ),
     ] = True,
     check_api: Annotated[
-        bool, typer.Option(help="Whether to check API service health")
+        bool,
+        typer.Option(
+            help="Whether to check API service health",
+            envvar="SNOWPLOW_CHECK_API",
+        ),
     ] = True,
-    debug: Annotated[bool, typer.Option(help="Enable debug logging")] = False,
+    debug: Annotated[
+        bool,
+        typer.Option(
+            help="Enable debug logging",
+            envvar="SNOWPLOW_DEBUG",
+        ),
+    ] = False,
 ) -> None:
-    """Test the connection to the authentication and API services.
-
-    This command can test both the authentication service and the API service health.
-    You can choose to test either or both services using the --check-auth and --check-api flags.
-
-    Authentication check verifies your credentials are valid.
-    API health check verifies the API service and its dependencies are operational.
-    """
+    """Test the connection to the authentication and API services."""
     try:
         setup_logging(debug)
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
@@ -226,22 +324,24 @@ def test_connection(
 
         # Check authentication service if requested
         if check_auth:
-            logger.info("Testing authentication service...")
+            logger.info("🔐 Testing authentication service...")
             try:
                 # Test auth by making a request to registry/views endpoint
                 api_client.make_request(
                     method="GET", endpoint="registry/views/", params={"offline": True}
                 )
                 auth_status = {"status": "ok", "message": "Authentication successful"}
-                logger.info("✅ Authentication successful!")
+                logger.info("✅ Authentication service is healthy")
             except Exception as e:
                 auth_status = {"status": "error", "message": str(e)}
-                logger.error("❌ Authentication failed!")
-                logger.error(f"Error: {str(e)}")
+                logger.error("❌ Authentication service is not responding")
+                logger.error(f"   Error details: {str(e)}")
+                logger.error(
+                    "   Please check your API credentials and network connection"
+                )
 
         # Check API service if requested
         if check_api:
-            logger.info("Testing API service health...")
             try:
                 health_response = api_client.make_request(
                     method="GET", endpoint="health-all"
@@ -253,25 +353,27 @@ def test_connection(
                         "message": "API health check successful",
                         "dependencies": health_response["dependencies"],
                     }
-                    logger.info("✅ API health check successful!")
-                    logger.info("Dependencies status:")
+                    logger.info("✅ API service is healthy")
+                    logger.info("📊 Dependencies status:")
                     for dep, status in health_response["dependencies"].items():
                         status_symbol = "✅" if status == "ok" else "❌"
-                        logger.info(f"  {status_symbol} {dep}: {status}")
+                        logger.info(f"   {status_symbol} {dep}: {status}")
                 else:
                     api_status = {
                         "status": "error",
                         "message": "API health check failed",
                         "dependencies": health_response["dependencies"],
                     }
-                    logger.error("❌ API health check failed!")
-                    logger.error("Dependencies status:")
+                    logger.error("❌ API service is not healthy")
+                    logger.error("📊 Dependencies status:")
                     for dep, status in health_response["dependencies"].items():
                         status_symbol = "✅" if status == "ok" else "❌"
-                        logger.error(f"  {status_symbol} {dep}: {status}")
+                        logger.error(f"   {status_symbol} {dep}: {status}")
             except Exception as e:
                 api_status = {"status": "error", "message": str(e)}
-                logger.error(f"❌ Error checking API health: {str(e)}")
+                logger.error("❌ API service is not responding")
+                logger.error(f"   Error details: {str(e)}")
+                logger.error("   Please check your API endpoint and network connection")
 
         # Determine overall status
         if check_auth and check_api:
@@ -281,21 +383,23 @@ def test_connection(
                 and auth_status["status"] == "ok"
                 and api_status["status"] == "ok"
             ):
-                logger.info("✅ All services operational!")
+                logger.info("\n✨ All services are operational!")
             else:
-                logger.error("❌ Some services are not operational")
+                logger.error("\n⚠️ Some services are not operational")
                 raise typer.Exit(code=1)
         elif check_auth and auth_status and auth_status["status"] == "error":
-            logger.error("❌ Authentication service is not operational")
+            logger.error("\n⚠️ Authentication service is not operational")
             raise typer.Exit(code=1)
         elif check_api and api_status and api_status["status"] == "error":
-            logger.error("❌ API service is not operational")
+            logger.error("\n⚠️ API service is not operational")
             raise typer.Exit(code=1)
         else:
-            logger.info("✅ Selected services operational!")
+            logger.info("\n✨ Selected services are operational!")
 
     except Exception as e:
-        logger.error(f"❌ Error during connection test: {str(e)}")
+        logger.error("\n❌ Connection test failed")
+        logger.error(f"   Error details: {str(e)}")
+        logger.error("   Please check your configuration and try again")
         raise typer.Exit(code=1)
 
 
