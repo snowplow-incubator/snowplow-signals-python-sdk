@@ -81,7 +81,7 @@ select
     
   w.domain_userid,
   current_timestamp() as valid_at_tstamp,
-  {{ lower_limit }} as lower_limit,
+  cast({{ lower_limit }} as date) as lower_limit,
   cast({{ upper_limit }} as date) as upper_limit
 {% endraw %}
   {% for attribute in first_value_attributes %}
