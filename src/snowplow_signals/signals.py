@@ -43,6 +43,24 @@ class Signals:
         self.feature_store.apply()
         return updated_objets
 
+    def get_view(
+        self,
+        name: str,
+        version: int | None = None
+    ) -> ViewOutput:
+        """
+        Returns a View from the Signals registry by name.
+        If no version is provided, returns the latest one.
+
+        Args:
+            name: The name of the View.
+            version: The version of the View.
+        Returns:
+            The View
+        """
+        view = self.registry.get_view(name, version)
+        return view
+
     def get_online_attributes(
         self,
         source: Service | View | ViewOutput,

@@ -23,6 +23,23 @@ class RegistryClient:
 
         return updated_objects
 
+    def get_view(self, name: str, version: int | None = None) -> ViewOutput:
+        try:
+            if version is not None:
+                response = self.api_client.make_request(
+                    method="GET",
+                    endpoint=(f"registry/views/{name}/versions/{version}"),
+                )
+            else:
+                response = self.api_client.make_request(
+                    method="GET",
+                    endpoint=(f"registry/views/{name}"),
+                )
+        except SignalsAPIError as e:
+            raise e
+
+        return ViewOutput.model_validate(response)
+
     def _create_or_get_view(self, view: View) -> ViewOutput:
         try:
             response = self.api_client.make_request(
