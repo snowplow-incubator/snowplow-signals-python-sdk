@@ -1,6 +1,5 @@
 """Command-line interface for dbt project generation functionality"""
 
-import logging
 import sys
 from pathlib import Path
 from typing import Optional
@@ -10,6 +9,7 @@ from typing_extensions import Annotated
 
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.dbt import DbtClient
+from snowplow_signals.logging import get_logger, setup_logging
 
 # Create the main Typer app with metadata
 app = typer.Typer(
@@ -19,31 +19,7 @@ app = typer.Typer(
 )
 
 # Configure logging
-logger = logging.getLogger(__name__)
-
-
-def setup_logging(debug: bool = False) -> None:
-    """Configure logging level and format with consistent styling.
-
-    Args:
-        debug: Whether to enable debug logging
-    """
-    level = logging.DEBUG if debug else logging.INFO
-    formatter = logging.Formatter("%(message)s")  # Simplified format for cleaner output
-
-    # Configure console handler
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(formatter)
-
-    # Configure root logger
-    root_logger = logging.getLogger()
-    root_logger.setLevel(level)
-    root_logger.addHandler(console_handler)
-
-    # Suppress HTTP request logs unless in debug mode
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
-    logging.getLogger("http.client").setLevel(logging.WARNING)
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+logger = get_logger(__name__)
 
 
 def validate_repo_path(repo_path: str) -> Path:
@@ -143,17 +119,19 @@ def init(
             envvar="SNOWPLOW_VIEW_VERSION",
         ),
     ] = None,
-    debug: Annotated[
+    verbose: Annotated[
         bool,
         typer.Option(
-            help="Enable debug logging",
-            envvar="SNOWPLOW_DEBUG",
+            "-v",
+            "--verbose",
+            help="Enable verbose output",
+            envvar="SNOWPLOW_VERBOSE",
         ),
     ] = False,
 ) -> None:
     """Initialize dbt project structure and base configuration."""
     try:
-        setup_logging(debug)
+        setup_logging(verbose)
         validated_path = validate_repo_path(repo_path)
 
         logger.info(f"Initializing dbt project(s) in {validated_path}")
@@ -170,7 +148,7 @@ def init(
             logger.error("Failed to initialize dbt project(s)")
             raise typer.Exit(code=1)
 
-        logger.info("Successfully initialized dbt project(s)")
+        logger.success("✅ Successfully initialized dbt project(s)")
 
     except Exception as e:
         logger.error(f"Error during project initialization: {str(e)}")
@@ -228,20 +206,22 @@ def generate(
             envvar="SNOWPLOW_UPDATE",
         ),
     ] = False,
-    debug: Annotated[
+    verbose: Annotated[
         bool,
         typer.Option(
-            help="Enable debug logging",
-            envvar="SNOWPLOW_DEBUG",
+            "-v",
+            "--verbose",
+            help="Enable verbose output",
+            envvar="SNOWPLOW_VERBOSE",
         ),
     ] = False,
 ) -> None:
     """Generate dbt project assets such as data models, macros and config files."""
     try:
-        setup_logging(debug)
+        setup_logging(verbose)
         validated_path = validate_repo_path(repo_path)
 
-        logger.info(f"Generating dbt models in {validated_path}")
+        logger.info(f"🛠️ Generating dbt models in {validated_path}")
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
         client = DbtClient(api_client=api_client)
 
@@ -255,7 +235,7 @@ def generate(
             logger.error("Failed to generate dbt models")
             raise typer.Exit(code=1)
 
-        logger.info("Successfully generated dbt models")
+        logger.success("✅ Successfully generated dbt models")
 
     except Exception as e:
         logger.error(f"Error during model generation: {str(e)}")
@@ -306,17 +286,19 @@ def test_connection(
             envvar="SNOWPLOW_CHECK_API",
         ),
     ] = True,
-    debug: Annotated[
+    verbose: Annotated[
         bool,
         typer.Option(
-            help="Enable debug logging",
-            envvar="SNOWPLOW_DEBUG",
+            "-v",
+            "--verbose",
+            help="Enable verbose output",
+            envvar="SNOWPLOW_VERBOSE",
         ),
     ] = False,
 ) -> None:
     """Test the connection to the authentication and API services."""
     try:
-        setup_logging(debug)
+        setup_logging(verbose)
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
 
         auth_status = None
@@ -331,7 +313,7 @@ def test_connection(
                     method="GET", endpoint="registry/views/", params={"offline": True}
                 )
                 auth_status = {"status": "ok", "message": "Authentication successful"}
-                logger.info("✅ Authentication service is healthy")
+                logger.success("✅ Authentication service is healthy")
             except Exception as e:
                 auth_status = {"status": "error", "message": str(e)}
                 logger.error("❌ Authentication service is not responding")
@@ -342,6 +324,7 @@ def test_connection(
 
         # Check API service if requested
         if check_api:
+            logger.info("🌐 Testing API service...")
             try:
                 health_response = api_client.make_request(
                     method="GET", endpoint="health-all"
@@ -353,7 +336,7 @@ def test_connection(
                         "message": "API health check successful",
                         "dependencies": health_response["dependencies"],
                     }
-                    logger.info("✅ API service is healthy")
+                    logger.success("✅ API service is healthy")
                     logger.info("📊 Dependencies status:")
                     for dep, status in health_response["dependencies"].items():
                         status_symbol = "✅" if status == "ok" else "❌"
@@ -370,37 +353,63 @@ def test_connection(
                         status_symbol = "✅" if status == "ok" else "❌"
                         logger.error(f"   {status_symbol} {dep}: {status}")
             except Exception as e:
-                api_status = {"status": "error", "message": str(e)}
-                logger.error("❌ API service is not responding")
-                logger.error(f"   Error details: {str(e)}")
-                logger.error("   Please check your API endpoint and network connection")
+                error_msg = str(e)
+                if "[Signals API]" in error_msg:
+                    # Extract the status code and message from the error
+                    parts = error_msg.split(":", 1)
+                    if len(parts) == 2:
+                        status_code = parts[0].split()[-1]
+                        detail = parts[1].strip()
+                        logger.error(
+                            f"❌ API service error (HTTP {status_code}): {detail}"
+                        )
+                    else:
+                        logger.error(f"❌ API service error: {error_msg}")
+                else:
+                    logger.error(f"❌ API service error: {error_msg}")
+                logger.error("\n⚠️ API service is not operational")
+                sys.exit(1)
+
+        # Print summary of results
+        logger.info("\n📋 Connection Test Results:")
+        if check_auth and auth_status is not None:
+            status_symbol = "✅" if auth_status["status"] == "ok" else "❌"
+            logger.info(
+                f"{status_symbol} Authentication Service: {auth_status['status']}"
+            )
+        if check_api and api_status is not None:
+            status_symbol = "✅" if api_status["status"] == "ok" else "❌"
+            logger.info(f"{status_symbol} API Service: {api_status['status']}")
 
         # Determine overall status
         if check_auth and check_api:
             if (
-                auth_status
-                and api_status
+                auth_status is not None
+                and api_status is not None
                 and auth_status["status"] == "ok"
                 and api_status["status"] == "ok"
             ):
-                logger.info("\n✨ All services are operational!")
+                logger.success("\n✨ All services are operational!")
             else:
                 logger.error("\n⚠️ Some services are not operational")
-                raise typer.Exit(code=1)
-        elif check_auth and auth_status and auth_status["status"] == "error":
+                sys.exit(1)
+        elif (
+            check_auth and auth_status is not None and auth_status["status"] == "error"
+        ):
             logger.error("\n⚠️ Authentication service is not operational")
-            raise typer.Exit(code=1)
-        elif check_api and api_status and api_status["status"] == "error":
+            sys.exit(1)
+        elif check_api and api_status is not None and api_status["status"] == "error":
             logger.error("\n⚠️ API service is not operational")
-            raise typer.Exit(code=1)
+            sys.exit(1)
         else:
-            logger.info("\n✨ Selected services are operational!")
+            logger.success("\n✨ Selected services are operational!")
 
     except Exception as e:
-        logger.error("\n❌ Connection test failed")
-        logger.error(f"   Error details: {str(e)}")
-        logger.error("   Please check your configuration and try again")
-        raise typer.Exit(code=1)
+        error_msg = str(e)
+        if not error_msg:
+            error_msg = "Unknown error occurred"
+        logger.error(f"\n❌ Connection test failed: {error_msg}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
