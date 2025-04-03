@@ -7,7 +7,7 @@ from pathlib import Path
 
 import httpx
 
-from snowplow_signals.dbt.dbt_client import DbtClient
+from snowplow_signals.batch_autogen.dbt_client import BatchAutogenClient
 
 from .utils import get_attribute_view_response_from_file
 
@@ -39,7 +39,7 @@ def test_batch_model_generation_creates_project_structure(signals_client, respx_
     )
 
     # Initialize and generate models
-    dbt_client = DbtClient(signals_client.api_client)
+    dbt_client = BatchAutogenClient(signals_client.api_client)
     dbt_client.init_project(repo_path=str(TEST_REPO_PATH), view_name=TEST_VIEW_NAME)
 
     dbt_client.generate_models(
