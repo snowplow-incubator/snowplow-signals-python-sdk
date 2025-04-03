@@ -1,0 +1,72 @@
+{
+    "mock_attribute_views": [
+        {
+            "name": "ecommerce_transaction_interactions_features",
+            "version": 1,
+            "entity": {"name": "user"},
+            "ttl": null,
+            "batch_source": {
+                "name": "ecommerce_transaction_interactions_source",
+                "timestamp_field": "UPDATED_AT",
+                "created_timestamp_column": null,
+                "description": null,
+                "tags": null,
+                "owner": null,
+                "date_partition_column": null,
+                "database": "SNOWPLOW_DEV1",
+                "schema": null,
+                "table": "SNOWPLOW_ECOMMERCE_TRANSACTION_INTERACTIONS_FEATURES"
+            },
+            "online": true,
+            "description": null,
+            "tags": null,
+            "owner": null,
+            "attributes": [
+                {
+                    "name": "last_geo_country",
+                    "type": "string",
+                    "description": "Last geo_country value in the last 8 days",
+                    "events": [
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow",
+                            "name": "page_view",
+                            "version": "1-0-0"
+                        }
+                    ],
+                    "aggregation": "last",
+                    "property": "geo_country",
+                    "criteria": null,
+                    "period": null
+                },
+                {
+                    "name": "page_view_count_last_7_days",
+                    "type": "int64",
+                    "description": "Count of page views in the last 7 days",
+                    "events": [
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow",
+                            "name": "page_view",
+                            "version": "1-0-0"
+                        }
+                    ],
+                    "aggregation": "counter",
+                    "property": null,
+                    "criteria": null,
+                    "period": "P7D"
+                }
+            ],
+            "fields": [
+                {
+                    "name": "UPDATED_AT",
+                    "type": "unix_timestamp",
+                    "description": "Last updated at"
+                }
+            ],
+            "feast_name": "ecommerce_transaction_interactions_features_v1",
+            "offline": true,
+            "stream_source_name": "ecommerce_transaction_interactions_features_stream",
+            "entity_key": "user",
+            "view_or_entity_ttl": null
+        }
+    ]
+} 
