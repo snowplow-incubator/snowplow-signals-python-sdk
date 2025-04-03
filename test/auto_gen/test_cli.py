@@ -3,31 +3,32 @@ Tests for the CLI interface of the dbt model generation tool.
 Verifies command-line argument handling and command execution.
 """
 
-import pytest
-import httpx
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-from typing import List
+from typing import Generator, List
+from unittest.mock import MagicMock, patch
+
+import pytest
 import typer
 
 from snowplow_signals.dbt.cli import app
+from test.utils import (
+    MOCK_API_KEY,
+    MOCK_API_KEY_ID,
+    MOCK_API_URL,
+    MOCK_ORG_ID,
+    MOCK_VIEW_NAME,
+    MOCK_VIEW_VERSION,
+)
 
-# Constants
-TEST_API_URL = "http://localhost:8087"
-TEST_API_KEY = "test-api-key"
-TEST_API_KEY_ID = "test-key-id"
-TEST_ORG_ID = "test-org-id"
-TEST_VIEW_NAME = "test_view"
-TEST_VIEW_VERSION = 1
 
 @pytest.fixture(scope="session")
-def test_repo_dir() -> Path:
+def test_repo_dir() -> Generator[Path, None, None]:
     """
     Create a persistent directory for testing.
-    
+
     Returns:
-        Path: Path to the test directory
-        
+        Generator[Path, None, None]: Path to the test directory
+
     Note:
         The directory is cleaned up after all tests are completed.
     """
@@ -43,499 +44,284 @@ def test_repo_dir() -> Path:
                 subitem.unlink()
             item.rmdir()
 
+
 @pytest.fixture
-def mock_dbt_client() -> MagicMock:
+def mock_dbt_client() -> Generator[MagicMock, None, None]:
     """
     Mock the DbtClient for testing.
-    
+
     Returns:
-        MagicMock: Mocked DbtClient instance
+        Generator[MagicMock, None, None]: Mocked DbtClient instance
     """
-    with patch('snowplow_signals.dbt.cli.DbtClient') as mock:
+    with patch("snowplow_signals.dbt.cli.DbtClient") as mock:
         client = MagicMock()
         mock.return_value = client
         yield client
+
 
 @pytest.fixture
 def api_params() -> List[str]:
     """
     Common API parameters for testing.
-    
+
     Returns:
         List[str]: List of API-related command line arguments
     """
     return [
-        "--api-url", TEST_API_URL,
-        "--api-key", TEST_API_KEY,
-        "--api-key-id", TEST_API_KEY_ID,
-        "--org-id", TEST_ORG_ID
+        "--api-url",
+        MOCK_API_URL,
+        "--api-key",
+        MOCK_API_KEY,
+        "--api-key-id",
+        MOCK_API_KEY_ID,
+        "--org-id",
+        MOCK_ORG_ID,
     ]
 
-def test_cli_init_project_succeeds(test_repo_dir: Path, mock_dbt_client: MagicMock, 
-                            api_params: List[str]) -> None:
+
+def test_cli_init_project_succeeds(
+    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+) -> None:
     """
     Test successful initialization of dbt project.
-    
+
     Args:
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked DbtClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = True
-    
+
     with pytest.raises(SystemExit) as exc_info:
-        app(['init', '--repo-path', str(test_repo_dir)] + api_params)
-    
+        app(["init", "--repo-path", str(test_repo_dir)] + api_params)
+
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once_with(
-        repo_path=str(test_repo_dir),
-        view_name=None,
-        view_version=None
+        repo_path=str(test_repo_dir), view_name=None, view_version=None
     )
 
-def test_cli_init_project_with_view_name_succeeds(test_repo_dir: Path, mock_dbt_client: MagicMock,
-                                      api_params: List[str]) -> None:
+
+def test_cli_init_project_with_view_name_succeeds(
+    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+) -> None:
     """
     Test initialization with specific view name.
-    
+
     Args:
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked DbtClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = True
-    
+
     with pytest.raises(SystemExit) as exc_info:
-        app(['init', '--repo-path', str(test_repo_dir), '--view-name', TEST_VIEW_NAME] + api_params)
-    
+        app(
+            ["init", "--repo-path", str(test_repo_dir), "--view-name", MOCK_VIEW_NAME]
+            + api_params
+        )
+
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once_with(
-        repo_path=str(test_repo_dir),
-        view_name=TEST_VIEW_NAME,
-        view_version=None
+        repo_path=str(test_repo_dir), view_name=MOCK_VIEW_NAME, view_version=None
     )
 
-def test_cli_init_project_with_view_name_and_version_succeeds(test_repo_dir: Path, mock_dbt_client: MagicMock,
-                                      api_params: List[str]) -> None:
+
+def test_cli_init_project_with_view_name_and_version_succeeds(
+    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+) -> None:
     """
     Test initialization with specific view name and version.
-    
+
     Args:
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked DbtClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = True
-    
+
     with pytest.raises(SystemExit) as exc_info:
-        app(['init', '--repo-path', str(test_repo_dir), '--view-name', TEST_VIEW_NAME, '--view-version', str(TEST_VIEW_VERSION)] + api_params)
-    
+        app(
+            [
+                "init",
+                "--repo-path",
+                str(test_repo_dir),
+                "--view-name",
+                MOCK_VIEW_NAME,
+                "--view-version",
+                str(MOCK_VIEW_VERSION),
+            ]
+            + api_params
+        )
+
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once_with(
         repo_path=str(test_repo_dir),
-        view_name=TEST_VIEW_NAME,
-        view_version=TEST_VIEW_VERSION
+        view_name=MOCK_VIEW_NAME,
+        view_version=MOCK_VIEW_VERSION,
     )
 
-def test_cli_init_project_fails(test_repo_dir: Path, mock_dbt_client: MagicMock,
-                            api_params: List[str]) -> None:
+
+def test_cli_init_project_fails(
+    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+) -> None:
     """
     Test initialization failure.
-    
+
     Args:
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked DbtClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = False
-    
+
     with pytest.raises(SystemExit) as exc_info:
-        app(['init', '--repo-path', str(test_repo_dir)] + api_params)
-    
+        app(["init", "--repo-path", str(test_repo_dir)] + api_params)
+
     assert exc_info.value.code == 1
 
-def test_cli_generate_models_succeeds(test_repo_dir: Path, mock_dbt_client: MagicMock,
-                                api_params: List[str]) -> None:
+
+def test_cli_generate_models_succeeds(
+    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+) -> None:
     """
     Test successful generation of dbt models.
-    
+
     Args:
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked DbtClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.generate_models.return_value = True
-    
+
     with pytest.raises(SystemExit) as exc_info:
-        app(['generate', '--repo-path', str(test_repo_dir)] + api_params)
-    
+        app(["generate", "--repo-path", str(test_repo_dir)] + api_params)
+
     assert exc_info.value.code == 0
     mock_dbt_client.generate_models.assert_called_once_with(
-        repo_path=str(test_repo_dir),
-        project_name=None,
-        update=False
+        repo_path=str(test_repo_dir), project_name=None, update=False
     )
 
-def test_cli_generate_models_with_update_succeeds(test_repo_dir: Path, mock_dbt_client: MagicMock,
-                                    api_params: List[str]) -> None:
+
+def test_cli_generate_models_with_update_succeeds(
+    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+) -> None:
     """
     Test generation with update flag.
-    
+
     Args:
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked DbtClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.generate_models.return_value = True
-    
+
     with pytest.raises(SystemExit) as exc_info:
-        app(['generate', '--repo-path', str(test_repo_dir), '--update'] + api_params)
-    
+        app(["generate", "--repo-path", str(test_repo_dir), "--update"] + api_params)
+
     assert exc_info.value.code == 0
     mock_dbt_client.generate_models.assert_called_once_with(
-        repo_path=str(test_repo_dir),
-        project_name=None,
-        update=True
+        repo_path=str(test_repo_dir), project_name=None, update=True
     )
 
-def test_cli_generate_models_fails(test_repo_dir: Path, mock_dbt_client: MagicMock,
-                                api_params: List[str]) -> None:
+
+def test_cli_generate_models_fails(
+    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+) -> None:
     """
     Test generation failure.
-    
+
     Args:
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked DbtClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.generate_models.return_value = False
-    
+
     with pytest.raises(SystemExit) as exc_info:
-        app(['generate', '--repo-path', str(test_repo_dir)] + api_params)
-    
+        app(["generate", "--repo-path", str(test_repo_dir)] + api_params)
+
     assert exc_info.value.code == 1
+
 
 def test_cli_commands_with_invalid_repo_path_fail(api_params: List[str]) -> None:
     """
     Test commands with invalid repository path.
-    
+
     Args:
         api_params: API-related command line arguments
     """
     # Test init command with invalid path
     with pytest.raises(SystemExit) as exc_info:
-        app(['init', '--repo-path', '/nonexistent/path'] + api_params)
+        app(["init", "--repo-path", "/nonexistent/path"] + api_params)
     assert exc_info.value.code == 1
-    
+
     # Test generate command with invalid path
     with pytest.raises(SystemExit) as exc_info:
-        app(['generate', '--repo-path', '/nonexistent/path'] + api_params)
+        app(["generate", "--repo-path", "/nonexistent/path"] + api_params)
     assert exc_info.value.code == 1
 
-def test_cli_commands_with_debug_logging_succeed(test_repo_dir: Path, mock_dbt_client: MagicMock,
-                      api_params: List[str]) -> None:
+
+def test_cli_commands_with_debug_logging_succeed(
+    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+) -> None:
     """
     Test commands with debug logging enabled.
-    
+
     Args:
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked DbtClient
         api_params: API-related command line arguments
     """
     mock_dbt_client.init_project.return_value = True
-    
+
     with pytest.raises(SystemExit) as exc_info:
-        app(['init', '--repo-path', str(test_repo_dir), '--debug'] + api_params)
-    
+        app(["init", "--repo-path", str(test_repo_dir), "--debug"] + api_params)
+
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once()
 
-def test_cli_commands_with_custom_api_url_succeed(test_repo_dir: Path, mock_dbt_client: MagicMock) -> None:
+
+def test_cli_commands_with_custom_api_url_succeed(
+    test_repo_dir: Path, mock_dbt_client: MagicMock
+) -> None:
     """
     Test commands with custom API URL.
-    
+
     Args:
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked DbtClient
     """
     mock_dbt_client.init_project.return_value = True
     custom_api_params = [
-        "--api-url", "http://custom-api:8000",
-        "--api-key", TEST_API_KEY,
-        "--api-key-id", TEST_API_KEY_ID,
-        "--org-id", TEST_ORG_ID
+        "--api-url",
+        "http://custom-api:8000",
+        "--api-key",
+        MOCK_API_KEY,
+        "--api-key-id",
+        MOCK_API_KEY_ID,
+        "--org-id",
+        MOCK_ORG_ID,
     ]
-    
+
     with pytest.raises(SystemExit) as exc_info:
-        app(['init', '--repo-path', str(test_repo_dir)] + custom_api_params)
-    
+        app(["init", "--repo-path", str(test_repo_dir)] + custom_api_params)
+
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once()
 
-def test_cli_test_connection_succeeds(api_params: List[str], respx_mock) -> None:
-    """
-    Test successful API connection check.
-    
-    Args:
-        api_params: API-related command line arguments
-        respx_mock: HTTPX mock fixture
-    """
-    # Mock token request
-    token_mock = respx_mock.get(
-        f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{TEST_ORG_ID}/credentials/v3/token"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={"accessToken": "test-token"}
-    ))
-    
-    # Mock successful health check response
-    health_mock = respx_mock.get(
-        "http://localhost:8087/api/v1/health-all"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={
-            "status": "ok",
-            "dependencies": {
-                "storage": "ok",
-                "feature_server": "ok"
-            }
-        }
-    ))
-    
-    with pytest.raises(SystemExit) as exc_info:
-        app(['test-connection'] + api_params)
-    
-    assert exc_info.value.code == 0
-    assert token_mock.called
-    assert health_mock.called
-
-def test_cli_test_connection_fails_with_down_status(api_params: List[str], respx_mock) -> None:
-    """
-    Test API connection check when service is down.
-    
-    Args:
-        api_params: API-related command line arguments
-        respx_mock: HTTPX mock fixture
-    """
-    # Mock token request
-    token_mock = respx_mock.get(
-        f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{TEST_ORG_ID}/credentials/v3/token"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={"accessToken": "test-token"}
-    ))
-    
-    # Mock failed health check response
-    health_mock = respx_mock.get(
-        "http://localhost:8087/api/v1/health-all"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={
-            "status": "down",
-            "dependencies": {
-                "storage": "ok",
-                "feature_server": "down"
-            }
-        }
-    ))
-    
-    with pytest.raises(SystemExit) as exc_info:
-        app(['test-connection'] + api_params)
-    
-    assert exc_info.value.code == 1
-    assert token_mock.called
-    assert health_mock.called
-
-def test_cli_test_connection_fails_with_exception(api_params: List[str], respx_mock) -> None:
-    """
-    Test API connection check when an exception occurs.
-    
-    Args:
-        api_params: API-related command line arguments
-        respx_mock: HTTPX mock fixture
-    """
-    # Mock token request
-    token_mock = respx_mock.get(
-        f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{TEST_ORG_ID}/credentials/v3/token"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={"accessToken": "test-token"}
-    ))
-    
-    # Mock connection error
-    health_mock = respx_mock.get(
-        "http://localhost:8087/api/v1/health-all"
-    ).mock(side_effect=httpx.ConnectError("Connection refused"))
-    
-    with pytest.raises(SystemExit) as exc_info:
-        app(['test-connection'] + api_params)
-    
-    assert exc_info.value.code == 1
-    assert token_mock.called
-    assert health_mock.called
-
-def test_cli_test_connection_with_debug_logging(api_params: List[str], respx_mock) -> None:
-    """
-    Test API connection check with debug logging enabled.
-    
-    Args:
-        api_params: API-related command line arguments
-        respx_mock: HTTPX mock fixture
-    """
-    # Mock token request
-    token_mock = respx_mock.get(
-        f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{TEST_ORG_ID}/credentials/v3/token"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={"accessToken": "test-token"}
-    ))
-    
-    # Mock successful health check response
-    health_mock = respx_mock.get(
-        "http://localhost:8087/api/v1/health-all"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={
-            "status": "ok",
-            "dependencies": {
-                "storage": "ok",
-                "feature_server": "ok"
-            }
-        }
-    ))
-    
-    with pytest.raises(SystemExit) as exc_info:
-        app(['test-connection', '--debug'] + api_params)
-    
-    assert exc_info.value.code == 0
-    assert token_mock.called
-    assert health_mock.called
-
-def test_cli_test_connection_with_custom_api_url(api_params: List[str], respx_mock) -> None:
-    """
-    Test API connection check with custom API URL.
-    
-    Args:
-        api_params: API-related command line arguments
-        respx_mock: HTTPX mock fixture
-    """
-    custom_api_params = [
-        "--api-url", "http://custom-api:8000",
-        "--api-key", TEST_API_KEY,
-        "--api-key-id", TEST_API_KEY_ID,
-        "--org-id", TEST_ORG_ID
-    ]
-    
-    # Mock token request
-    token_mock = respx_mock.get(
-        f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{TEST_ORG_ID}/credentials/v3/token"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={"accessToken": "test-token"}
-    ))
-    
-    # Mock successful health check response for custom URL
-    health_mock = respx_mock.get(
-        "http://custom-api:8000/api/v1/health-all"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={
-            "status": "ok",
-            "dependencies": {
-                "storage": "ok",
-                "feature_server": "ok"
-            }
-        }
-    ))
-    
-    with pytest.raises(SystemExit) as exc_info:
-        app(['test-connection'] + custom_api_params)
-    
-    assert exc_info.value.code == 0
-    assert token_mock.called
-    assert health_mock.called
-
-def test_cli_test_connection_fails_with_non_200_status(api_params: List[str], respx_mock) -> None:
-    """
-    Test API connection check when API returns non-200 status code.
-    
-    Args:
-        api_params: API-related command line arguments
-        respx_mock: HTTPX mock fixture
-    """
-    # Mock token request
-    token_mock = respx_mock.get(
-        f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{TEST_ORG_ID}/credentials/v3/token"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={"accessToken": "test-token"}
-    ))
-    
-    # Mock failed health check response with 500 status code
-    health_mock = respx_mock.get(
-        "http://localhost:8087/api/v1/health-all"
-    ).mock(return_value=httpx.Response(
-        500,
-        json={
-            "error": "Internal Server Error",
-            "message": "Something went wrong"
-        }
-    ))
-    
-    with pytest.raises(SystemExit) as exc_info:
-        app(['test-connection'] + api_params)
-    
-    assert exc_info.value.code == 1
-    assert token_mock.called
-    assert health_mock.called
-
-def test_create_api_client(respx_mock) -> None:
-    """Test the create_api_client function directly."""
-    from snowplow_signals.dbt.cli import create_api_client
-    from snowplow_signals.api_client import ApiClient
-    
-    # Mock the token request
-    token_mock = respx_mock.get(
-        f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{TEST_ORG_ID}/credentials/v3/token"
-    ).mock(return_value=httpx.Response(
-        200,
-        json={"accessToken": "test-token"}
-    ))
-    
-    # Create a client without any mocking
-    client = create_api_client(
-        api_url=TEST_API_URL,
-        api_key=TEST_API_KEY,
-        api_key_id=TEST_API_KEY_ID,
-        org_id=TEST_ORG_ID
-    )
-    
-    # Verify it's the correct type
-    assert isinstance(client, ApiClient)
-    
-    # Verify all attributes are set correctly
-    assert client.api_url == TEST_API_URL
-    assert client.api_key == TEST_API_KEY
-    assert client.api_key_id == TEST_API_KEY_ID
-    assert client.org_id == TEST_ORG_ID
-    
-    # Verify the client can fetch a token (this will hit line 63)
-    token = client._fetch_token()
-    assert token == "test-token"
-    assert token_mock.called
 
 def test_validate_repo_path_fails_with_file(test_repo_dir: Path) -> None:
     """Test validate_repo_path when path exists but is not a directory."""
     from snowplow_signals.dbt.cli import validate_repo_path
-    
+
     # Create a file instead of a directory
     test_file = test_repo_dir / "test_file.txt"
     test_file.touch()
-    
+
     with pytest.raises(typer.BadParameter) as exc_info:
         validate_repo_path(str(test_file))
-    
+
     assert "is not a directory" in str(exc_info.value)
-    
+
     # Clean up
-    test_file.unlink() 
+    test_file.unlink()

@@ -4,7 +4,28 @@ import pytest
 
 from snowplow_signals import Signals
 
-from .utils import MOCK_ORG_ID, utc_timestamp
+from .utils import (
+    MOCK_API_KEY,
+    MOCK_API_KEY_ID,
+    MOCK_API_URL,
+    MOCK_ORG_ID,
+    utc_timestamp,
+)
+
+
+@pytest.fixture
+def api_params() -> list[str]:
+    """Common API parameters for testing."""
+    return [
+        "--api-url",
+        MOCK_API_URL,
+        "--api-key",
+        MOCK_API_KEY,
+        "--api-key-id",
+        MOCK_API_KEY_ID,
+        "--org-id",
+        MOCK_ORG_ID,
+    ]
 
 
 @pytest.fixture
@@ -32,3 +53,33 @@ def mock_auth(respx_mock, request, access_jwt):
     respx_mock.get(
         f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{MOCK_ORG_ID}/credentials/v3/token"
     ).mock(return_value=httpx.Response(200, json={"accessToken": access_jwt}))
+
+
+@pytest.fixture
+def mock_successful_api_health(respx_mock):
+    """Mock successful API health check response."""
+    respx_mock.get(f"{MOCK_API_URL}/api/v1/health-all").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "status": "ok",
+                "dependencies": {"storage": "ok", "feature_server": "ok"},
+            },
+        )
+    )
+
+
+@pytest.fixture
+def mock_successful_registry_views(respx_mock):
+    """Mock successful registry views response."""
+    respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/views/").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "views": [],
+                "total": 0,
+                "page": 1,
+                "page_size": 10,
+            },
+        )
+    )
