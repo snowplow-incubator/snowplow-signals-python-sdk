@@ -9,6 +9,10 @@ dist
 *.DS_Store
 
 # Autogen
-test/auto_gen/customer_repo/
+integration_tests/customer_repo/
 
 /.vscode
+
+# VSCode
+.vscode/*
+.vscode/settings.json
