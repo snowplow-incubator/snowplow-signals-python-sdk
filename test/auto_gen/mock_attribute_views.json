@@ -37,6 +37,22 @@
                     "property": "geo_country",
                     "criteria": null,
                     "period": null
+                },
+                {
+                    "name": "page_view_count_last_7_days",
+                    "type": "int64",
+                    "description": "Count of page views in the last 7 days",
+                    "events": [
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow",
+                            "name": "page_view",
+                            "version": "1-0-0"
+                        }
+                    ],
+                    "aggregation": "counter",
+                    "property": null,
+                    "criteria": null,
+                    "period": "P7D"
                 }
             ],
             "fields": [

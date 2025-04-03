@@ -41,11 +41,17 @@ class DbtConfigGenerator(BaseModel):
                 if step["step_type"] == "attribute_aggregation":
 
                     # get last n day filter period
-                    if step.get("filter"):
-                        conditions = step["filter"]["condition"]
-                        for condition in conditions:
-                            if condition["property"] == "period":
-                                period = int(condition["value"])
+                    if step.get("modeling_criteria"):
+                        # Check "all" conditions first
+                        if "all" in step["modeling_criteria"]:
+                            for condition in step["modeling_criteria"]["all"]:
+                                if condition["property"] == "period":
+                                    period = int(condition["value"])
+                        # Check "any" conditions if period not found in "all"
+                        if period is None and "any" in step["modeling_criteria"]:
+                            for condition in step["modeling_criteria"]["any"]:
+                                if condition["property"] == "period":
+                                    period = int(condition["value"])
 
                     if step["aggregation"] == "first":
                         first_value_attributes.append(

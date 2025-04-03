@@ -5,7 +5,7 @@ import os
 import typer
 from typing_extensions import Annotated
 
-from snowplow_signals.dbt.models.base_config_generator import (
+from snowplow_signals.batch_autogen.models.base_config_generator import (
     BaseConfigGenerator,
 )
 from snowplow_signals.logging import get_logger

@@ -86,7 +86,7 @@ You can use the SDK programmatically in your Python code:
 
 ```python
 from snowplow_signals.api_client import ApiClient
-from snowplow_signals.dbt import DbtClient
+from snowplow_signals.batch_autogen import BatchAutogenClient
 
 # Initialize the API client
 api_client = ApiClient(
@@ -96,14 +96,14 @@ api_client = ApiClient(
     org_id="YOUR_ORG_ID"
 )
 
-# Initialize the dbt client
-dbt_client = DbtClient(api_client=api_client)
+# Initialize the batch autogen client
+batch_autogen_client = BatchAutogenClient(api_client=api_client)
 
 # Initialize a dbt project
-dbt_client.init_project(repo_path="./customer_repo")
+batch_autogen_client.init_project(repo_path="./customer_repo")
 
 # Generate dbt models
-dbt_client.generate_models(repo_path="./customer_repo", update=True)
+batch_autogen_client.generate_models(repo_path="./customer_repo", update=True)
 ```
 
 You can also use the CLI interface (after installing the SDK):
@@ -132,6 +132,7 @@ poetry run snowplow-dbt generate \
 ```
 
 The CLI commands support the following options:
+
 - `--api-url`: URL of the API server to fetch schema information
 - `--api-key`: API key for authentication
 - `--api-key-id`: ID of the API key

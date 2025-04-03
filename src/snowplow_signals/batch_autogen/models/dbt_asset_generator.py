@@ -5,7 +5,7 @@ from typing import Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel
 
-from snowplow_signals.dbt.utils.utils import write_file
+from snowplow_signals.batch_autogen.utils.utils import write_file
 from snowplow_signals.logging import get_logger
 
 logger = get_logger(__name__)

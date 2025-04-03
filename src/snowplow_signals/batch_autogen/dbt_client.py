@@ -1,12 +1,14 @@
-"""Client for interacting with dbt project generation"""
+"""Client for interacting with batch project generation"""
 
 import logging
 import os
 from typing import Optional
 
-from snowplow_signals.dbt.models.dbt_asset_generator import DbtAssetGenerator
-from snowplow_signals.dbt.models.dbt_config_generator import DbtConfigGenerator
-from snowplow_signals.dbt.models.dbt_project_setup import DbtProjectSetup
+from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
+from snowplow_signals.batch_autogen.models.dbt_config_generator import (
+    DbtConfigGenerator,
+)
+from snowplow_signals.batch_autogen.models.dbt_project_setup import DbtProjectSetup
 from snowplow_signals.logging import get_logger
 
 from ..api_client import ApiClient
@@ -14,8 +16,8 @@ from ..api_client import ApiClient
 logger = get_logger(__name__)
 
 
-class DbtClient:
-    """Client for generating dbt projects for Snowplow data"""
+class BatchAutogenClient:
+    """Client for generating batch projects (dbt) for Snowplow data"""
 
     def __init__(self, api_client: ApiClient):
         self.api_client = api_client

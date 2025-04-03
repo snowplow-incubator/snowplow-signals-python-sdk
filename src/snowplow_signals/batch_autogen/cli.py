@@ -8,7 +8,7 @@ import typer
 from typing_extensions import Annotated
 
 from snowplow_signals.api_client import ApiClient
-from snowplow_signals.dbt import DbtClient
+from snowplow_signals.batch_autogen import BatchAutogenClient
 from snowplow_signals.logging import get_logger, setup_logging
 
 # Create the main Typer app with metadata
@@ -136,7 +136,7 @@ def init(
 
         logger.info(f"Initializing dbt project(s) in {validated_path}")
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = DbtClient(api_client=api_client)
+        client = BatchAutogenClient(api_client=api_client)
 
         success = client.init_project(
             repo_path=str(validated_path),
@@ -223,7 +223,7 @@ def generate(
 
         logger.info(f"🛠️ Generating dbt models in {validated_path}")
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = DbtClient(api_client=api_client)
+        client = BatchAutogenClient(api_client=api_client)
 
         success = client.generate_models(
             repo_path=str(validated_path),
