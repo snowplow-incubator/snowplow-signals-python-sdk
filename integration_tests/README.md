@@ -20,7 +20,7 @@ The integration test will automatically install the SDK in development mode, but
 
 ```sh
 # From the project root
-pip install -e .
+poetry install
 ```
 
 This will make the `snowplow_signals` module available in your Python environment with all the dbt functionality included.
@@ -30,7 +30,7 @@ This will make the `snowplow_signals` module available in your Python environmen
 Make sure the test dependencies are installed:
 
 ```sh
-pip install -r test/auto_gen/requirements.txt
+poetry install --with dev
 ```
 
 ### Prepare your dbt target
@@ -61,14 +61,14 @@ There are two ways to run the integration tests:
 
 ```sh
 # From the project root
-pytest test/auto_gen/test_e2e_batch_autogen.py -v
+poetry run pytest test/auto_gen/test_e2e_batch_autogen.py -v
 ```
 
 2. **Using the integration test script**:
 
 ```sh
-cd test/auto_gen
-bash integration_test.sh
+# From the project root
+bash integration_tests/test_dbt.sh
 ```
 
 The integration test script will:
@@ -110,7 +110,7 @@ You can also use the CLI interface (after installing the SDK):
 
 ```sh
 # Initialize a dbt project
-snowplow-dbt init \
+poetry run snowplow-dbt init \
     --api-url=http://localhost:8087 \
     --api-key=YOUR_API_KEY \
     --api-key-id=YOUR_API_KEY_ID \
@@ -120,7 +120,7 @@ snowplow-dbt init \
     [--debug]
 
 # Generate dbt models
-snowplow-dbt generate \
+poetry run snowplow-dbt generate \
     --api-url=http://localhost:8087 \
     --api-key=YOUR_API_KEY \
     --api-key-id=YOUR_API_KEY_ID \
