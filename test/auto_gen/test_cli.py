@@ -265,7 +265,7 @@ def test_cli_commands_with_debug_logging_succeed(
     test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
 ) -> None:
     """
-    Test commands with debug logging enabled.
+    Test commands with verbose logging enabled.
 
     Args:
         test_repo_dir: Path to test repository directory
@@ -275,7 +275,7 @@ def test_cli_commands_with_debug_logging_succeed(
     mock_dbt_client.init_project.return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", str(test_repo_dir), "--debug"] + api_params)
+        app(["init", "--repo-path", str(test_repo_dir), "--verbose"] + api_params)
 
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once()

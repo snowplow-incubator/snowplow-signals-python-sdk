@@ -7,10 +7,11 @@ from typing import Optional
 from snowplow_signals.dbt.models.dbt_asset_generator import DbtAssetGenerator
 from snowplow_signals.dbt.models.dbt_config_generator import DbtConfigGenerator
 from snowplow_signals.dbt.models.dbt_project_setup import DbtProjectSetup
+from snowplow_signals.logging import get_logger
 
 from ..api_client import ApiClient
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DbtClient:
@@ -139,7 +140,9 @@ class DbtClient:
         with open(dbt_config_path, "w") as f:
             json.dump(output, f, indent=4)
 
-        logger.info(f"✅ Dbt Config file generated for {project_name}: dbt_config.json")
+        logger.success(
+            f"📄 Dbt Config file generated for {project_name}: dbt_config.json"
+        )
         logger.info(f"Generating dbt project assets for {project_name}...")
 
         # Define the assets to generate
@@ -248,9 +251,9 @@ class DbtClient:
                 )
                 asset.generate_asset(update=update, context=context)
 
-            logger.info(f"✅ Finished generating models for {project_name}!")
+            logger.success(f"✅ Finished generating models for {project_name}!")
             return True
 
         except ValueError as e:
-            logger.error(f"Error generating models for {project_name}: {e}")
+            logger.error(f"❌ Error generating models for {project_name}: {e}")
             return False

@@ -6,8 +6,9 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel
 
 from snowplow_signals.dbt.utils.utils import write_file
+from snowplow_signals.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DbtAssetGenerator(BaseModel):
@@ -67,4 +68,5 @@ class DbtAssetGenerator(BaseModel):
         env = self._jinja_environment()
         template = env.get_template(self.filename + ".j2")
         write_file(self.get_filepath(), template.render(**context))
-        logger.info(f"✅ {self.asset_type.capitalize()}: {self.filename} generated")
+        ## file emoji
+        logger.info(f"📄 {self.asset_type.capitalize()}: {self.filename} generated")
