@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 # Store the original directory
 ORIGINAL_DIR=$(pwd)
 SCRIPTS_DIR=$(dirname "$(realpath "$0")")
-PROJECT_ROOT=$(realpath "$SCRIPTS_DIR/../..")
+PROJECT_ROOT=$(dirname "$SCRIPTS_DIR")
 
 print_header() {
     echo -e "\n${YELLOW}======================================================${NC}"
@@ -34,12 +34,11 @@ echo "$(date)"
 
 # Run the test script with pytest to generate the dbt project
 print_header "Running test_e2e_batch_autogen.py"
-cd "$PROJECT_ROOT"
 poetry run pytest test/auto_gen/test_e2e_batch_autogen.py -v
 
 # Check if test_dir was created successfully
-if [ ! -d "test/auto_gen/customer_repo" ]; then
-    echo -e "${RED}Failed to create test/auto_gen/customer_repo${NC}"
+if [ ! -d "integration_tests/customer_repo" ]; then
+    echo -e "${RED}Failed to create integration_tests/customer_repo${NC}"
     exit 1
 fi
 
@@ -49,7 +48,7 @@ echo -e "${GREEN}Successfully initialized and generated dbt project${NC}"
 print_header "Running dbt commands"
 
 # Find all dbt projects (directories containing dbt_project.yml)
-cd test/auto_gen/customer_repo
+cd integration_tests/customer_repo
 for project_dir in */; do
     if [ -f "${project_dir}dbt_project.yml" ]; then
         print_header "Processing project: ${project_dir%/}"

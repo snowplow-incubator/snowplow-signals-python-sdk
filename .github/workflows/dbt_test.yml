@@ -20,7 +20,7 @@ jobs:
         uses: abatilo/actions-poetry@v3
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install 
 
       - name: Run specific dbt test to generate the test dbt project
         run: poetry run pytest test/auto_gen/test_e2e_batch_autogen.py::test_batch_model_generation_creates_project_structure -v
