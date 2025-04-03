@@ -1,7 +1,7 @@
 import re
 from typing import Any, Dict, FrozenSet, Literal, Set
 
-from snowplow_signals.dbt.models.modeling_step import (
+from snowplow_signals.batch_autogen.models.modeling_step import (
     FilterCondition,
     ModelingCriteria,
     ModelingStep,

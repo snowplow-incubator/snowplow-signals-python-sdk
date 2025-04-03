@@ -11,7 +11,7 @@ import httpx
 import pytest
 import typer
 
-from snowplow_signals.dbt.cli import app
+from snowplow_signals.batch_autogen.cli import app
 from test.utils import MOCK_API_KEY, MOCK_API_KEY_ID, MOCK_API_URL, MOCK_ORG_ID
 
 

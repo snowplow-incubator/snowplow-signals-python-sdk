@@ -1,18 +1,19 @@
+from snowplow_signals.batch_autogen import BatchAutogenClient
 from snowplow_signals.models import (
-    View,
-    Service,
     Attribute,
+    BatchSource,
     Criteria,
     Criterion,
     Entity,
-    BatchSource,
+    Event,
     Field,
     LinkEntity,
-    Event,
+    Service,
+    View,
 )
 from snowplow_signals.signals import Signals
-from .definitions import user_entity, session_entity
-from snowplow_signals.dbt import DbtClient
+
+from .definitions import session_entity, user_entity
 
 Signals
 View
@@ -27,4 +28,4 @@ LinkEntity
 Event
 user_entity
 session_entity
-DbtClient
+BatchAutogenClient
