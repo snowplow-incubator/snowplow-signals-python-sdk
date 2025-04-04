@@ -41,7 +41,7 @@ class ModelingCriteria(BaseModel):
 
     def add_conditions(
         self,
-        conditions: List[FilterCondition],
+        conditions: list[FilterCondition],
         target_group: Literal["all", "any"] | None,
     ):
 
