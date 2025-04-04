@@ -1,0 +1,10 @@
+domain_userid,valid_at_tstamp,lower_limit,upper_limit,first_mkt_source,first_mkt_medium,first_referrer_source,first_referrer_medium,page_view_events_count_last_7_days,page_ping_events_count_last_7_days,pricing_pageview_count_last_7_days,demo_pageview_count_last_7_days,media_video_event_count_last_7_days,form_focus_change_event_count_last_7_days,last_geo_country,last_timezone,last_os,last_device_class,last_mkt_source,last_mkt_medium,total_revenue_last_7_days
+user_9,2025-04-03 13:38:17.123,2025-01-01,2025-01-05,,,,,1,1,1,1,1,1,FR,Europe/London,MacOS,Desktop,,,
+user_2,2025-04-03 13:38:17.123,2025-01-01,2025-01-05,,,,,5,5,5,5,5,5,UK,Europe/London,MacOS,Desktop,,,
+user_8,2025-04-03 13:38:17.123,2025-01-01,2025-01-05,,,,,2,2,2,2,2,2,US,Europe/Dublin,MacOS,Desktop,,,
+user_7,2025-04-03 13:38:17.123,2025-01-01,2025-01-05,,,,,5,5,5,5,5,5,CA,Europe/London,MacOS,Desktop,,,
+user_6,2025-04-03 13:38:17.123,2025-01-01,2025-01-05,,,,,5,5,5,5,5,5,FR,Europe/London,MacOS,Desktop,,,
+user_3,2025-04-03 13:38:17.123,2025-01-01,2025-01-05,google-ad,ppc,,,9,9,9,9,9,9,UK,Europe/London,MacOS,Desktop,,,
+user_1,2025-04-03 13:38:17.123,2025-01-01,2025-01-05,,,,,6,6,6,6,6,6,DE,Europe/London,MacOS,Desktop,,,
+user_4,2025-04-03 13:38:17.123,2025-01-01,2025-01-05,,,,,7,7,7,7,7,7,US,Europe/Dublin,MacOS,Desktop,,,
+user_5,2025-04-03 13:38:17.123,2025-01-01,2025-01-05,,,,,7,7,7,7,7,7,FR,Europe/London,MacOS,Desktop,google-ad,ppc,
