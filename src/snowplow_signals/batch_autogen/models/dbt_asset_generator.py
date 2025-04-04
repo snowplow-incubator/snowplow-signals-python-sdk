@@ -1,6 +1,5 @@
-import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel
@@ -20,7 +19,7 @@ class DbtAssetGenerator(BaseModel):
     asset_subpath: str
     filename: str
     asset_type: str
-    custom_context: Optional[dict] = None
+    custom_context: dict[str, Any] | None = None
 
     @property
     def project_name(self) -> str:
@@ -64,7 +63,7 @@ class DbtAssetGenerator(BaseModel):
         else:
             raise ValueError(f"Invalid asset type: {self.asset_type}")
 
-    def generate_asset(self, update: bool, context: dict) -> None:
+    def generate_asset(self, update: bool, context: dict[str, Any]) -> None:
         env = self._jinja_environment()
         template = env.get_template(self.filename + ".j2")
         write_file(self.get_filepath(), template.render(**context))
