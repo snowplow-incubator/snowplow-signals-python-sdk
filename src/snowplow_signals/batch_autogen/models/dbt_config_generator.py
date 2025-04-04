@@ -12,6 +12,39 @@ class ConfigEvents(BaseModel):
     event_format: str
     event_version: str
 
+<<<<<<< HEAD
+=======
+
+class ConfigAttributes(BaseModel):
+    lifetime_aggregates: list
+    last_n_day_aggregates: list
+    first_value_attributes: list
+    last_value_attributes: list
+
+
+class DailyAggregations(BaseModel):
+    daily_aggregate_attributes: list
+    daily_first_value_attributes: list
+    daily_last_value_attributes: list
+
+
+class FilteredEvents(BaseModel):
+    events: list[ConfigEvents]
+    properties: list[dict[str, str]]
+
+
+class DbtConfig(BaseModel):
+    filtered_events: FilteredEvents
+    daily_agg: DailyAggregations
+    attributes: ConfigAttributes
+
+
+class DbtConfigGenerator:
+    def __init__(self, base_config_data: DbtBaseConfig):
+        self.base_config_data = base_config_data
+
+    def get_events_dict(self) -> list[ConfigEvents]:
+>>>>>>> f595436 (Add DbtConfig type)
 
 class ConfigAttributes(BaseModel):
     lifetime_aggregates: list

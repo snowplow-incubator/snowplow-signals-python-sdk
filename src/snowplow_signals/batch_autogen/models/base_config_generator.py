@@ -3,8 +3,6 @@ from typing import Dict, FrozenSet, Literal, Set
 
 from pydantic import BaseModel
 
-from pydantic import BaseModel
-
 from snowplow_signals.batch_autogen.models.modeling_step import (
     FilterCondition,
     ModelingCriteria,
