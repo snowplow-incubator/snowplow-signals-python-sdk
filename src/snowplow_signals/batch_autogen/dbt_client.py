@@ -1,6 +1,6 @@
 """Client for interacting with batch project generation"""
 
-import logging
+import json
 import os
 from typing import Optional
 
@@ -8,7 +8,10 @@ from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGe
 from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     DbtConfigGenerator,
 )
-from snowplow_signals.batch_autogen.models.dbt_project_setup import DbtProjectSetup
+from snowplow_signals.batch_autogen.models.dbt_project_setup import (
+    DbtBaseConfig,
+    DbtProjectSetup,
+)
 from snowplow_signals.logging import get_logger
 
 from ..api_client import ApiClient
@@ -129,11 +132,10 @@ class BatchAutogenClient:
 
         # Load base config and generate dbt config
         with open(base_config_path) as f:
-            import json
-
             data = json.load(f)
+            base_config = DbtBaseConfig.model_validate(data)
 
-        generator = DbtConfigGenerator(base_config_data=data)
+        generator = DbtConfigGenerator(base_config_data=base_config)
         output = generator.create_dbt_config()
 
         # Ensure configs directory exists
