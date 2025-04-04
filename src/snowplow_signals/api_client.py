@@ -5,7 +5,7 @@ from typing import Literal, Optional
 import httpx
 import jwt
 
-type HTTP_METHODS = Literal["GET", "POST", "PUT", "DELETE"]
+HTTP_METHODS = Literal["GET", "POST", "PUT", "DELETE"]
 
 
 class ApiClient:
