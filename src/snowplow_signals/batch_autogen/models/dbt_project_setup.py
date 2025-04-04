@@ -7,6 +7,7 @@ from typing_extensions import Annotated
 
 from snowplow_signals.batch_autogen.models.base_config_generator import (
     BaseConfigGenerator,
+    DbtBaseConfig,
 )
 from snowplow_signals.logging import get_logger
 
@@ -34,21 +35,22 @@ class DbtProjectSetup:
         self.view_name = view_name
         self.view_version = view_version
 
-    def create_project_directories(self, setup_project_name: str, base_config: dict):
+    def create_project_directories(
+        self, setup_project_name: str, base_config: DbtBaseConfig
+    ):
         # Create project-specific output directory
         project_output_dir = os.path.join(self.repo_path, setup_project_name, "configs")
         if not os.path.exists(project_output_dir):
             os.makedirs(project_output_dir)
         base_config_path = os.path.join(project_output_dir, "base_config.json")
         with open(base_config_path, "w") as f:
-            json.dump(base_config, f, indent=4)
+            json.dump(base_config.model_dump(), f, indent=4)
         logger.success(f"📄 Base config file generated for {setup_project_name}")
 
     def get_attribute_view_project_config(
         self,
         attribute_view: ViewOutput,
-        # FIXME return type to be based on create_base_config typed value
-    ) -> dict:
+    ) -> DbtBaseConfig:
         generator = BaseConfigGenerator(data=attribute_view)
         return generator.create_base_config()
 

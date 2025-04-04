@@ -1,6 +1,8 @@
 import re
 from typing import Any, Dict, FrozenSet, Literal, Set
 
+from pydantic import BaseModel
+
 from snowplow_signals.batch_autogen.models.modeling_step import (
     FilterCondition,
     ModelingCriteria,
@@ -11,12 +13,19 @@ from ...models import AttributeOutput, CriterionOutput, Event, ViewOutput
 from ..utils.utils import timedelta_isoformat
 
 # FIXME can we extract from auto generated model attributes ?
-type AggregationLiteral = Literal[
+AggregationLiteral = Literal[
     "counter", "sum", "min", "max", "mean", "first", "last", "unique_list"
 ]
-type SQLAggregationLiteral = Literal[
+SQLAggregationLiteral = Literal[
     "count", "sum", "min", "max", "avg", "first", "last", "unique_list"
 ]
+
+
+class DbtBaseConfig(BaseModel):
+    events: list[str]
+    properties: list[dict[str, str]]
+    periods: list[str]
+    transformed_attributes: list[list[ModelingStep]]
 
 
 class BaseConfigGenerator:
@@ -319,19 +328,19 @@ class BaseConfigGenerator:
 
         return steps
 
-    def create_base_config(self) -> Dict[str, Any]:
+    def create_base_config(self) -> DbtBaseConfig:
         """
         Process attribute definitions and return the base config format (this would eventually allow for users to make changes, if needed).
         """
 
         attributes = self.data.attributes or []
         transformed_attributes = [
-            [step.model_dump() for step in self._generate_modeling_steps(attribute)]
+            [step for step in self._generate_modeling_steps(attribute)]
             for attribute in attributes
         ]
-        return {
-            "events": [item for item in self.events if item not in {None, ""}],
-            "properties": self.properties,
-            "periods": [item for item in self.periods if item not in {None, ""}],
-            "transformed_attributes": transformed_attributes,
-        }
+        return DbtBaseConfig(
+            events=[item for item in self.events if item not in {None, ""}],
+            properties=self.properties,
+            periods=[item for item in self.periods if item not in {None, ""}],
+            transformed_attributes=transformed_attributes,
+        )

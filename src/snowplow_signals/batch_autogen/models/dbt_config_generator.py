@@ -1,15 +1,16 @@
-from typing import Any, Dict
+from typing import Any, Dict, isinstance
 
 from pydantic import BaseModel
 
+from .dbt_project_setup import DbtBaseConfig
+
 
 class DbtConfigGenerator(BaseModel):
-    base_config_data: Dict[str, Any]
+    base_config_data: DbtBaseConfig
 
     def get_events_dict(self):
 
-        # Sort the original event strings to ensure deterministic order
-        parsed_events = sorted(self.base_config_data["events"])
+        parsed_events = self.base_config_data.events
         event_dict_list = []
         for event in parsed_events:
             cleaned_event = event.removeprefix("iglu:")
@@ -26,7 +27,7 @@ class DbtConfigGenerator(BaseModel):
 
         return event_dict_list
 
-    def get_attributes_by_type(self, attribute_type):
+    def get_attributes_by_type(self, attribute_type) -> list:
         """Returns a list of attributes base on type (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
         first_value_attributes = []
@@ -34,50 +35,58 @@ class DbtConfigGenerator(BaseModel):
         last_n_day_aggregates = []
         lifetime_aggregates = []
 
-        for attribute in self.base_config_data.get("transformed_attributes", []):
+        for attribute in self.base_config_data.transformed_attributes:
             for step in attribute:
                 period = None
-                if step["step_type"] == "daily_aggregation":
-                    daily_agg_column_name = step["column_name"]
-                if step["step_type"] == "attribute_aggregation":
+                if step.step_type == "daily_aggregation":
+                    daily_agg_column_name = step.column_name
+                if step.step_type == "attribute_aggregation":
 
                     # get last n day filter period
-                    if step.get("modeling_criteria"):
+                    if step.modeling_criteria:
                         # Check "all" conditions first
-                        if "all" in step["modeling_criteria"]:
-                            for condition in step["modeling_criteria"]["all"]:
-                                if condition["property"] == "period":
-                                    period = int(condition["value"])
+                        if step.modeling_criteria.all:
+                            for condition in step.modeling_criteria.all:
+                                if condition.property == "period":
+                                    if isinstance(condition.value, bool):
+                                        raise ValueError(
+                                            "Value should not be boolean when period is specified"
+                                        )
+                                    period = int(condition.value)
                         # Check "any" conditions if period not found in "all"
-                        if period is None and "any" in step["modeling_criteria"]:
-                            for condition in step["modeling_criteria"]["any"]:
-                                if condition["property"] == "period":
-                                    period = int(condition["value"])
+                        if period is None and step.modeling_criteria.any:
+                            for condition in step.modeling_criteria.any:
+                                if condition.property == "period":
+                                    if isinstance(condition.value, bool):
+                                        raise ValueError(
+                                            "Value should not be boolean when period is specified"
+                                        )
+                                    period = int(condition.value)
 
-                    if step["aggregation"] == "first":
+                    if step.aggregation == "first":
                         first_value_attributes.append(
                             {
                                 "daily_agg_column_name": daily_agg_column_name,
-                                "column_name": step["column_name"],
+                                "column_name": step.column_name,
                                 "period": period if period else None,
-                                "aggregation_type": step["aggregation"],
+                                "aggregation_type": step.aggregation,
                             }
                         )
-                    elif step["aggregation"] == "last":
+                    elif step.aggregation == "last":
                         last_value_attributes.append(
                             {
                                 "daily_agg_column_name": daily_agg_column_name,
-                                "column_name": step["column_name"],
+                                "column_name": step.column_name,
                                 "period": period if period else None,
-                                "aggregation_type": step["aggregation"],
+                                "aggregation_type": step.aggregation,
                             }
                         )
                     elif period is not None:
-                        if step["aggregation"] == "unique_list":
+                        if step.aggregation == "unique_list":
                             last_n_day_aggregates.append(
                                 {
                                     "daily_agg_column_name": daily_agg_column_name,
-                                    "column_name": step["column_name"],
+                                    "column_name": step.column_name,
                                     "period": period if period else None,
                                     "aggregation_type": "array_agg",
                                 }
@@ -86,17 +95,17 @@ class DbtConfigGenerator(BaseModel):
                             last_n_day_aggregates.append(
                                 {
                                     "daily_agg_column_name": daily_agg_column_name,
-                                    "column_name": step["column_name"],
+                                    "column_name": step.column_name,
                                     "period": period if period else None,
-                                    "aggregation_type": step["aggregation"],
+                                    "aggregation_type": step.aggregation,
                                 }
                             )
                     else:
-                        if step["aggregation"] == "unique_list":
+                        if step.aggregation == "unique_list":
                             lifetime_aggregates.append(
                                 {
                                     "daily_agg_column_name": daily_agg_column_name,
-                                    "column_name": step["column_name"],
+                                    "column_name": step.column_name,
                                     "period": None,
                                     "aggregation_type": "array_agg",
                                 }
@@ -105,9 +114,9 @@ class DbtConfigGenerator(BaseModel):
                             lifetime_aggregates.append(
                                 {
                                     "daily_agg_column_name": daily_agg_column_name,
-                                    "column_name": step["column_name"],
+                                    "column_name": step.column_name,
                                     "period": None,
-                                    "aggregation_type": step["aggregation"],
+                                    "aggregation_type": step.aggregation,
                                 }
                             )
 
@@ -154,13 +163,13 @@ class DbtConfigGenerator(BaseModel):
         first_value_attributes = []
         last_value_attributes = []
 
-        attributes = self.base_config_data.get("transformed_attributes", [])
+        attributes = self.base_config_data.transformed_attributes
         for attribute in attributes:
             for step in attribute:
-                if step["step_type"] == "daily_aggregation":
-                    if step["aggregation"] in ["first", "last"]:
+                if step.step_type == "daily_aggregation":
+                    if step.aggregation in ["first", "last"]:
                         # For first/last values, we need to reference the column directly
-                        ref_column_name = step["column_name"]
+                        ref_column_name = step.column_name
                         if ref_column_name.startswith("first_"):
                             ref_column_name = ref_column_name[
                                 6:
@@ -171,26 +180,26 @@ class DbtConfigGenerator(BaseModel):
                             ]  # Remove 'last_' prefix
 
                         attribute_dict = {
-                            "step_type": step["step_type"],
-                            "aggregation": step["aggregation"],
-                            "column_name": step["column_name"],
+                            "step_type": step.step_type,
+                            "aggregation": step.aggregation,
+                            "column_name": step.column_name,
                             "condition_clause": ref_column_name,  # Use the cleaned column name
                         }
-                        if step["aggregation"] == "first":
+                        if step.aggregation == "first":
                             first_value_attributes.append(attribute_dict)
                         else:
                             last_value_attributes.append(attribute_dict)
                     else:
                         # Handle aggregation attributes (count, sum, etc.)
-                        modeling_criteria = step.get("modeling_criteria")
+                        modeling_criteria = step.modeling_criteria
                         if modeling_criteria:
-                            if "all" in modeling_criteria:
-                                and_conditions = modeling_criteria.get("all", [])
+                            if modeling_criteria.all:
+                                and_conditions = modeling_criteria.all
                                 and_sql_conditions = self._get_condition_sql(
                                     and_conditions, "and"
                                 )
-                            if "any" in modeling_criteria:
-                                or_conditions = modeling_criteria.get("any", [])
+                            if modeling_criteria.any:
+                                or_conditions = modeling_criteria.any
                                 or_sql_conditions = self._get_condition_sql(
                                     or_conditions, "or"
                                 )
@@ -209,7 +218,7 @@ class DbtConfigGenerator(BaseModel):
                             else:
                                 condition_statement = ""
 
-                            if step["aggregation"] == "unique_list":
+                            if step.aggregation == "unique_list":
                                 # Use a property name from the current context
                                 property_name = step.get(
                                     "property_name", "value"
@@ -217,9 +226,9 @@ class DbtConfigGenerator(BaseModel):
                                 condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
                                 aggregate_attributes.append(
                                     {
-                                        "step_type": step["step_type"],
+                                        "step_type": step.step_type,
                                         "aggregation": "array_agg",
-                                        "column_name": step["column_name"],
+                                        "column_name": step.column_name,
                                         "condition_clause": condition_clause,
                                     }
                                 )
@@ -232,9 +241,9 @@ class DbtConfigGenerator(BaseModel):
 
                                 aggregate_attributes.append(
                                     {
-                                        "step_type": step["step_type"],
-                                        "aggregation": step["aggregation"],
-                                        "column_name": step["column_name"],
+                                        "step_type": step.step_type,
+                                        "aggregation": step.aggregation,
+                                        "column_name": step.column_name,
                                         "condition_clause": condition_clause,
                                     }
                                 )
@@ -242,9 +251,9 @@ class DbtConfigGenerator(BaseModel):
                             # No filter, just count all events
                             aggregate_attributes.append(
                                 {
-                                    "step_type": step["step_type"],
-                                    "aggregation": step["aggregation"],
-                                    "column_name": step["column_name"],
+                                    "step_type": step.step_type,
+                                    "aggregation": step.aggregation,
+                                    "column_name": step.column_name,
                                     "condition_clause": "1",
                                 }
                             )
@@ -252,7 +261,7 @@ class DbtConfigGenerator(BaseModel):
         config = {
             "filtered_events": {
                 "events": self.get_events_dict(),
-                "properties": self.base_config_data["properties"],
+                "properties": self.base_config_data.properties,
             },
             "daily_agg": {
                 "daily_aggregate_attributes": aggregate_attributes,
