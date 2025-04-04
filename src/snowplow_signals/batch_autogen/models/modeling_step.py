@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Literal
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -26,8 +26,8 @@ class FilterCondition(BaseModel):
 
 
 class ModelingCriteria(BaseModel):
-    all: List[FilterCondition] = PydanticField(default_factory=list)
-    any: List[FilterCondition] = PydanticField(default_factory=list)
+    all: list[FilterCondition] = PydanticField(default_factory=list)
+    any: list[FilterCondition] = PydanticField(default_factory=list)
 
     def add_condition(
         self, condition: FilterCondition, target_group: Literal["all", "any"]
