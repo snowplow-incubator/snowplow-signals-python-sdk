@@ -136,13 +136,13 @@ class BatchAutogenClient:
             base_config = DbtBaseConfig.model_validate(data)
 
         generator = DbtConfigGenerator(base_config_data=base_config)
-        output = generator.create_dbt_config()
+        dbt_config = generator.create_dbt_config()
 
         # Ensure configs directory exists
         os.makedirs(os.path.dirname(dbt_config_path), exist_ok=True)
 
         with open(dbt_config_path, "w") as f:
-            json.dump(output, f, indent=4)
+            json.dump(dbt_config.model_dump(), f, indent=4)
 
         logger.success(
             f"📄 Dbt Config file generated for {project_name}: dbt_config.json"
@@ -168,7 +168,7 @@ class BatchAutogenClient:
                 asset_subpath="models/filtered_events/scratch",
                 filename="filtered_events_this_run",
                 asset_type="model",
-                custom_context=output["filtered_events"],
+                custom_context=dbt_config.filtered_events.model_dump(),
             ),
             DbtAssetGenerator(
                 project_path=project_path,
@@ -181,7 +181,7 @@ class BatchAutogenClient:
                 asset_subpath="models/daily_aggregates/scratch",
                 filename="daily_aggregates_this_run",
                 asset_type="model",
-                custom_context=output["daily_agg"],
+                custom_context=dbt_config.daily_agg.model_dump(),
             ),
             DbtAssetGenerator(
                 project_path=project_path,
@@ -206,7 +206,7 @@ class BatchAutogenClient:
                 asset_subpath="models/attributes",
                 filename="attributes",
                 asset_type="model",
-                custom_context=output["attributes"],
+                custom_context=dbt_config.attributes.model_dump(),
             ),
             DbtAssetGenerator(
                 project_path=project_path,
@@ -250,8 +250,8 @@ class BatchAutogenClient:
             for asset in assets:
                 context = (
                     asset.custom_context
-                    if getattr(asset, "custom_context", None) is not None
-                    else output
+                    if asset.custom_context is not None
+                    else dbt_config.model_dump()
                 )
                 asset.generate_asset(update=update, context=context)
 

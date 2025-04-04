@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, FrozenSet, Literal, Set
+from typing import Dict, FrozenSet, Literal, Set
 
 from pydantic import BaseModel
 

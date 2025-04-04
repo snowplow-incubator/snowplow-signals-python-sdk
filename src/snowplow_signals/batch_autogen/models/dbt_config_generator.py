@@ -1,28 +1,58 @@
-from typing import Any, Dict, isinstance
-
 from pydantic import BaseModel
 
 from .dbt_project_setup import DbtBaseConfig
 
 
-class DbtConfigGenerator(BaseModel):
-    base_config_data: DbtBaseConfig
+class ConfigEvents(BaseModel):
+    event_vendor: str
+    event_name: str
+    event_format: str
+    event_version: str
 
-    def get_events_dict(self):
+
+class ConfigAttributes(BaseModel):
+    lifetime_aggregates: list
+    last_n_day_aggregates: list
+    first_value_attributes: list
+    last_value_attributes: list
+
+
+class DailyAggregations(BaseModel):
+    daily_aggregate_attributes: list
+    daily_first_value_attributes: list
+    daily_last_value_attributes: list
+
+
+class FilteredEvents(BaseModel):
+    events: list[ConfigEvents]
+    properties: list[dict[str, str]]
+
+
+class DbtConfig(BaseModel):
+    filtered_events: FilteredEvents
+    daily_agg: DailyAggregations
+    attributes: ConfigAttributes
+
+
+class DbtConfigGenerator:
+    def __init__(self, base_config_data: DbtBaseConfig):
+        self.base_config_data = base_config_data
+
+    def get_events_dict(self) -> list[ConfigEvents]:
 
         parsed_events = self.base_config_data.events
-        event_dict_list = []
+        event_dict_list: list[ConfigEvents] = []
         for event in parsed_events:
             cleaned_event = event.removeprefix("iglu:")
             vendor, name, format_type, version = cleaned_event.split("/")
 
             event_dict_list.append(
-                {
-                    "event_vendor": vendor,
-                    "event_name": name,
-                    "event_format": format_type,
-                    "event_version": version,
-                }
+                ConfigEvents(
+                    event_vendor=vendor,
+                    event_name=name,
+                    event_format=format_type,
+                    event_version=version,
+                )
             )
 
         return event_dict_list
@@ -154,7 +184,7 @@ class DbtConfigGenerator(BaseModel):
             condition_sql_list.append(condition_sql)
         return f" {condition_type} ".join(condition_sql_list)
 
-    def create_dbt_config(self) -> Dict[str, Any]:
+    def create_dbt_config(self) -> DbtConfig:
         """
         Process dbt config in case there are changes and prepare properties for the jinja template.
         """
@@ -258,30 +288,26 @@ class DbtConfigGenerator(BaseModel):
                                 }
                             )
 
-        config = {
-            "filtered_events": {
-                "events": self.get_events_dict(),
-                "properties": self.base_config_data.properties,
-            },
-            "daily_agg": {
-                "daily_aggregate_attributes": aggregate_attributes,
-                "daily_first_value_attributes": first_value_attributes,
-                "daily_last_value_attributes": last_value_attributes,
-            },
-            "attributes": {
-                "lifetime_aggregates": self.get_attributes_by_type(
-                    "lifetime_aggregates"
-                ),
-                "last_n_day_aggregates": self.get_attributes_by_type(
+        return DbtConfig(
+            filtered_events=FilteredEvents(
+                events=self.get_events_dict(),
+                properties=self.base_config_data.properties,
+            ),
+            daily_agg=DailyAggregations(
+                daily_aggregate_attributes=aggregate_attributes,
+                daily_first_value_attributes=first_value_attributes,
+                daily_last_value_attributes=last_value_attributes,
+            ),
+            attributes=ConfigAttributes(
+                lifetime_aggregates=self.get_attributes_by_type("lifetime_aggregates"),
+                last_n_day_aggregates=self.get_attributes_by_type(
                     "last_n_day_aggregates"
                 ),
-                "first_value_attributes": self.get_attributes_by_type(
+                first_value_attributes=self.get_attributes_by_type(
                     "first_value_attributes"
                 ),
-                "last_value_attributes": self.get_attributes_by_type(
+                last_value_attributes=self.get_attributes_by_type(
                     "last_value_attributes"
                 ),
-            },
-        }
-
-        return config
+            ),
+        )
