@@ -1,4 +1,3 @@
-from snowplow_signals.batch_autogen import BatchAutogenClient
 from snowplow_signals.models import (
     Attribute,
     BatchSource,
@@ -28,4 +27,3 @@ LinkEntity
 Event
 user_entity
 session_entity
-BatchAutogenClient
