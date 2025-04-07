@@ -104,7 +104,6 @@ class BaseConfigGenerator:
     def _get_full_event_reference_array(
         self, event_object_list: list[Event]
     ) -> list[str]:
-
         event_strings = []
         for event in event_object_list:
             event_str = f"iglu:{event.vendor}/{event.name}/jsonschema/{event.version}"
@@ -247,7 +246,9 @@ class BaseConfigGenerator:
             combinator: Literal["all", "any"] | None = (
                 "all"
                 if original_criteria.all
-                else "any" if original_criteria.any else None
+                else "any"
+                if original_criteria.any
+                else None
             )
             conditions = original_criteria.all or original_criteria.any or []
 

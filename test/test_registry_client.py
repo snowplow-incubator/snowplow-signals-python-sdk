@@ -10,7 +10,6 @@ from .utils import MOCK_ORG_ID
 
 
 class TestRegistryClient:
-
     @pytest.fixture
     def api_client(self):
         return ApiClient(

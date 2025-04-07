@@ -44,7 +44,6 @@ class ModelingCriteria(BaseModel):
         conditions: list[FilterCondition],
         target_group: Literal["all", "any"] | None,
     ):
-
         if target_group == "all":
             if self.all:
                 self.all.extend(conditions)
