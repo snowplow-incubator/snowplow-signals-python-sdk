@@ -103,28 +103,29 @@ MOCK_USERS_VIEW = {
 
 MOCK_ATTRIBUTE_VIEWS = [MOCK_ECOMMERCE_VIEW, MOCK_USERS_VIEW]
 
+
 def get_attribute_view_response() -> List[Dict[str, Any]]:
     """
     Returns the mock attribute views data.
-    
+
     Returns:
         List[Dict[str, Any]]: List of mock attribute view configurations
     """
     return MOCK_ATTRIBUTE_VIEWS
 
+
 def get_attribute_view_response_from_file() -> List[Dict[str, Any]]:
     """
     Reads and returns mock attribute views from a JSON file.
-    
+
     Returns:
         List[Dict[str, Any]]: List of mock attribute view configurations from file
-        
+
     Raises:
         FileNotFoundError: If the mock data file doesn't exist
         json.JSONDecodeError: If the file contains invalid JSON
     """
-    json_path = Path(__file__).parent / 'mock_attribute_views.json'
-    with open(json_path, 'r') as f:
+    json_path = Path(__file__).parent / "mock_attribute_views.json"
+    with open(json_path, "r") as f:
         data = json.load(f)
-    return data['mock_attribute_views']
-
+    return data["mock_attribute_views"]

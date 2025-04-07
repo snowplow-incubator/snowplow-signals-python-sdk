@@ -5,7 +5,6 @@ from snowplow_signals.models import ViewOutput
 
 
 class TestSignalsApply:
-
     def test_apply_view_and_service(self, signals_client, respx_mock):
         view = View(
             name="my_view",
