@@ -38,6 +38,7 @@ ipykernel = "^6.29.5"
 respx = "^0.22.0"
 datamodel-code-generator = "^0.28.4"
 pytest-cov = "^6.1.0"
+syrupy = "^4.9.1"
 
 [tool.poetry.scripts]
 snowplow-batch-autogen = "snowplow_signals.batch_autogen.cli:app"
