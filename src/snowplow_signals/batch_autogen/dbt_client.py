@@ -3,6 +3,7 @@
 import json
 import os
 from typing import Optional
+from pathlib import Path
 
 from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
 from snowplow_signals.batch_autogen.models.dbt_config_generator import (
@@ -118,9 +119,9 @@ class BatchAutogenClient:
         Returns:
             bool: Whether the generation was successful
         """
-        project_path = os.path.join(repo_path, project_name)
-        base_config_path = os.path.join(project_path, "configs/base_config.json")
-        dbt_config_path = os.path.join(project_path, "configs/dbt_config.json")
+        project_path = Path(os.path.join(repo_path, project_name))
+        base_config_path = Path(os.path.join(project_path, "configs/base_config.json"))
+        dbt_config_path = Path(os.path.join(project_path, "configs/dbt_config.json"))
 
         if not os.path.exists(base_config_path):
             logger.warning(
