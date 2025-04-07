@@ -29,7 +29,12 @@ with events as (
     event_date
     {% endraw %}
     {% for attribute in daily_aggregate_attributes %}
-      ,{{ attribute["aggregation"] }}({{ attribute["condition_clause"] }}) as {{ attribute["column_name"] }}
+      {% if attribute['aggregation'] == 'count' %}
+        , sum(
+      {% else %}
+        , {{ attribute['aggregation'] }}(
+      {% endif %}
+        {{ attribute["condition_clause"] }}) as {{ attribute["column_name"] }}
     {% endfor %}
     {% raw %}
   from events
