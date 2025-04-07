@@ -205,7 +205,11 @@ class BaseConfigGenerator:
                 step_type="filtered_events",
                 enabled=False,
                 aggregation=None,
-                column_name=None,
+                column_name=(
+                    self.get_cleaned_property_name(attribute.property)
+                    if attribute.property
+                    else None
+                ),
                 modeling_criteria=None,
             )
         )
