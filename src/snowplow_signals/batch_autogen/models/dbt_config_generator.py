@@ -39,7 +39,6 @@ class DbtConfigGenerator:
         self.base_config_data = base_config_data
 
     def get_events_dict(self) -> list[ConfigEvents]:
-
         parsed_events = self.base_config_data.events
         event_dict_list: list[ConfigEvents] = []
         for event in parsed_events:
@@ -71,7 +70,6 @@ class DbtConfigGenerator:
                 if step.step_type == "daily_aggregation":
                     daily_agg_column_name = step.column_name
                 if step.step_type == "attribute_aggregation":
-
                     # get last n day filter period
                     if step.modeling_criteria:
                         # Check "all" conditions first
@@ -168,9 +166,9 @@ class DbtConfigGenerator:
     def _get_condition_sql(self, conditions, condition_type) -> str:
         condition_sql_list = []
         for condition in conditions:
-            operator = condition["operator"]
-            property_name = condition["property"]
-            value = condition["value"]
+            operator = condition.operator
+            property_name = condition.property
+            value = condition.value
             if operator == "=":
                 condition_sql = f" {property_name} = '{value}'"
             elif operator == "!=":
@@ -223,6 +221,8 @@ class DbtConfigGenerator:
                         # Handle aggregation attributes (count, sum, etc.)
                         modeling_criteria = step.modeling_criteria
                         if modeling_criteria:
+                            and_sql_conditions = ""
+                            or_sql_conditions = ""
                             if modeling_criteria.all:
                                 and_conditions = modeling_criteria.all
                                 and_sql_conditions = self._get_condition_sql(
@@ -249,11 +249,9 @@ class DbtConfigGenerator:
                                 condition_statement = ""
 
                             if step.aggregation == "unique_list":
-                                # Use a property name from the current context
-                                property_name = step.get(
-                                    "property_name", "value"
-                                )  # Default to "value" if not specified
-                                condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
+                                # For unique_list, we use the column_name directly
+                                condition_clause = f"distinct case when {condition_statement} then {step.column_name} else null end"
+                                # FIXME we need to confirm this logic with a unit test
                                 aggregate_attributes.append(
                                     {
                                         "step_type": step.step_type,
