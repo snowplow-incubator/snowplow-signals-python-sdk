@@ -17,8 +17,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     )
 }}
 
-{{ snowplow_utils.get_dates_to_process(
+{% set dates_to_process_query = snowplow_utils.get_dates_to_process(
     '{% endraw %}{{ project_name }}{% raw %}_filtered_events_this_run',
     '{% endraw %}{{ project_name }}{% raw %}_daily_aggregation_manifest'
-) }} 
+) %}
+
+{{ dates_to_process_query }}
 {% endraw %}
