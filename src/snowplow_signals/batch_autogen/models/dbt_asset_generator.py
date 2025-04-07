@@ -42,12 +42,6 @@ class DbtAssetGenerator(BaseModel):
         default=None, description="Optional custom context for template rendering"
     )
 
-    project_path: Path
-    asset_subpath: str
-    filename: str
-    asset_type: AssetTypeLiteral
-    custom_context: dict[str, Any] | None = None
-
     @property
     def project_name(self) -> str:
         """Extracts the project name from the project path."""
