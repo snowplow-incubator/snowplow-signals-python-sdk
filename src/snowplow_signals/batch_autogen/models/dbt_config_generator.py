@@ -1,6 +1,9 @@
+from typing import Literal
+
 from pydantic import BaseModel
 
 from .dbt_project_setup import DbtBaseConfig
+from .modeling_step import FilterCondition
 
 
 class ConfigEvents(BaseModel):
@@ -32,6 +35,9 @@ class DbtConfig(BaseModel):
     filtered_events: FilteredEvents
     daily_agg: DailyAggregations
     attributes: ConfigAttributes
+
+
+SQLConditions = Literal["and", "or"]
 
 
 class DbtConfigGenerator:
@@ -163,7 +169,9 @@ class DbtConfigGenerator:
 
         return deduped_list
 
-    def _get_condition_sql(self, conditions, condition_type) -> str:
+    def _get_condition_sql(
+        self, conditions: list[FilterCondition], condition_type: SQLConditions
+    ) -> str:
         condition_sql_list = []
         for condition in conditions:
             operator = condition.operator
