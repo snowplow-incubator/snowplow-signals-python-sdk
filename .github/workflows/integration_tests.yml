@@ -1,6 +1,6 @@
 name: Integration Tests
 
-on: [pull_request, workflow_call, push]
+on: [workflow_call]
 
 env:
   # Set profiles.yml directory
