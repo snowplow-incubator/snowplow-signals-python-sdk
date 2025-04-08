@@ -223,9 +223,12 @@ class DbtConfigGenerator(BaseModel):
                                     }
                                 )
                             else:
-                                condition_clause = (
-                                    f"case when {condition_statement} then 1 else 0 end"
-                                )
+                                if step["aggregation"] == "count":
+                                    condition_clause = f"case when {condition_statement} then 1 else 0 end"
+                                elif step["aggregation"] == "sum":
+                                    property_name = attribute[0].get("column_name")
+                                    condition_clause = f"case when {condition_statement} then cast({property_name} as {{{{ dbt.type_float()}}}}) else 0 end"
+
                                 aggregate_attributes.append(
                                     {
                                         "step_type": step["step_type"],

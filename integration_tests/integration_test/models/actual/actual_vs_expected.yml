@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: snowplow_batch_autogen_attributes_actual
+    tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('snowplow_batch_autogen_attributes_expected_stg')
+      - dbt_utils.equality:
+          compare_model: ref('snowplow_batch_autogen_attributes_expected_stg')
