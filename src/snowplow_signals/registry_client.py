@@ -1,8 +1,6 @@
 from .api_client import ApiClient, SignalsAPIError
 from .models import Service, View, ViewOutput
 
-# TODO: When PUT endponts are available in the registry API, update existing objects with the input.
-
 
 class RegistryClient:
     def __init__(self, api_client: ApiClient):
