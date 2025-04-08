@@ -3,6 +3,7 @@
 import json
 import os
 from typing import Optional
+import json
 from pathlib import Path
 
 from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
@@ -14,6 +15,8 @@ from snowplow_signals.batch_autogen.models.dbt_project_setup import (
     DbtProjectSetup,
 )
 from snowplow_signals.logging import get_logger
+from snowplow_signals.batch_autogen.models.dbt_project_setup import DbtProjectSetup
+from snowplow_signals.logging import get_logger, setup_logging
 
 from ..api_client import ApiClient
 
@@ -262,3 +265,98 @@ class BatchAutogenClient:
         except ValueError as e:
             logger.error(f"❌ Error generating models for {project_name}: {e}")
             return False
+
+    def materialize_model(
+        self,
+        project_path: str,
+        view_name: str,
+        view_version: str,
+        verbose: bool = False,
+    ):
+        """
+        Registers the batch source for the attributes table through the API and updates Feast so that materialization can begin.
+
+        Args:
+            project_path: Path to the repository where the dbt project is where the config file is stored.
+            project_name: Name of a specific project (same as the unique view name and version).
+            verbose: Optional flag to enable verbose logging
+        """
+
+        setup_logging(verbose)
+
+        config_path = Path(project_path) / "configs" / "batch_source_config.json"
+        table_name = f"{view_name}_{view_version}_attributes"
+
+        logger.info(f"🛠️ Registering batch_source for table {table_name}.")
+
+        # Load and validate batch source config
+        try:
+            with open(config_path) as f:
+                data = json.load(f)
+                if data.get("timestamp_field") == data.get("created_timestamp_column"):
+                    logger.error(
+                        f"❌  Wrong batch source config input. The timestamp_field and created_timestamp_column should not be the same."
+                    )
+                    return False
+
+                if data.get("database") == "":
+                    missing_config = "database"
+                elif data.get("schema") == "":
+                    missing_config = "schema"
+                else:
+                    missing_config = None
+
+                if missing_config:
+                    logger.error(
+                        f"❌ Error registering table {table_name} for materialization: Missing {missing_config} in batch source config"
+                    )
+                    return False
+        except ValueError as e:
+            logger.error(f"❌ Error loading batch source config: {str(e)}")
+            return False
+
+        # Register batch source
+        try:
+            view_update_endpoint = (
+                f"registry/views/{view_name}/versions/{view_version}/batch_source"
+            )
+            self.api_client.make_request(
+                method="PUT", endpoint=view_update_endpoint, data=data
+            )
+
+            logger.success(
+                f"✅ Successfully added Batch Source information to view {view_name}_{view_version}"
+            )
+        except Exception as e:
+            logger.error("❌ Snowplow Signals API service error:")
+            logger.error(f"   Error details: {str(e)}")
+            logger.error(
+                "\n⚠️ The batch source couldn't be registered. Please check your API credentials and network connection"
+            )
+            return False
+
+        # Update registry
+        try:
+            logger.info(f"🛠️ Updating registry")
+
+            response = self.api_client.make_request(
+                method="POST", endpoint="feature_store/apply"
+            )
+            if response.get("status") == "applied":
+                logger.success(f"✅ Successfully registered table {table_name}")
+        except Exception as e:
+            error_msg = str(e)
+            if "[Signals API]" in error_msg:
+                # Extract the status code and message from the error
+                parts = error_msg.split(":", 1)
+                if len(parts) == 2:
+                    status_code = parts[0].split()[-1]
+                    detail = parts[1].strip()
+                    logger.error(
+                        f"❌ Snowplow Signals API service error (HTTP {status_code}): {detail}"
+                    )
+                else:
+                    logger.error(f"❌ Snowplow Signals API service error: {error_msg}")
+            else:
+                logger.error(f"❌ Snowplow Signals API service error: {error_msg}")
+            logger.error(f"\n⚠️ The table {table_name} couldn't be registered.")

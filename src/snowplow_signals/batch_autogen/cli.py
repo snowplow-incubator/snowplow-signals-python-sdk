@@ -3,6 +3,8 @@
 import sys
 from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
+import os
 
 import typer
 from typing_extensions import Annotated
@@ -20,6 +22,16 @@ app = typer.Typer(
 
 # Configure logging
 logger = get_logger(__name__)
+
+
+# Load dev environment variables
+def load_dev_env():
+    dev_env_file = Path(".env.dev")
+    if dev_env_file.exists():
+        load_dotenv(dotenv_path=dev_env_file, override=True)
+
+
+load_dev_env()
 
 
 def validate_repo_path(repo_path: str) -> Path:
@@ -239,6 +251,84 @@ def generate(
 
     except Exception as e:
         logger.error(f"Error during model generation: {str(e)}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def materialize(
+    api_url: Annotated[
+        str,
+        typer.Option(
+            help="URL of the API server",
+            envvar="SNOWPLOW_API_URL",
+        ),
+    ],
+    api_key: Annotated[
+        str,
+        typer.Option(
+            help="API key for authentication",
+            envvar="SNOWPLOW_API_KEY",
+        ),
+    ],
+    api_key_id: Annotated[
+        str,
+        typer.Option(
+            help="ID of the API key",
+            envvar="SNOWPLOW_API_KEY_ID",
+        ),
+    ],
+    org_id: Annotated[
+        str,
+        typer.Option(
+            help="Organization ID",
+            envvar="SNOWPLOW_ORG_ID",
+        ),
+    ],
+    view_name: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Optional name of a specific attribute view project to register batch_source for.",
+        ),
+    ],
+    view_version: Annotated[
+        Optional[int],
+        typer.Option(
+            help="Optional version of the attribute view to register batch_source for.",
+        ),
+    ],
+    repo_path: Annotated[
+        str,
+        typer.Option(
+            help="Path to the repository where projects will be stored",
+            envvar="SNOWPLOW_REPO_PATH",
+        ),
+    ],
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "-v",
+            "--verbose",
+            help="Enable verbose output",
+            envvar="SNOWPLOW_VERBOSE",
+        ),
+    ] = False,
+) -> None:
+    """Registers the attribute table as a data source so that the materialization process can start."""
+    try:
+        api_client = create_api_client(api_url, api_key, api_key_id, org_id)
+        client = BatchAutogenClient(api_client=api_client)
+        project_path = Path(repo_path) / f"{view_name}_{view_version}"
+        client.materialize_model(
+            project_path=project_path,
+            view_name=view_name,
+            view_version=view_version,
+            verbose=verbose,
+        )
+
+    except Exception as e:
+        logger.error(
+            f"Error registering table {view_name}_{view_version}_attributes for materialization: {str(e)}"
+        )
         raise typer.Exit(code=1)
 
 

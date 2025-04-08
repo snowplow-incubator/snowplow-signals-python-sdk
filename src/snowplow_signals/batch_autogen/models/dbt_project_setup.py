@@ -8,6 +8,7 @@ from snowplow_signals.batch_autogen.models.base_config_generator import (
     BaseConfigGenerator,
     DbtBaseConfig,
 )
+
 from snowplow_signals.logging import get_logger
 
 from ...api_client import ApiClient
@@ -35,7 +36,10 @@ class DbtProjectSetup:
         self.view_version = view_version
 
     def create_project_directories(
-        self, setup_project_name: str, base_config: DbtBaseConfig
+        self,
+        setup_project_name: str,
+        base_config: DbtBaseConfig,
+        batch_source_config: dict,
     ):
         # Create project-specific output directory
         project_output_dir = os.path.join(self.repo_path, setup_project_name, "configs")
@@ -45,6 +49,14 @@ class DbtProjectSetup:
         with open(base_config_path, "w") as f:
             json.dump(base_config.model_dump(), f, indent=4)
         logger.success(f"📄 Base config file generated for {setup_project_name}")
+        batch_source_config_path = os.path.join(
+            project_output_dir, "batch_source_config.json"
+        )
+        with open(batch_source_config_path, "w") as f:
+            json.dump(batch_source_config, f, indent=4)
+        logger.success(
+            f"📄 Batch source config file generated for {setup_project_name}"
+        )
 
     def get_attribute_view_project_config(
         self,
@@ -52,6 +64,23 @@ class DbtProjectSetup:
     ) -> DbtBaseConfig:
         generator = BaseConfigGenerator(data=attribute_view)
         return generator.create_base_config()
+
+    def get_batch_source_config(self, attribute_view: ViewOutput) -> dict:
+        """
+        Creates a pre-populated config file for users to fill out for materialization.
+        """
+
+        return {
+            "database": "",
+            "schema": "",
+            "table": f"{attribute_view.name}_{attribute_view.version}_attributes",
+            "name": f"{attribute_view.name}_{attribute_view.version}_attributes",
+            "timestamp_field": "lower_limit",
+            "created_timestamp_column": "valid_at_tstamp",
+            "description": f"Table containing attributes for {attribute_view.name}_{attribute_view.version} view",
+            "tags": {},
+            "owner": "",
+        }
 
     def setup_all_projects(self):
         """Sets up dbt files for one or all projects."""
@@ -61,7 +90,10 @@ class DbtProjectSetup:
         for attribute_view in attribute_views:
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
             project_config = self.get_attribute_view_project_config(attribute_view)
-            self.create_project_directories(view_project_name, project_config)
+            batch_source_config = self.get_batch_source_config(attribute_view)
+            self.create_project_directories(
+                view_project_name, project_config, batch_source_config
+            )
 
         return True
 
