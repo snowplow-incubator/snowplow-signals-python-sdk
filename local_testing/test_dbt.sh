@@ -33,12 +33,12 @@ print_header "STARTING TEST ENVIRONMENT INITIALIZATION"
 echo "$(date)"
 
 # Run the test script with pytest to generate the dbt project
-print_header "Running test_e2e_batch_autogen.py"
-poetry run pytest test/auto_gen/test_e2e_batch_autogen.py -v
+print_header "Running replicate_files.py"
+poetry run python integration_tests/replicate_files.py test/auto_gen/__snapshots__/generated_files.json local_testing/customer_repo
 
 # Check if test_dir was created successfully
-if [ ! -d "integration_tests/customer_repo" ]; then
-    echo -e "${RED}Failed to create integration_tests/customer_repo${NC}"
+if [ ! -d "local_testing/customer_repo" ]; then
+    echo -e "${RED}Failed to create local_testing/customer_repo${NC}"
     exit 1
 fi
 
@@ -48,7 +48,7 @@ echo -e "${GREEN}Successfully initialized and generated dbt project${NC}"
 print_header "Running dbt commands"
 
 # Find all dbt projects (directories containing dbt_project.yml)
-cd integration_tests/customer_repo
+cd local_testing/customer_repo
 for project_dir in */; do
     if [ -f "${project_dir}dbt_project.yml" ]; then
         print_header "Processing project: ${project_dir%/}"

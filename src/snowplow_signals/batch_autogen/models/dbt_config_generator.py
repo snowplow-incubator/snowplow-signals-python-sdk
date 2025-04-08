@@ -8,7 +8,8 @@ class DbtConfigGenerator(BaseModel):
 
     def get_events_dict(self):
 
-        parsed_events = self.base_config_data["events"]
+        # Sort the original event strings to ensure deterministic order
+        parsed_events = sorted(self.base_config_data["events"])
         event_dict_list = []
         for event in parsed_events:
             cleaned_event = event.removeprefix("iglu:")

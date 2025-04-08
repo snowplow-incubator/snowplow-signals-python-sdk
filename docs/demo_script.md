@@ -1,13 +1,17 @@
 # Snowplow Signals CLI Tutorial
 
 ## Overview
+
 This tutorial will guide you through using the Snowplow Signals SDK CLI tool to:
+
 1. Test API connectivity
 2. Initialize dbt projects
 3. Generate dbt models and assets
 
 ## Prerequisites
+
 Before starting, ensure you have:
+
 - Python 3.8+ installed
 - Snowplow Signals SDK installed
 - Valid API credentials:
@@ -17,6 +21,7 @@ Before starting, ensure you have:
   - Organization ID
 
 ## Setting Up Environment Variables
+
 For convenience, you can set up your API credentials as environment variables. This allows you to run commands without specifying credentials each time:
 
 ```bash
@@ -28,6 +33,7 @@ export SNOWPLOW_REPO_PATH="./my_snowplow_project"
 ```
 
 ## Step 1: Testing Connection
+
 Let's start by verifying that we can connect to the Snowplow Signals services:
 
 ```bash
@@ -40,18 +46,21 @@ snowplow-batch-autogen test-connection \
 ```
 
 If you've set up environment variables, you can simply run:
+
 ```bash
 snowplow-batch-autogen test-connection --verbose
 ```
 
 This command will:
+
 - Test authentication service connectivity
 - Check API service health
 - Verify all dependencies
 - Provide detailed status information
 
 Expected output:
-```
+
+```bash
 🔐 Testing authentication service...
 ✅ Authentication service is healthy
 
@@ -66,6 +75,7 @@ Expected output:
 ```
 
 ## Step 2: Initializing a Project
+
 Now, let's create a new dbt project:
 
 ```bash
@@ -79,22 +89,26 @@ snowplow-batch-autogen init \
 ```
 
 With environment variables set:
+
 ```bash
 snowplow-batch-autogen init --verbose
 ```
 
 This will:
+
 - Create a new dbt project structure
 - Set up base configuration files
 - Initialize necessary directories
 
 Expected output:
-```
+
+```bash
 Initializing dbt project(s) in ./my_snowplow_project
 ✅ Successfully initialized dbt project(s)
 ```
 
 ## Step 3: Generating Models
+
 Finally, let's generate the dbt models:
 
 ```bash
@@ -108,18 +122,21 @@ snowplow-batch-autogen generate \
 ```
 
 With environment variables:
+
 ```bash
 snowplow-batch-autogen generate --verbose
 ```
 
 This will:
+
 - Generate data models
 - Create macros
 - Set up configuration files
 - Update existing files if needed
 
 Expected output:
-```
+
+```bash
 🛠️ Generating dbt models in ./my_snowplow_project
 ✅ Successfully generated dbt models
 ```
@@ -127,6 +144,7 @@ Expected output:
 ## Advanced Features
 
 ### Initializing Specific Views
+
 You can initialize a specific attribute view:
 
 ```bash
@@ -137,6 +155,7 @@ snowplow-batch-autogen init \
 ```
 
 ### Updating Existing Models
+
 To update existing models:
 
 ```bash
@@ -148,6 +167,7 @@ snowplow-batch-autogen generate \
 ## Troubleshooting
 
 ### Common Issues
+
 1. **Authentication Errors**
    - Verify API credentials
    - Check network connectivity
@@ -164,28 +184,15 @@ snowplow-batch-autogen generate \
    - Ensure proper project structure
 
 ### Debugging Tips
+
 - Use `--verbose` flag for detailed logs
 - Check API service health before operations
 - Verify project structure after initialization
 
 ## Best Practices
+
 1. Always test connection before operations
 2. Use version control for generated projects
 3. Keep API credentials secure
 4. Regularly update generated models
 5. Document any custom modifications
-
-## Next Steps
-After completing the tutorial, you can:
-1. Review generated dbt models
-2. Customize configurations
-3. Set up CI/CD pipelines
-4. Implement monitoring
-5. Create custom macros
-
-## Support
-For additional help:
-- Check the official documentation
-- Contact Snowplow support
-- Join the community forum
-- Review GitHub issues 

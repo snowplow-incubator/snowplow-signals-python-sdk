@@ -20,7 +20,7 @@ type SQLAggregationLiteral = Literal[
 
 
 class BaseConfigGenerator:
-    events: Set[str]
+    events: list[str]
     properties: list[dict[str, str]]
     periods: Set[str]
 
@@ -29,7 +29,7 @@ class BaseConfigGenerator:
         data: ViewOutput,
     ):
         self.data = data
-        self.events = set()
+        self.events = []
         self.properties = []
         self.periods = set()
 
@@ -101,6 +101,7 @@ class BaseConfigGenerator:
             event_str = f"iglu:{event.vendor}/{event.name}/jsonschema/{event.version}"
             event_strings.append(event_str)
 
+        event_strings.sort()
         return event_strings
 
     def _get_filter_condition_name_component(
@@ -308,7 +309,7 @@ class BaseConfigGenerator:
             )
         )
 
-        self.events.update(self._get_full_event_reference_array(attribute.events))
+        self.events.extend(self._get_full_event_reference_array(attribute.events))
         if attribute.property:
             self.add_to_properties(
                 {attribute.property: self.get_cleaned_property_name(attribute.property)}
