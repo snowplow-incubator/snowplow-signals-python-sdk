@@ -1,10 +1,6 @@
 name: Integration Tests
 
-<<<<<<< HEAD
 on: [workflow_call, push]
-=======
-on: [pull_request, workflow_call, push]
->>>>>>> 688e5ce (Temp move to push)
 
 env:
   # Set profiles.yml directory
