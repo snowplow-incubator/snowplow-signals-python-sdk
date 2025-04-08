@@ -41,12 +41,6 @@ semver = "^3.0.2"
 [tool.poetry.scripts]
 snowplow-batch-autogen = "snowplow_signals.batch_autogen.cli:app"
 
-<<<<<<< HEAD
-=======
-[tool.poetry.scripts]
-snowplow-batch-autogen = "snowplow_signals.batch_autogen.cli:app"
-
->>>>>>> ea5678f (Push cli tutorial)
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
