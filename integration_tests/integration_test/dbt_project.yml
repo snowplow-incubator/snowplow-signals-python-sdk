@@ -131,8 +131,8 @@ seeds:
             media_video_event_count_last_7_days: float
             form_focus_change_event_count_last_7_days: float
             last_geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            last_timezone "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            last_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
             last_os: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
             last_device_class: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            last_mkt_source "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            last_mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
             last_mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
