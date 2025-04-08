@@ -31,12 +31,14 @@ jobs:
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'poetry'
 
       - name: Install Poetry
         uses: abatilo/actions-poetry@v3
+
+      - name: Verify Poetry installation
+        run: |
+          which poetry
+          poetry --version
 
       - name: Install dependencies
         run: poetry install --extras dbt
