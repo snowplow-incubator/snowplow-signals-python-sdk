@@ -9,10 +9,12 @@ dist
 *.DS_Store
 
 # Autogen
-integration_tests/customer_repo/
+local_testing/customer_repo/
 
 /.vscode
 
 # VSCode
 .vscode/*
 .vscode/settings.json
+
+integration_tests/ecommerce_transaction_interactions_features_1/*
