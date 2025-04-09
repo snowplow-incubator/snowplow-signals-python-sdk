@@ -34,7 +34,7 @@ echo "$(date)"
 
 # Run the test script with pytest to generate the dbt project
 print_header "Running replicate_files.py"
-poetry run python integration_tests/replicate_files.py test/auto_gen/__snapshots__/generated_files.json local_testing/customer_repo
+poetry run python integration_tests/replicate_files.py test/auto_gen/__snapshots__/test_snapshots.ambr local_testing/customer_repo
 
 # Check if test_dir was created successfully
 if [ ! -d "local_testing/customer_repo" ]; then
