@@ -1,18 +1,16 @@
 import datetime
 from pathlib import Path
-from typing import Optional, TypeVar
-
-from pydantic import BaseModel
+from typing import Dict, Any, Protocol, TypeVar
 
 
-def write_file(file_path: Path, content: Optional[str]) -> None:
+def write_file(file_path: Path, content: str) -> None:
     """
     Write string content to a file.
     Creates the file and any necessary directories if they do not exist.
 
     Args:
         file_path (Path): The path to the file to write to.
-        content (str): The content to write to the file.
+        content (Optional[str]): The content to write to the file.
     """
     if not file_path.parent.exists():
         file_path.parent.mkdir(parents=True)
@@ -20,13 +18,14 @@ def write_file(file_path: Path, content: Optional[str]) -> None:
     with open(file_path, "w") as f:
         f.write(content)
 
+class VersionedModel(Protocol):
+    name: str
+    version: Any
 
-# FIXME fix better typings
-T = TypeVar("T", bound=BaseModel)
-
+T = TypeVar('T', bound=VersionedModel)
 
 def filter_latest_model_version_by_name(data: list[T]) -> list[T]:
-    latest_versions = {}
+    latest_versions: Dict[str, T] = {}
     for item in data:
         name = item.name
         version = item.version
