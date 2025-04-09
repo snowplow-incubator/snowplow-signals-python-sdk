@@ -129,3 +129,25 @@ def get_attribute_view_response_from_file() -> List[Dict[str, Any]]:
     with open(json_path, "r") as f:
         data = json.load(f)
     return data["mock_attribute_views"]
+
+
+
+def get_integration_test_view_response() -> List[Dict[str, Any]]:
+    """
+    Reads and returns mock attribute views from a JSON file.
+
+    Returns:
+        List[Dict[str, Any]]: List of mock attribute view configurations from file
+
+    Raises:
+        FileNotFoundError: If the mock data file doesn't exist
+        json.JSONDecodeError: If the file contains invalid JSON
+    """
+    json_path = Path(__file__).parent / "integration_test_view.json"
+    with open(json_path, "r") as f:
+        data = json.load(f)
+    return data["mock_attribute_views"]
+
+
+
+
