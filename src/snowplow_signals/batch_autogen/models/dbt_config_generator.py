@@ -205,7 +205,12 @@ class DbtConfigGenerator:
                 if step.step_type == "daily_aggregation":
                     if step.aggregation in ["first", "last"]:
                         # For first/last values, we need to reference the column directly
-                        ref_column_name = step.column_name
+
+                        if step.column_name is None:
+                            raise ValueError("Column name is required for first/last value attributes")
+                        ref_column_name: str = step.column_name
+
+
                         if ref_column_name.startswith("first_"):
                             ref_column_name = ref_column_name[
                                 6:
