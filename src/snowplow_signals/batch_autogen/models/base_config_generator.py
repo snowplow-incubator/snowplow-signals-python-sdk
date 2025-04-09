@@ -231,6 +231,8 @@ class BaseConfigGenerator:
 
         # Define an artificial filter condition based on the list of events
         for event in attribute.events:
+            if event.name is None:
+                raise ValueError("Event name cannot be None")
             event_condition_array.append("'" + event.name + "'")
 
         event_condition = FilterCondition(
@@ -273,7 +275,8 @@ class BaseConfigGenerator:
         # Generate column name based on attribute aggregation
         if attribute_agg_short_name in ["first", "last"]:
             # For first/last, use the property name directly
-            # FIXME Property can be none
+            if attribute.property is None:
+                raise ValueError("Property cannot be None for first/last aggregation")
             column_name = f"{attribute_agg_short_name}_{self.get_cleaned_property_name(attribute.property)}"
         else:
             # For other aggregation types (count, sum, etc), use the full column name generation
