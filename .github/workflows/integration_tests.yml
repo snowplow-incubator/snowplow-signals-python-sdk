@@ -55,7 +55,8 @@ jobs:
           DBT_VERSION: ${{ matrix.dbt_version }}
 
       - name: Generate test dbt project
-        run: python integration_tests/replicate_files.py test/auto_gen/__snapshots__/generated_files.json integration_tests
+        run: python integration_tests/replicate_files.py test/auto_gen/__snapshots__/test_snapshots.ambr integration_tests
+        
 
       - name: Move integration_test in ecommerce_transaction_interactions_features_1
         run: mv integration_test ecommerce_transaction_interactions_features_1/integration_test
