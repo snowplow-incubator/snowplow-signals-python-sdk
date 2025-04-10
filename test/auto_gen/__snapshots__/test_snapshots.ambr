@@ -727,6 +727,19 @@
           ]
       }
     ''',
+    'ecommerce_transaction_interactions_features_1/configs/batch_source_config.json': '''
+      {
+          "database": "",
+          "schema": "",
+          "table": "ecommerce_transaction_interactions_features_1_attributes",
+          "name": "ecommerce_transaction_interactions_features_1_attributes",
+          "timestamp_field": "lower_limit",
+          "created_timestamp_column": "valid_at_tstamp",
+          "description": "Table containing attributes for ecommerce_transaction_interactions_features_1 view",
+          "tags": {},
+          "owner": ""
+      }
+    ''',
     'ecommerce_transaction_interactions_features_1/configs/dbt_config.json': '''
       {
           "filtered_events": {
