@@ -10,6 +10,9 @@ from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGe
 from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     DbtConfigGenerator,
 )
+from snowplow_signals.batch_autogen.models.batch_source_config import (
+    BatchSourceConfig,
+)
 from snowplow_signals.batch_autogen.models.dbt_project_setup import (
     DbtBaseConfig,
     DbtProjectSetup,
@@ -287,35 +290,27 @@ class BatchAutogenClient:
         config_path = Path(project_path) / "configs" / "batch_source_config.json"
         table_name = f"{view_name}_{view_version}_attributes"
 
+        batch_source_config = BatchSourceConfig.from_path(
+            config_path=config_path, table_name=table_name
+        )
+
+        if batch_source_config:
+            logger.success("✅ Config loaded successfully.")
+
+            data = batch_source_config.model_dump()
+            self._register_batch_source(data, view_name, view_version, table_name)
+            self._update_registry(table_name)
+
+        else:
+            logger.error("❌ Failed to load config.")
+
+    def _register_batch_source(
+        self, data: dict, view_name: str, view_version: int, table_name: str
+    ):
+        """Register batch source for table in the view"""
+
         logger.info(f"🛠️ Registering batch_source for table {table_name}.")
 
-        # Load and validate batch source config
-        try:
-            with open(config_path) as f:
-                data = json.load(f)
-                if data.get("timestamp_field") == data.get("created_timestamp_column"):
-                    logger.error(
-                        f"❌  Wrong batch source config input. The timestamp_field and created_timestamp_column should not be the same."
-                    )
-                    return False
-
-                if data.get("database") == "":
-                    missing_config = "database"
-                elif data.get("schema") == "":
-                    missing_config = "schema"
-                else:
-                    missing_config = None
-
-                if missing_config:
-                    logger.error(
-                        f"❌ Error registering table {table_name} for materialization: Missing {missing_config} in batch source config"
-                    )
-                    return False
-        except ValueError as e:
-            logger.error(f"❌ Error loading batch source config: {str(e)}")
-            return False
-
-        # Register batch source
         try:
             view_update_endpoint = (
                 f"registry/views/{view_name}/versions/{view_version}/batch_source"
@@ -335,7 +330,7 @@ class BatchAutogenClient:
             )
             return False
 
-        # Update registry
+    def _update_registry(self, table_name: str):
         try:
             logger.info(f"🛠️ Updating registry")
 

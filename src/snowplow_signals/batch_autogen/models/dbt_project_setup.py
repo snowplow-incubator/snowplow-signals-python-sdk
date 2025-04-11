@@ -72,7 +72,7 @@ class DbtProjectSetup:
 
         return {
             "database": "",
-            "schema": "",
+            "wh_schema": "",
             "table": f"{attribute_view.name}_{attribute_view.version}_attributes",
             "name": f"{attribute_view.name}_{attribute_view.version}_attributes",
             "timestamp_field": "lower_limit",
