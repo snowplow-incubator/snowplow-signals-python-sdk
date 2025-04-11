@@ -58,7 +58,7 @@ def mock_auth(respx_mock, request, access_jwt):
 @pytest.fixture
 def mock_successful_api_health(respx_mock):
     """Mock successful API health check response."""
-    respx_mock.get(f"{MOCK_API_URL}/api/v1/health-all").mock(
+    respx_mock.get(f"{MOCK_API_URL}/health-all").mock(
         return_value=httpx.Response(
             200,
             json={
