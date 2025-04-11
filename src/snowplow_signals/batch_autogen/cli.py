@@ -326,9 +326,10 @@ def test_connection(
         if check_api:
             logger.info("🌐 Testing API service...")
             try:
-                health_response = api_client.make_request(
-                    method="GET", endpoint="health-all"
-                )
+                import httpx
+                response = httpx.get(f"{api_url}/health-all")
+                response.raise_for_status()
+                health_response = response.json()
 
                 if health_response["status"] == "ok":
                     api_status = {
@@ -354,17 +355,14 @@ def test_connection(
                         logger.error(f"   {status_symbol} {dep}: {status}")
             except Exception as e:
                 error_msg = str(e)
-                if "[Signals API]" in error_msg:
-                    # Extract the status code and message from the error
-                    parts = error_msg.split(":", 1)
-                    if len(parts) == 2:
-                        status_code = parts[0].split()[-1]
-                        detail = parts[1].strip()
-                        logger.error(
-                            f"❌ API service error (HTTP {status_code}): {detail}"
-                        )
-                    else:
-                        logger.error(f"❌ API service error: {error_msg}")
+                if not error_msg:
+                    error_msg = "Unknown error occurred"
+                if isinstance(e, httpx.HTTPStatusError):
+                    try:
+                        error_details = e.response.json()
+                        logger.error(f"❌ API service error (HTTP {e.response.status_code}): {error_details}")
+                    except:
+                        logger.error(f"❌ API service error (HTTP {e.response.status_code}): {e.response.text}")
                 else:
                     logger.error(f"❌ API service error: {error_msg}")
                 logger.error("\n⚠️ API service is not operational")

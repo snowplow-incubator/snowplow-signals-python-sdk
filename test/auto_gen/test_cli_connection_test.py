@@ -141,7 +141,7 @@ def test_cli_test_connection_fails_with_down_status(
     caplog.clear()
     with caplog.at_level("INFO"):
         # Mock failed health check response
-        respx_mock.get(f"{MOCK_API_URL}/api/v1/health-all").mock(
+        respx_mock.get(f"{MOCK_API_URL}/health-all").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -203,7 +203,7 @@ def test_cli_test_connection_fails_with_non_200_status(
             return_value=httpx.Response(200, json={"data": []})
         )
         # Mock non-200 health check response
-        respx_mock.get(f"{MOCK_API_URL}/api/v1/health-all").mock(
+        respx_mock.get(f"{MOCK_API_URL}/health-all").mock(
             return_value=httpx.Response(500, json={"error": "Internal Server Error"})
         )
 
