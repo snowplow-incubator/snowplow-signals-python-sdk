@@ -297,15 +297,20 @@ class BatchAutogenClient:
         if batch_source_config:
             logger.success("✅ Config loaded successfully.")
 
-            data = batch_source_config.model_dump()
-            self._register_batch_source(data, view_name, view_version, table_name)
+            self._register_batch_source(
+                batch_source_config, view_name, view_version, table_name
+            )
             self._update_registry(table_name)
 
         else:
             logger.error("❌ Failed to load config.")
 
     def _register_batch_source(
-        self, data: dict, view_name: str, view_version: int, table_name: str
+        self,
+        batch_source_config: BatchSourceConfig,
+        view_name: str,
+        view_version: int,
+        table_name: str,
     ):
         """Register batch source for table in the view"""
 
@@ -315,20 +320,19 @@ class BatchAutogenClient:
             view_update_endpoint = (
                 f"registry/views/{view_name}/versions/{view_version}/batch_source"
             )
-            self.api_client.make_request(
-                method="PUT", endpoint=view_update_endpoint, data=data
+            response = self.api_client.make_request(
+                method="PUT", endpoint=view_update_endpoint, data=batch_source_config
             )
 
             logger.success(
                 f"✅ Successfully added Batch Source information to view {view_name}_{view_version}"
             )
+
         except Exception as e:
-            logger.error("❌ Snowplow Signals API service error:")
-            logger.error(f"   Error details: {str(e)}")
             logger.error(
                 "\n⚠️ The batch source couldn't be registered. Please check your API credentials and network connection"
             )
-            return False
+            raise e
 
     def _update_registry(self, table_name: str):
         try:
@@ -340,18 +344,5 @@ class BatchAutogenClient:
             if response.get("status") == "applied":
                 logger.success(f"✅ Successfully registered table {table_name}")
         except Exception as e:
-            error_msg = str(e)
-            if "[Signals API]" in error_msg:
-                # Extract the status code and message from the error
-                parts = error_msg.split(":", 1)
-                if len(parts) == 2:
-                    status_code = parts[0].split()[-1]
-                    detail = parts[1].strip()
-                    logger.error(
-                        f"❌ Snowplow Signals API service error (HTTP {status_code}): {detail}"
-                    )
-                else:
-                    logger.error(f"❌ Snowplow Signals API service error: {error_msg}")
-            else:
-                logger.error(f"❌ Snowplow Signals API service error: {error_msg}")
             logger.error(f"\n⚠️ The table {table_name} couldn't be registered.")
+            raise e
