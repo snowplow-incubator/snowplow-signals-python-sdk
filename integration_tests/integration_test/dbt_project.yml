@@ -116,7 +116,7 @@ seeds:
       snowflake:
         snowplow_batch_autogen_attributes_expected:
           +column_types:
-            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            entity_key: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
             valid_at_tstamp: timestamp
             lower_limit: date
             upper_limit: date

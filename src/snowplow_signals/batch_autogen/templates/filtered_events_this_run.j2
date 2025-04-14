@@ -19,7 +19,7 @@ select
     derived_tstamp,
     date(derived_tstamp) as event_date,
     load_tstamp,
-    {{ dbt_utils.generate_surrogate_key([var('snowplow__entity_key', 'domain_userid'), 'event_date']) }} AS user_date_id,
+    {{ dbt_utils.generate_surrogate_key([var('snowplow__entity_key', 'domain_userid'), 'event_date']) }} AS entity_key_date_id,
     event_name,
     {% endraw %}
     {%- for property in properties %}

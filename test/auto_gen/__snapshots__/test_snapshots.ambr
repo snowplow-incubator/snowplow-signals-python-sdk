@@ -724,7 +724,8 @@
                       }
                   }
               ]
-          ]
+          ],
+          "entity_key": "user"
       }
     ''',
     'ecommerce_transaction_interactions_features_1/configs/dbt_config.json': '''
@@ -1204,426 +1205,6 @@
           }
       }
     ''',
-    'ecommerce_transaction_interactions_features_1/dbt_project.yml': '''
-      name: 'ecommerce_transaction_interactions_features_1'
-      version: '0.0.1'
-      config-version: 2
-      
-      require-dbt-version: [">=1.6.0", "<2.0.0"]
-      
-      profile: 'snowplow_autogen'
-      
-      dispatch:
-        - macro_namespace: dbt
-          search_order: ['snowplow_utils', 'dbt']
-      
-      model-paths: ["models"]
-      analysis-paths: ["analyses"]
-      test-paths: ["tests"]
-      seed-paths: ["seeds"]
-      macro-paths: ["macros"]
-      snapshot-paths: ["snapshots"]
-      docs-paths: ["docs"]
-      
-      target-path: "target"
-      clean-targets:
-        - "target"
-        - "dbt_packages"
-        - "logs"
-        
-      models:
-        ecommerce_transaction_interactions_features_1:
-          +materialized: table
-          +file_format:  "{{ 'delta' if target.type not in ['spark'] else 'iceberg'}}"
-          +incremental_strategy: "{{ None if target.type not in ['spark'] else 'merge' }}"
-          +bind: false
-          base:
-            +tags: "base"
-            manifest:
-              +schema: "snowplow_manifest"
-            scratch:
-              +schema: "scratch"
-              +tags: "scratch"
-          filtered_events:
-            +schema: "derived"
-            +tags: "ecommerce_transaction_interactions_features_1_incremental"
-            scratch:
-              +schema: "scratch"
-              +tags: "scratch"
-          daily_aggregates:
-            +schema: "derived"
-            +tags: "ecommerce_transaction_interactions_features_1_incremental"
-            scratch:
-              +schema: "scratch"
-              +tags: "scratch"
-            manifest:
-              +schema: "snowplow_manifest"
-          attributes:
-            +schema: "derived"
-            +tags: "ecommerce_transaction_interactions_features_1_incremental"
-      
-      vars:
-        ecommerce_transaction_interactions_features_1:
-      
-          # OPERATION & LOGIC
-          
-          # filtered_events
-          snowplow__start_date: '2025-01-01' # date from where it starts looking for events based on both load and derived_tstamp
-          snowplow__app_id: [] # already gets applied in base_events_this_run
-          snowplow__backfill_limit_days: 1 # limit backfill increments for the filtered_events_table
-          
-          # daily_aggregates
-          snowplow__late_event_lookback_days: 5 # the number of days to allow for late arriving data to be reprocessed fully in the daily aggregate table
-          snowplow__min_late_events_to_process: 1 # the number of total daily events that have been skipped in previous runs, if it falls within the late_event_lookback_days, if the treshold is reached, those events will be processed in the daily aggregate model
-          
-          snowplow__allow_refresh: false # if true, the snowplow_incremental_manifest will be dropped when running with a --full-refresh flag
-      
-          # WAREHOUSE & TRACKER
-          
-          snowplow__dev_target_name: dev
-          snowplow__databricks_catalog: "hive_metastore"
-          # snowplow__atomic_schema: 'atomic' # Only set if not using 'atomic' schema for Snowplow events data
-          # snowplow__database: # Only set if not using target.database for Snowplow events data -- WILL BE IGNORED FOR DATABRICKS
-          # snowplow__events_table: "events" # Only set if not using 'events' table for Snowplow events data
-          snowplow__events: "{{ source('atomic', 'events') }}" # for dev use only
-          
-      on-run-start:
-        - "{{ snowplow_utils.snowplow_delete_from_manifest(var('models_to_remove',[])) }}"
-      
-      on-run-end:
-        - "{{ snowplow_utils.snowplow_incremental_post_hook_t(package_name='ecommerce_transaction_interactions_features_1', incremental_manifest_table_name='ecommerce_transaction_interactions_features_1_incremental_manifest', base_events_this_run_table_name='ecommerce_transaction_interactions_features_1_base_events_this_run') }}"
-        - "{{ snowplow_utils.grant_usage_on_schemas_built_into(var('snowplow__grant_schemas', true)) }}"
-  
-    ''',
-    'ecommerce_transaction_interactions_features_1/macros/allow_refresh.sql': '''
-      {#
-      Copyright (c) 2025-present Snowplow Analytics Ltd. All rights reserved.
-      This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
-      and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
-      You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
-      #}
-      
-      {# Default: Allow refresh in dev, block refresh otherwise. dev defined by snowplow__dev_target_name #}
-      
-      {% macro allow_refresh() %}
-        {{ return(adapter.dispatch('allow_refresh', 'ecommerce_transaction_interactions_features_1')()) }}
-      {% endmacro %}
-      
-      {% macro default__allow_refresh() %}
-      
-        {% if flags.FULL_REFRESH == True %}
-          {% set allow_refresh = snowplow_utils.get_value_by_target(
-                                            dev_value=none,
-                                            default_value=var('snowplow__allow_refresh'),
-                                            dev_target_name=var('snowplow__dev_target_name')
-                                            ) %}
-        {% else %}
-          {% set allow_refresh = none %}
-        {% endif %}
-      
-        {{ return(allow_refresh) }}
-      
-      {% endmacro %}
-  
-    ''',
-    'ecommerce_transaction_interactions_features_1/macros/get_cluster_by_values.sql': '''
-      {#
-      Copyright (c) 2025-present Snowplow Analytics Ltd. All rights reserved.
-      This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
-      and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
-      You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
-      #}
-      
-      {% macro get_cluster_by_values(model) %}
-          {{ return(adapter.dispatch('get_cluster_by_values', 'ecommerce_transaction_interactions_features_1')(model)) }}
-      {% endmacro %}
-      
-      
-      {% macro default__get_cluster_by_values(model) %}
-          {% if model == 'dummy' %}
-              {{ return(snowplow_utils.get_value_by_target_type(bigquery_val=["session_identifier"], snowflake_val=["to_date(start_tstamp)"])) }}
-          {% else %}
-              {{ exceptions.raise_compiler_error(
-            "Snowplow Error: Model "~model~" not defined for cluster by."
-            ) }}
-          {% endif %}
-      {% endmacro %}
-  
-    ''',
-    'ecommerce_transaction_interactions_features_1/macros/get_limits_for_attributes.sql': '''
-      {#
-      Copyright (c) 2025-present Snowplow Analytics Ltd. All rights reserved.
-      This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
-      and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
-      You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
-      #}
-      
-      {% macro get_limits_for_attributes() %}
-      
-      {# upper limit only applies to last n day aggregates in case the user does not want to include current date in the aggregations #}
-      {# lower limit is only implemented for reducing unnecessary scans in case there are only last n day aggregate attributes #}
-        
-        {% set limits_query %}
-        
-          with base as (
-            
-            select
-              '{{ var('snowplow__start_date', '2025-01-01') }}' as lower_limit,
-              coalesce(max(event_date), '{{ var('snowplow__start_date', '2025-01-01') }}') as upper_limit
-              
-            from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }}
-            
-            group by 1
-          )
-          
-          , upper_limit_changes as (
-            
-            select
-              lower_limit,
-              {% if not var('snowplow__include_current_day_in_windows', false) %} 
-                case when upper_limit = current_date then {{dbt.dateadd('day', -1, "'"~upper_limit~"'")}} else upper_limit end as upper_limit
-              {% else %}
-                upper_limit
-              {% endif %}
-              
-            from base
-          )
-          
-          select
-            lower_limit,
-            upper_limit
-      
-          from upper_limit_changes
-      
-        {% endset %}
-      
-        {% set limit_results = run_query(limits_query)%}
-      
-        {% if execute %}
-          {% if limit_results|length == 0  %}
-            {{ exceptions.raise_compiler_error("Error: No limits returned") }}
-          {% else %}
-            {% set lower_limit = "'"~limit_results.columns[0].values()[0]~"'" %}
-            {% set upper_limit = "'"~limit_results.columns[1].values()[0]~"'" %}
-            {{ log(this.table ~ ": processing daily events between " ~ lower_limit ~ " and " ~ upper_limit, info=write_limits_to_stdout) }}
-            {{ return([lower_limit, upper_limit]) }}
-          {% endif %}
-        {% else%}
-          {{ return(['','']) }}
-        {% endif %}
-      
-      {% endmacro %}
-  
-    ''',
-    'ecommerce_transaction_interactions_features_1/models/attributes/ecommerce_transaction_interactions_features_1_attributes.sql': '''
-      
-      {#
-      Copyright (c) 2025-present Snowplow Analytics Ltd. All rights reserved.
-      This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
-      and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
-      You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
-      #}
-      
-      {{
-        config(
-          materialized='table',
-          dist='domain_userid',
-          partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
-            "field": "last_event_tstamp",
-            "data_type": "timestamp"
-          }, databricks_val='last_event_date'),
-          sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
-        )
-      }}
-      
-      {%- set lower_limit, upper_limit = get_limits_for_attributes() %}
-      
-      with aggregations as (
-      
-        select 
-          domain_userid
-      
-          
-          
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_view end) as page_view_events_count_last_7_days
-          
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_ping end) as page_ping_events_count_last_7_days
-          
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_view_page_url_like_pctpricingpct end) as pricing_pageview_count_last_7_days
-          
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_view_page_url_like_pctdemopct end) as demo_pageview_count_last_7_days
-          
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then media_video_event_count_last_7_days end) as media_video_event_count_last_7_days
-          
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_focus_form_change_form end) as form_focus_change_event_count_last_7_days
-          
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then sum_revenue_snowplow_ecommerce_action end) as total_revenue_last_7_days
-          
-      
-      
-        from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates')}}
-      
-        group by 1
-        
-      )
-      
-      , window_calculations as (
-        
-        select distinct
-          domain_userid
-      
-      
-        
-          , first_value(first_mkt_source) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as first_mkt_source
-        
-      
-        
-          , first_value(first_mkt_medium) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as first_mkt_medium
-        
-      
-        
-          , first_value(first_refr_source) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as first_referrer_source
-        
-      
-        
-          , first_value(first_refr_medium) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as first_referrer_medium
-        
-      
-      
-        
-          , last_value(last_geo_country) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as last_geo_country
-        
-      
-        
-          , last_value(last_geo_timezone) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as last_timezone
-        
-      
-        
-          , last_value(last_operating_system_name) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as last_os
-        
-      
-        
-          , last_value(last_device_class) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as last_device_class
-        
-      
-        
-          , last_value(last_mkt_source) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as last_mkt_source
-        
-      
-        
-          , last_value(last_mkt_medium) over (
-                      partition by domain_userid 
-                      order by last_event_tstamp ASC
-                  ) as last_mkt_medium
-        
-      
-      
-        from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates')}}
-        
-      )
-      
-      select
-          
-        w.domain_userid,
-        current_timestamp() as valid_at_tstamp,
-        cast({{ lower_limit }} as date) as lower_limit,
-        cast({{ upper_limit }} as date) as upper_limit
-      
-        
-          , w.first_mkt_source
-          , w.first_mkt_medium
-          , w.first_referrer_source
-          , w.first_referrer_medium
-      
-        -- time window based attributes
-        
-          , page_view_events_count_last_7_days
-        
-          , page_ping_events_count_last_7_days
-        
-          , pricing_pageview_count_last_7_days
-        
-          , demo_pageview_count_last_7_days
-        
-          , media_video_event_count_last_7_days
-        
-          , form_focus_change_event_count_last_7_days
-        
-          , total_revenue_last_7_days
-        
-          
-        -- lifetime based attributes
-        
-      
-        -- user lasts
-        
-          , w.last_geo_country
-          , w.last_timezone
-          , w.last_os
-          , w.last_device_class
-          , w.last_mkt_source
-          , w.last_mkt_medium
-      
-      from aggregations as a
-      
-      left join window_calculations as w
-      on a.domain_userid = w.domain_userid
-      
-  
-    ''',
-    'ecommerce_transaction_interactions_features_1/models/base/manifest/ecommerce_transaction_interactions_features_1_incremental_manifest.sql': '''
-      {#
-      Copyright (c) 2025-present Snowplow Analytics Ltd. All rights reserved.
-      This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
-      and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
-      You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
-      #}
-      
-      {{
-        config(
-          materialized='incremental',
-          sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
-          tblproperties={
-            'delta.autoOptimize.optimizeWrite' : 'true',
-            'delta.autoOptimize.autoCompact' : 'true'
-          },
-        )
-      }}
-      
-      {% set incremental_manifest_query = snowplow_utils.base_create_snowplow_incremental_manifest_t() %}
-      
-      {{ incremental_manifest_query }}
-      
-      {# TODO: add full refresh in config! #}
-  
-    ''',
     'ecommerce_transaction_interactions_features_1/models/base/scratch/ecommerce_transaction_interactions_features_1_base_events_this_run.sql': '''
       {#
       Copyright (c) 2025-present Snowplow Analytics Ltd. All rights reserved.
@@ -1709,7 +1290,7 @@
             "field": "event_date",
             "data_type": "date"
           }, databricks_val='event_date'),
-          unique_key='user_date_id',
+          unique_key='entity_key_date_id',
           upsert_date_key='event_date',
           tags=["derived"],
           on_schema_change='append_new_columns',
@@ -1773,7 +1354,7 @@
               tags=["this_run"],
               materialized="table",
               sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
-              unique_key=['user_date_id']
+              unique_key=['entity_key_date_id']
           )
       }}
       
@@ -1787,8 +1368,8 @@
       , aggregations as (
         
         select
-          {{ dbt_utils.generate_surrogate_key(['domain_userid', 'event_date']) }} user_date_id,
-          domain_userid,
+          entity_key_date_id,
+          entity_key,
           event_date
           
           
@@ -1837,28 +1418,28 @@
         
         select
           *,
-          last_value(derived_tstamp) over (partition by user_date_id order by derived_tstamp) as last_event_tstamp
+          last_value(derived_tstamp) over (partition by entity_key_date_id order by derived_tstamp) as last_event_tstamp
               
           
-            , first_value(mkt_source) over (partition by user_date_id order by derived_tstamp) as first_mkt_source
-            , first_value(mkt_medium) over (partition by user_date_id order by derived_tstamp) as first_mkt_medium
-            , first_value(refr_source) over (partition by user_date_id order by derived_tstamp) as first_refr_source
-            , first_value(refr_medium) over (partition by user_date_id order by derived_tstamp) as first_refr_medium
+            , first_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp) as first_mkt_source
+            , first_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp) as first_mkt_medium
+            , first_value(refr_source) over (partition by entity_key_date_id order by derived_tstamp) as first_refr_source
+            , first_value(refr_medium) over (partition by entity_key_date_id order by derived_tstamp) as first_refr_medium
           
-            , last_value(geo_country) over (partition by user_date_id order by derived_tstamp) as last_geo_country
-            , last_value(geo_timezone) over (partition by user_date_id order by derived_tstamp) as last_geo_timezone
-            , last_value(operating_system_name) over (partition by user_date_id order by derived_tstamp) as last_operating_system_name
-            , last_value(device_class) over (partition by user_date_id order by derived_tstamp) as last_device_class
-            , last_value(mkt_source) over (partition by user_date_id order by derived_tstamp) as last_mkt_source
-            , last_value(mkt_medium) over (partition by user_date_id order by derived_tstamp) as last_mkt_medium
+            , last_value(geo_country) over (partition by entity_key_date_id order by derived_tstamp) as last_geo_country
+            , last_value(geo_timezone) over (partition by entity_key_date_id order by derived_tstamp) as last_geo_timezone
+            , last_value(operating_system_name) over (partition by entity_key_date_id order by derived_tstamp) as last_operating_system_name
+            , last_value(device_class) over (partition by entity_key_date_id order by derived_tstamp) as last_device_class
+            , last_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp) as last_mkt_source
+            , last_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp) as last_mkt_medium
         
         from events
         
       )
       
       select distinct
-        a.user_date_id,
-        a.domain_userid,
+        a.entity_key_date_id,
+        a.entity_key,
         a.event_date,
         w.last_event_tstamp
       
@@ -1895,7 +1476,7 @@
       from aggregations a
       
       left join window_calculations w
-      on w.user_date_id = a.user_date_id
+      on w.entity_key_date_id = a.entity_key_date_id
       
   
     ''',
@@ -1981,11 +1562,11 @@
       
       select
           event_id,
-          domain_userid,
+          {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key,
           derived_tstamp,
           date(derived_tstamp) as event_date,
           load_tstamp,
-          {{ dbt_utils.generate_surrogate_key(['domain_userid', 'event_date']) }} AS user_date_id,
+          {{ dbt_utils.generate_surrogate_key([var('snowplow__entity_key', 'domain_userid'), 'event_date']) }} AS entity_key_date_id,
           event_name,
           geo_country AS geo_country,
           geo_timezone AS geo_timezone,
@@ -2225,13 +1806,6 @@
               , base_sessions_lifecycle_table="ecommerce_transaction_interactions_features_1_base_sessions_lifecycle"
               ) }}
       
-  
-    ''',
-    'ecommerce_transaction_interactions_features_1/packages.yml': '''
-      
-      packages:
-        - git: "https://github.com/snowplow/dbt-snowplow-utils.git"
-          revision: "refactor/time-based-macros"
   
     ''',
   })

@@ -23,7 +23,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 with aggregations as (
 
   select 
-    {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key
+    entity_key
 {% endraw %}
     {% for attribute in lifetime_aggregates %}
       , {{ attribute['aggregation_type'] }}({% if attribute['aggregation_type'] == 'array_agg' %}distinct {% endif %}{{ attribute["daily_agg_column_name"] }}) as {{ attribute["column_name"] }}
@@ -42,7 +42,7 @@ with aggregations as (
 , window_calculations as (
   
   select distinct
-    {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key
+    entity_key
 {% endraw %}
 {% for attribute in first_value_attributes %}
   {% if attribute['period'] %}
