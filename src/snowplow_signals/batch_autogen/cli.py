@@ -7,11 +7,24 @@ from dotenv import load_dotenv
 import os
 
 import typer
-from typing_extensions import Annotated
 
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.batch_autogen import BatchAutogenClient
 from snowplow_signals.logging import get_logger, setup_logging
+from .cli_params import (
+    API_KEY,
+    API_KEY_ID,
+    API_URL,
+    CHECK_API,
+    CHECK_AUTH,
+    ORG_ID,
+    PROJECT_NAME,
+    REPO_PATH,
+    UPDATE,
+    VERBOSE,
+    VIEW_NAME,
+    VIEW_VERSION,
+)
 
 # Create the main Typer app with metadata
 app = typer.Typer(
@@ -82,64 +95,14 @@ def create_api_client(
 
 @app.command()
 def init(
-    api_url: Annotated[
-        str,
-        typer.Option(
-            help="URL of the API server to fetch schema information",
-            envvar="SNOWPLOW_API_URL",
-        ),
-    ],
-    api_key: Annotated[
-        str,
-        typer.Option(
-            help="API key for authentication",
-            envvar="SNOWPLOW_API_KEY",
-        ),
-    ],
-    api_key_id: Annotated[
-        str,
-        typer.Option(
-            help="ID of the API key",
-            envvar="SNOWPLOW_API_KEY_ID",
-        ),
-    ],
-    org_id: Annotated[
-        str,
-        typer.Option(
-            help="Organization ID",
-            envvar="SNOWPLOW_ORG_ID",
-        ),
-    ],
-    repo_path: Annotated[
-        str,
-        typer.Option(
-            help="Path to the repository where projects will be stored",
-            envvar="SNOWPLOW_REPO_PATH",
-        ),
-    ],
-    view_name: Annotated[
-        Optional[str],
-        typer.Option(
-            help="Optional name of a specific attribute view project to initialize",
-            envvar="SNOWPLOW_VIEW_NAME",
-        ),
-    ] = None,
-    view_version: Annotated[
-        Optional[int],
-        typer.Option(
-            help="Optional version of the attribute view to initialize. Only used if view_name is provided",
-            envvar="SNOWPLOW_VIEW_VERSION",
-        ),
-    ] = None,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "-v",
-            "--verbose",
-            help="Enable verbose output",
-            envvar="SNOWPLOW_VERBOSE",
-        ),
-    ] = False,
+    api_url: API_URL,
+    api_key: API_KEY,
+    api_key_id: API_KEY_ID,
+    org_id: ORG_ID,
+    repo_path: REPO_PATH,
+    view_name: VIEW_NAME = None,
+    view_version: VIEW_VERSION = None,
+    verbose: VERBOSE = False,
 ) -> None:
     """Initialize dbt project structure and base configuration."""
     try:
@@ -169,64 +132,14 @@ def init(
 
 @app.command()
 def generate(
-    api_url: Annotated[
-        str,
-        typer.Option(
-            help="URL of the API server to fetch schema information",
-            envvar="SNOWPLOW_API_URL",
-        ),
-    ],
-    api_key: Annotated[
-        str,
-        typer.Option(
-            help="API key for authentication",
-            envvar="SNOWPLOW_API_KEY",
-        ),
-    ],
-    api_key_id: Annotated[
-        str,
-        typer.Option(
-            help="ID of the API key",
-            envvar="SNOWPLOW_API_KEY_ID",
-        ),
-    ],
-    org_id: Annotated[
-        str,
-        typer.Option(
-            help="Organization ID",
-            envvar="SNOWPLOW_ORG_ID",
-        ),
-    ],
-    repo_path: Annotated[
-        str,
-        typer.Option(
-            help="Path to the repository where projects are stored",
-            envvar="SNOWPLOW_REPO_PATH",
-        ),
-    ],
-    project_name: Annotated[
-        Optional[str],
-        typer.Option(
-            help="Optional name of a specific project to generate models for",
-            envvar="SNOWPLOW_PROJECT_NAME",
-        ),
-    ] = None,
-    update: Annotated[
-        bool,
-        typer.Option(
-            help="Whether to update existing files",
-            envvar="SNOWPLOW_UPDATE",
-        ),
-    ] = False,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "-v",
-            "--verbose",
-            help="Enable verbose output",
-            envvar="SNOWPLOW_VERBOSE",
-        ),
-    ] = False,
+    api_url: API_URL,
+    api_key: API_KEY,
+    api_key_id: API_KEY_ID,
+    org_id: ORG_ID,
+    repo_path: REPO_PATH,
+    project_name: PROJECT_NAME = None,
+    update: UPDATE = False,
+    verbose: VERBOSE = False,
 ) -> None:
     """Generate dbt project assets such as data models, macros and config files."""
     try:
@@ -256,62 +169,14 @@ def generate(
 
 @app.command()
 def materialize(
-    api_url: Annotated[
-        str,
-        typer.Option(
-            help="URL of the API server",
-            envvar="SNOWPLOW_API_URL",
-        ),
-    ],
-    api_key: Annotated[
-        str,
-        typer.Option(
-            help="API key for authentication",
-            envvar="SNOWPLOW_API_KEY",
-        ),
-    ],
-    api_key_id: Annotated[
-        str,
-        typer.Option(
-            help="ID of the API key",
-            envvar="SNOWPLOW_API_KEY_ID",
-        ),
-    ],
-    org_id: Annotated[
-        str,
-        typer.Option(
-            help="Organization ID",
-            envvar="SNOWPLOW_ORG_ID",
-        ),
-    ],
-    view_name: Annotated[
-        Optional[str],
-        typer.Option(
-            help="Optional name of a specific attribute view project to register batch_source for.",
-        ),
-    ],
-    view_version: Annotated[
-        Optional[int],
-        typer.Option(
-            help="Optional version of the attribute view to register batch_source for.",
-        ),
-    ],
-    repo_path: Annotated[
-        str,
-        typer.Option(
-            help="Path to the repository where projects will be stored",
-            envvar="SNOWPLOW_REPO_PATH",
-        ),
-    ],
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "-v",
-            "--verbose",
-            help="Enable verbose output",
-            envvar="SNOWPLOW_VERBOSE",
-        ),
-    ] = False,
+    api_url: API_URL,
+    api_key: API_KEY,
+    api_key_id: API_KEY_ID,
+    org_id: ORG_ID,
+    view_name: VIEW_NAME,
+    view_version: VIEW_VERSION,
+    repo_path: REPO_PATH,
+    verbose: VERBOSE = False,
 ) -> None:
     """Registers the attribute table as a data source so that the materialization process can start."""
     try:
@@ -334,57 +199,13 @@ def materialize(
 
 @app.command()
 def test_connection(
-    api_url: Annotated[
-        str,
-        typer.Option(
-            help="URL of the API server to test connection",
-            envvar="SNOWPLOW_API_URL",
-        ),
-    ],
-    api_key: Annotated[
-        str,
-        typer.Option(
-            help="API key for authentication",
-            envvar="SNOWPLOW_API_KEY",
-        ),
-    ],
-    api_key_id: Annotated[
-        str,
-        typer.Option(
-            help="ID of the API key",
-            envvar="SNOWPLOW_API_KEY_ID",
-        ),
-    ],
-    org_id: Annotated[
-        str,
-        typer.Option(
-            help="Organization ID",
-            envvar="SNOWPLOW_ORG_ID",
-        ),
-    ],
-    check_auth: Annotated[
-        bool,
-        typer.Option(
-            help="Whether to check authentication service",
-            envvar="SNOWPLOW_CHECK_AUTH",
-        ),
-    ] = True,
-    check_api: Annotated[
-        bool,
-        typer.Option(
-            help="Whether to check API service health",
-            envvar="SNOWPLOW_CHECK_API",
-        ),
-    ] = True,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "-v",
-            "--verbose",
-            help="Enable verbose output",
-            envvar="SNOWPLOW_VERBOSE",
-        ),
-    ] = False,
+    api_url: API_URL,
+    api_key: API_KEY,
+    api_key_id: API_KEY_ID,
+    org_id: ORG_ID,
+    check_auth: CHECK_AUTH,
+    check_api: CHECK_API,
+    verbose: VERBOSE,
 ) -> None:
     """Test the connection to the authentication and API services."""
     try:
