@@ -29,13 +29,6 @@ dbt = [
     "typer"
 ]
 
-[tool.poetry.extras]
-dbt = [
-    "jinja2",
-    "typer"
-]
-
-
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 black = "^24.10.0"
@@ -46,9 +39,6 @@ respx = "^0.22.0"
 datamodel-code-generator = "^0.28.4"
 pytest-cov = "^6.1.0"
 syrupy = "^4.9.1"
-
-[tool.poetry.scripts]
-snowplow-batch-autogen = "snowplow_signals.batch_autogen.cli:app"
 
 [tool.poetry.scripts]
 snowplow-batch-autogen = "snowplow_signals.batch_autogen.cli:app"
