@@ -320,8 +320,9 @@ class BatchAutogenClient:
             view_update_endpoint = (
                 f"registry/views/{view_name}/versions/{view_version}/batch_source"
             )
+            data = batch_source_config.model_dump(mode="json", exclude_none=True)
             response = self.api_client.make_request(
-                method="PUT", endpoint=view_update_endpoint, data=batch_source_config
+                method="PUT", endpoint=view_update_endpoint, data=data
             )
 
             logger.success(
