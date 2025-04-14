@@ -273,7 +273,7 @@ class BatchAutogenClient:
         self,
         project_path: str,
         view_name: str,
-        view_version: str,
+        view_version: int,
         verbose: bool = False,
     ):
         """
