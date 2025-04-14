@@ -1,8 +1,5 @@
 from .api_client import ApiClient, SignalsAPIError
-from .models import View, ViewOutput, Service
-
-
-# TODO: When PUT endponts are available in the registry API, update existing objects with the input.
+from .models import Service, View, ViewOutput
 
 
 class RegistryClient:
@@ -15,11 +12,11 @@ class RegistryClient:
         # First apply all views in case they are dependencies of services
         for object in objects:
             if isinstance(object, View):
-                updated_objects.append(self._create_or_get_view(view=object))
+                updated_objects.append(self._create_or_update_view(view=object))
 
         for object in objects:
             if isinstance(object, Service):
-                updated_objects.append(self._create_or_get_service(service=object))
+                updated_objects.append(self._create_or_update_service(service=object))
 
         return updated_objects
 
@@ -37,7 +34,7 @@ class RegistryClient:
 
         return ViewOutput.model_validate(response)
 
-    def _create_or_get_view(self, view: View) -> ViewOutput:
+    def _create_or_update_view(self, view: View) -> ViewOutput:
         try:
             response = self.api_client.make_request(
                 method="POST",
@@ -47,15 +44,16 @@ class RegistryClient:
         except SignalsAPIError as e:
             if e.status_code == 400:
                 response = self.api_client.make_request(
-                    method="GET",
+                    method="PUT",
                     endpoint=(f"registry/views/{view.name}/versions/{view.version}"),
+                    data=view.model_dump(mode="json", exclude_none=True),
                 )
             else:
                 raise e
 
         return ViewOutput.model_validate(response)
 
-    def _create_or_get_service(self, service: Service) -> Service:
+    def _create_or_update_service(self, service: Service) -> Service:
         try:
             response = self.api_client.make_request(
                 method="POST",
@@ -65,8 +63,9 @@ class RegistryClient:
         except SignalsAPIError as e:
             if e.status_code == 400:
                 response = self.api_client.make_request(
-                    method="GET",
+                    method="PUT",
                     endpoint=(f"registry/services/{service.name}"),
+                    data=service.model_dump(mode="json", exclude_none=True),
                 )
             else:
                 raise e
