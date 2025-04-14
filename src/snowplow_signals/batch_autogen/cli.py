@@ -3,7 +3,6 @@
 import sys
 from pathlib import Path
 from typing import Optional
-from dotenv import load_dotenv
 import os
 
 import typer
@@ -35,16 +34,6 @@ app = typer.Typer(
 
 # Configure logging
 logger = get_logger(__name__)
-
-
-# Load dev environment variables
-def load_dev_env():
-    dev_env_file = Path(".env.dev")
-    if dev_env_file.exists():
-        load_dotenv(dotenv_path=dev_env_file, override=True)
-
-
-load_dev_env()
 
 
 def validate_repo_path(repo_path: str) -> Path:
