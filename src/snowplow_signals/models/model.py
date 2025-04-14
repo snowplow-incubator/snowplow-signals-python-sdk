@@ -424,7 +424,7 @@ class ViewInput(BaseModel):
     offline: Optional[bool] = Field(
         True,
         description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
-        title="Online",
+        title="Offline",
     )
     description: Optional[str] = Field(
         None, description="A human-readable description.", title="Description"
