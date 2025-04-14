@@ -3,10 +3,15 @@ import os
 
 import typer
 from typing_extensions import Annotated
+from typing import Dict, Optional
 
 from snowplow_signals.batch_autogen.models.base_config_generator import (
     BaseConfigGenerator,
     DbtBaseConfig,
+)
+
+from snowplow_signals.batch_autogen.models.batch_source_config import (
+    BatchSourceConfig,
 )
 
 from snowplow_signals.logging import get_logger
@@ -65,7 +70,7 @@ class DbtProjectSetup:
         generator = BaseConfigGenerator(data=attribute_view)
         return generator.create_base_config()
 
-    def get_batch_source_config(self, attribute_view: ViewOutput) -> dict:
+    def get_default_batch_source_config(self, attribute_view: ViewOutput) -> dict:
         """
         Creates a pre-populated config file for users to fill out for materialization.
         """
@@ -82,6 +87,20 @@ class DbtProjectSetup:
             "owner": "",
         }
 
+    def validate_default_batch_source_config_dict(
+        self,
+        config_data: Dict[str, Optional[str]],
+    ):
+        try:
+            BatchSourceConfig.parse_obj(config_data)
+            logger.info("✅ Batch source config is valid.")
+        except ValidationError as e:
+            logger.error(f"❌ Validation failed for BatchSourceConfig: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"❌ Unexpected error during validation: {e}")
+            raise
+
     def setup_all_projects(self):
         """Sets up dbt files for one or all projects."""
 
@@ -90,7 +109,8 @@ class DbtProjectSetup:
         for attribute_view in attribute_views:
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
             project_config = self.get_attribute_view_project_config(attribute_view)
-            batch_source_config = self.get_batch_source_config(attribute_view)
+            batch_source_config = self.get_default_batch_source_config(attribute_view)
+            self.validate_default_batch_source_config_dict(batch_source_config)
             self.create_project_directories(
                 view_project_name, project_config, batch_source_config
             )
