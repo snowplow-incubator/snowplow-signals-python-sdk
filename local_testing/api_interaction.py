@@ -1,5 +1,5 @@
 import os
-from snowplow_signals import Signals, View, user_entity, Attribute, Event, BatchSource
+from snowplow_signals import Signals, View, user_entity, session_entity, Attribute, Event, BatchSource
 
 def get_env_var(name: str) -> str:
     value = os.getenv(name)
@@ -24,50 +24,49 @@ def main():
     #     timestamp_field="UPDATED_AT"
     # )
 
-    # # Create features
-    # last_geo_country = Attribute(
-    #     name="last_geo_country",
-    #     type="string",
-    #     description="Last geo_country value in the last 8 days",
-    #     events=[Event(vendor="com.snowplowanalytics.snowplow", name="page_view", version="1-0-0")],
-    #     aggregation="last",
-    #     property="geo_country",
-    #     property_syntax="snowflake",
-    #     criteria=None,
-    #     period=None
-    # )
+    # Create features
+    last_geo_country = Attribute(
+        name="last_geo_country",
+        type="string",
+        description="Last geo_country value in the last 8 days",
+        events=[Event(vendor="com.snowplowanalytics.snowplow", name="page_view", version="1-0-0")],
+        aggregation="last",
+        property="geo_country",
+        property_syntax="snowflake",
+        criteria=None,
+        period=None
+    )
 
-    # page_view_count = Attribute(
-    #     name="page_view_count_last_7_days",
-    #     type="int64",
-    #     description="Count of page views in the last 7 days",
-    #     events=[Event(vendor="com.snowplowanalytics.snowplow", name="page_view", version="1-0-0")],
-    #     aggregation="counter",
-    #     property=None,
-    #     property_syntax="snowflake",
-    #     criteria=None,
-    #     period="P7D"
-    # )
+    page_view_count = Attribute(
+        name="page_view_count_last_7_days",
+        type="int64",
+        description="Count of page views in the last 7 days",
+        events=[Event(vendor="com.snowplowanalytics.snowplow", name="page_view", version="1-0-0")],
+        aggregation="counter",
+        property=None,
+        property_syntax="snowflake",
+        criteria=None,
+        period="P7D"
+    )
 
-    # # Create feature view
-    # view = View(
-    #     name="my_transaction_interactions_features",
-    #     version=1,
-    #     entity=user_entity,
-    #     ttl=None,
-    #     batch_source=batch_source,
-    #     online=True,
-    #     description="My transaction interactions features",
-    #     tags=None,
-    #     owner=None,
-    #     fields=None,
-    #     attributes=[last_geo_country, page_view_count]
-    # )
+    # Create feature view
+    view = View(
+        name="my_transaction_interactions_features",
+        version=1,
+        entity=user_entity,
+        ttl=None,
+        batch_source=None,
+        online=True,
+        description="My transaction interactions features",
+        tags=None,
+        owner=None,
+        fields=None,
+        attributes=[last_geo_country, page_view_count]
+    )
 
-    # Apply the view to Signals
-    # print("Applying feature view...")
-    # applied = sp_signals.apply([view])
-    # print(f"Applied {len(applied)} objects")
+    print("Applying feature view...")
+    applied = sp_signals.apply([view])
+    print(f"Applied {len(applied)} objects")
 
     # Get all views
     print("\nFetching all views...")

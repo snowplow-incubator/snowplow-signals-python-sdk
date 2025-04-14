@@ -232,6 +232,7 @@ class BatchAutogenClient:
                 asset_subpath="",
                 filename="dbt_project",
                 asset_type="yml",
+                custom_context={"entity_key": base_config.entity_key},
             ),
             DbtAssetGenerator(
                 project_path=project_path,

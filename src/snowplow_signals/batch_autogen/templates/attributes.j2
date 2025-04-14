@@ -9,7 +9,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {{
   config(
     materialized='table',
-    dist='domain_userid',
+    dist=var('snowplow__entity_key', 'domain_userid'),
     partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
       "field": "last_event_tstamp",
       "data_type": "timestamp"
@@ -23,7 +23,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 with aggregations as (
 
   select 
-    domain_userid
+    {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key
 {% endraw %}
     {% for attribute in lifetime_aggregates %}
       , {{ attribute['aggregation_type'] }}({% if attribute['aggregation_type'] == 'array_agg' %}distinct {% endif %}{{ attribute["daily_agg_column_name"] }}) as {{ attribute["column_name"] }}
@@ -42,18 +42,18 @@ with aggregations as (
 , window_calculations as (
   
   select distinct
-    domain_userid
+    {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key
 {% endraw %}
 {% for attribute in first_value_attributes %}
   {% if attribute['period'] %}
     , first_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by domain_userid 
+                partition by {{ var('snowplow__entity_key', 'domain_userid') }}
                 order by last_event_tstamp ASC
                 ROWS BETWEEN {{ attribute['period'] }} PRECEDING AND CURRENT ROW
             ) as {{ attribute['column_name'] }}
   {% else %}
     , first_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by domain_userid 
+                partition by {{ var('snowplow__entity_key', 'domain_userid') }}
                 order by last_event_tstamp ASC
             ) as {{ attribute['column_name'] }}
   {% endif %}
@@ -61,13 +61,13 @@ with aggregations as (
 {% for attribute in last_value_attributes %}
   {% if attribute['period'] %}
     , last_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by domain_userid 
+                partition by {{ var('snowplow__entity_key', 'domain_userid') }}
                 order by last_event_tstamp ASC
                 ROWS BETWEEN {{ attribute['period'] }} PRECEDING AND CURRENT ROW
             ) as {{ attribute['column_name'] }}
   {% else %}
     , last_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by domain_userid 
+                partition by {{ var('snowplow__entity_key', 'domain_userid') }}
                 order by last_event_tstamp ASC
             ) as {{ attribute['column_name'] }}
   {% endif %}
@@ -79,7 +79,7 @@ with aggregations as (
 
 select
     
-  w.domain_userid,
+  w.entity_key,
   current_timestamp() as valid_at_tstamp,
   cast({{ lower_limit }} as date) as lower_limit,
   cast({{ upper_limit }} as date) as upper_limit
@@ -106,6 +106,6 @@ select
 from aggregations as a
 
 left join window_calculations as w
-on a.domain_userid = w.domain_userid
+on a.entity_key = w.entity_key
 
 

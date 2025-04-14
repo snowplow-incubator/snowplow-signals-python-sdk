@@ -1,0 +1,45 @@
+{
+    "events": [
+        "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0"
+    ],
+    "properties": [],
+    "periods": [],
+    "transformed_attributes": [
+        [
+            {
+                "step_type": "filtered_events",
+                "enabled": false,
+                "aggregation": null,
+                "column_name": null,
+                "modeling_criteria": null
+            },
+            {
+                "step_type": "daily_aggregation",
+                "enabled": true,
+                "aggregation": "count",
+                "column_name": "count_page_view",
+                "modeling_criteria": {
+                    "all": [
+                        {
+                            "property": "event_name",
+                            "operator": "in",
+                            "value": "'page_view'"
+                        }
+                    ],
+                    "any": []
+                }
+            },
+            {
+                "step_type": "attribute_aggregation",
+                "enabled": true,
+                "aggregation": "sum",
+                "column_name": "page_view_count",
+                "modeling_criteria": {
+                    "all": [],
+                    "any": []
+                }
+            }
+        ]
+    ],
+    "entity_key": "domain_userid"
+}

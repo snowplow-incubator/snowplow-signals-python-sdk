@@ -24,8 +24,8 @@ with events as (
 , aggregations as (
   
   select
-    {{ dbt_utils.generate_surrogate_key(['domain_userid', 'event_date']) }} user_date_id,
-    domain_userid,
+    {{ dbt_utils.generate_surrogate_key([var('snowplow__entity_key', 'domain_userid'), 'event_date']) }} user_date_id,
+    {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key,
     event_date
     {% endraw %}
     {% for attribute in daily_aggregate_attributes %}
@@ -61,7 +61,7 @@ with events as (
 
 select distinct
   a.user_date_id,
-  a.domain_userid,
+  a.entity_key,
   a.event_date,
   w.last_event_tstamp
 {% endraw %}
