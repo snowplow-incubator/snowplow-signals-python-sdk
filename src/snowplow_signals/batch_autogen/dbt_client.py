@@ -291,7 +291,7 @@ class BatchAutogenClient:
         table_name = f"{view_name}_{view_version}_attributes"
 
         batch_source_config = BatchSourceConfig.from_path(
-            config_path=config_path, table_name=table_name
+            config_path=str(config_path), table_name=table_name
         )
 
         if batch_source_config:
