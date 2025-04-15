@@ -45,7 +45,7 @@ jobs:
       run: |
         CURRENT_VERSION=${{ steps.version.outputs.current_version }}
         VERSION_TYPE=${{ github.event.inputs.version_type }}
-        NEW_VERSION=$(python scripts/version.py "$CURRENT_VERSION" "$VERSION_TYPE")
+        NEW_VERSION=$(poetry run python scripts/version.py "$CURRENT_VERSION" "$VERSION_TYPE")
         echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
         
     - name: Update version
