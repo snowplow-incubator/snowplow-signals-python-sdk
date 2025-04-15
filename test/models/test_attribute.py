@@ -16,7 +16,7 @@ class TestValidAttributes:
                 )
             ],
             aggregation="counter",
-            filter=Criteria(
+            criteria=Criteria(
                 all=[
                     Criterion(
                         property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -39,7 +39,7 @@ class TestValidAttributes:
             ],
             aggregation="max",
             property="contexts_com_snowplowanalytics_snowplow_ecommerce_cart_1[0].total_value",
-            filter=Criteria(
+            criteria=Criteria(
                 all=[
                     Criterion(
                         property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -50,7 +50,7 @@ class TestValidAttributes:
             ),
         )
 
-        Attribute(
+        expensive_products_count = Attribute(
             name="expensive_products_count",
             type="int32",
             aggregation="counter",
@@ -61,7 +61,7 @@ class TestValidAttributes:
                     version="1-0-2",
                 )
             ],
-            filter=Criteria(
+            criteria=Criteria(
                 all=[
                     Criterion(
                         property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -76,6 +76,7 @@ class TestValidAttributes:
                 ],
             ),
         )
+        assert len(expensive_products_count.criteria.all) == 2
 
 
 class TestInvalidAttributes:
@@ -93,7 +94,7 @@ class TestInvalidAttributes:
                     )
                 ],
                 aggregation="counter",
-                filter=Criteria(
+                criteria=Criteria(
                     all=[
                         Criterion(
                             property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -148,7 +149,7 @@ class TestInvalidAttributes:
                         version="1-0-2",
                     )
                 ],
-                filter=Criteria(
+                criteria=Criteria(
                     all=[
                         Criterion(
                             property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",

@@ -1,6 +1,6 @@
 import httpx
 
-from snowplow_signals import LinkEntity, Service, Signals, View, user_entity
+from snowplow_signals import LinkEntity, Service, View, user_entity
 from snowplow_signals.models import ViewOutput
 
 
@@ -18,6 +18,7 @@ class TestSignalsApply:
             offline=True,
             stream_source_name="my_stream",
             entity_key="user_id",
+            view_or_entity_ttl=None,
         )
         service = Service(
             name="my_service",
@@ -58,6 +59,7 @@ class TestSignalsApply:
             offline=True,
             stream_source_name="my_stream",
             entity_key="user_id",
+            view_or_entity_ttl=None,
         )
 
         view_post_mock = respx_mock.post(

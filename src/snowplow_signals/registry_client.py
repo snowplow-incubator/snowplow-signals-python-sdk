@@ -1,3 +1,5 @@
+from pydantic import BaseModel
+
 from .api_client import ApiClient, SignalsAPIError
 from .models import Service, View, ViewOutput
 
@@ -39,14 +41,14 @@ class RegistryClient:
             response = self.api_client.make_request(
                 method="POST",
                 endpoint="registry/views/",
-                data=view.model_dump(mode="json", exclude_none=True),
+                data=self._model_dump(view),
             )
         except SignalsAPIError as e:
             if e.status_code == 400:
                 response = self.api_client.make_request(
                     method="PUT",
                     endpoint=(f"registry/views/{view.name}/versions/{view.version}"),
-                    data=view.model_dump(mode="json", exclude_none=True),
+                    data=self._model_dump(view),
                 )
             else:
                 raise e
@@ -58,16 +60,23 @@ class RegistryClient:
             response = self.api_client.make_request(
                 method="POST",
                 endpoint="registry/services/",
-                data=service.model_dump(mode="json", exclude_none=True),
+                data=self._model_dump(service),
             )
         except SignalsAPIError as e:
             if e.status_code == 400:
                 response = self.api_client.make_request(
                     method="PUT",
                     endpoint=(f"registry/services/{service.name}"),
-                    data=service.model_dump(mode="json", exclude_none=True),
+                    data=self._model_dump(service),
                 )
             else:
                 raise e
 
         return Service.model_validate(response)
+
+    def _model_dump(self, model: BaseModel) -> dict:
+        return model.model_dump(
+            mode="json",
+            exclude_none=True,
+            by_alias=True,
+        )

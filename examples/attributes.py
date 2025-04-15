@@ -11,7 +11,7 @@ add_to_cart_count_attribute = Attribute(
         )
     ],
     aggregation="counter",
-    filter=Criteria(
+    criteria=Criteria(
         all=[
             Criterion(
                 property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -34,7 +34,7 @@ average_product_price_attribute = Attribute(
     ],
     aggregation="avg",
     property="contexts_com_snowplowanalytics_snowplow_ecommerce_product_1[0].price",
-    filter=Criteria(
+    criteria=Criteria(
         all=[
             Criterion(
                 property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -57,7 +57,7 @@ last_cart_value_attribute = Attribute(
     ],
     aggregation="last",
     property="contexts_com_snowplowanalytics_snowplow_ecommerce_cart_1[0].total_value",
-    filter=Criteria(
+    criteria=Criteria(
         all=[
             Criterion(
                 property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -81,7 +81,7 @@ max_cart_value_attribute = Attribute(
     ],
     aggregation="max",
     property="contexts_com_snowplowanalytics_snowplow_ecommerce_cart_1[0].total_value",
-    filter=Criteria(
+    criteria=Criteria(
         all=[
             Criterion(
                 property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -104,7 +104,7 @@ min_cart_value_attribute = Attribute(
     ],
     aggregation="min",
     property="contexts_com_snowplowanalytics_snowplow_ecommerce_cart_1[0].total_value",
-    filter=Criteria(
+    criteria=Criteria(
         all=[
             Criterion(
                 property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -127,7 +127,7 @@ total_product_price_attribute = Attribute(
     ],
     aggregation="sum",
     property="contexts_com_snowplowanalytics_snowplow_ecommerce_cart_1[0].price",
-    filter=Criteria(
+    criteria=Criteria(
         all=[
             Criterion(
                 property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -150,7 +150,7 @@ unique_product_names_attribute = Attribute(
         )
     ],
     property="contexts_com_snowplowanalytics_snowplow_ecommerce_cart_1[0].name",
-    filter=Criteria(
+    criteria=Criteria(
         all=[
             Criterion(
                 property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -172,7 +172,7 @@ expensive_products_count_attribute = Attribute(
             version="1-0-2",
         )
     ],
-    filter=Criteria(
+    criteria=Criteria(
         all=[
             Criterion(
                 property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -199,7 +199,7 @@ cheap_products_count_attribute = Attribute(
             version="1-0-2",
         )
     ],
-    filter=Criteria(
+    criteria=Criteria(
         all=[
             Criterion(
                 property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",

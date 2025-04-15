@@ -2,7 +2,7 @@
 name = "snowplow-signals"
 version = "0.0.2"
 description = ""
-authors = ["Jack Keene <jack.keene@snowplowanalytics.com>"]
+authors = ["Snowplow <support@snowplow.io>"]
 readme = "README.md"
 packages = [{ include = "snowplow_signals", from = "src" }]
 
@@ -21,6 +21,10 @@ isort = "^6.0.0"
 ipykernel = "^6.29.5"
 respx = "^0.22.0"
 datamodel-code-generator = "^0.28.4"
+pytest-cov = "^6.1.0"
+syrupy = "^4.9.1"
+semver = "^3.0.2"
+
 
 [build-system]
 requires = ["poetry-core"]
