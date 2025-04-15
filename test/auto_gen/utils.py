@@ -11,7 +11,7 @@ from typing import List, Dict, Any
 MOCK_ECOMMERCE_VIEW = {
     "name": "ecommerce_transaction_interactions_features",
     "version": 1,
-    "entity": {"name": "user"},
+    "entity": {"name": "user", "key": "user"},
     "ttl": None,
     "batch_source": {
         "name": "ecommerce_transaction_interactions_source",

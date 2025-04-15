@@ -47,13 +47,13 @@ with aggregations as (
 {% for attribute in first_value_attributes %}
   {% if attribute['period'] %}
     , first_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                partition by {% raw %}{{ var('snowplow__entity_key', 'domain_userid') }}{% endraw %}
                 order by last_event_tstamp ASC
                 ROWS BETWEEN {{ attribute['period'] }} PRECEDING AND CURRENT ROW
             ) as {{ attribute['column_name'] }}
   {% else %}
     , first_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                partition by {% raw %}{{ var('snowplow__entity_key', 'domain_userid') }}{% endraw %}
                 order by last_event_tstamp ASC
             ) as {{ attribute['column_name'] }}
   {% endif %}
@@ -61,13 +61,13 @@ with aggregations as (
 {% for attribute in last_value_attributes %}
   {% if attribute['period'] %}
     , last_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                partition by {% raw %}{{ var('snowplow__entity_key', 'domain_userid') }}{% endraw %}
                 order by last_event_tstamp ASC
                 ROWS BETWEEN {{ attribute['period'] }} PRECEDING AND CURRENT ROW
             ) as {{ attribute['column_name'] }}
   {% else %}
     , last_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                partition by {% raw %}{{ var('snowplow__entity_key', 'domain_userid') }}{% endraw %}
                 order by last_event_tstamp ASC
             ) as {{ attribute['column_name'] }}
   {% endif %}
