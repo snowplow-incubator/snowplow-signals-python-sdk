@@ -49,3 +49,14 @@ print(feature_data)
 ### Feature Store Integration
 
 As per the feature store [Spike](https://www.notion.so/keep-in-the-snow/Spike-Feature-Store-API-17d07af295a280e28c80cd3533f05d09)
+
+### Release Process
+
+To make a new release, follow these steps:
+
+1. **Prepare the changelog**: Create a commit (e.g., "Prepare for release") that updates the `CHANGELOG.md` with all notable changes for the new version.
+2. **Create a release PR**: Open a pull request to the `main` branch with your changelog and any other release-related changes.
+3. **Merge the PR**: Merge the release PR using a merge commit. _Do not use squash or rebase._
+4. **Run the Release workflow**: Trigger the "Release" workflow in GitHub Actions to publish the new version to PyPI.
+
+This process ensures a clear release history and proper automation of package publishing.
