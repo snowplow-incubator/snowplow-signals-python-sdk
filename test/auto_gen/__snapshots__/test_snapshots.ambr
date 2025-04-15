@@ -725,7 +725,7 @@
                   }
               ]
           ],
-          "entity_key": "user"
+          "entity_key": "domain_userid"
       }
     ''',
     'ecommerce_transaction_interactions_features_1/configs/dbt_config.json': '''
@@ -1289,7 +1289,7 @@
           snowplow__events: "{{ source('atomic', 'events') }}" # for dev use only
       
           # Entity configuration
-          snowplow__entity_key: 'user' # The entity key to use for aggregations
+          snowplow__entity_key: 'domain_userid' # The entity key to use for aggregations
       
       on-run-start:
         - "{{ snowplow_utils.snowplow_delete_from_manifest(var('models_to_remove',[])) }}"
