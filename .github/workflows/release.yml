@@ -26,9 +26,13 @@ jobs:
         python-version: '3.11'
         
     - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: '2.0.0'
+      uses: abatilo/actions-poetry@v3
+    
+    - name: Install dependencies
+      run: poetry install
+      
+    - name: Run tests
+      run: poetry run pytest
         
     - name: Get current version
       id: version
