@@ -2,7 +2,7 @@
 name = "snowplow-signals"
 version = "0.0.2"
 description = ""
-authors = ["Jack Keene <jack.keene@snowplowanalytics.com>"]
+authors = ["Snowplow <support@snowplow.io>"]
 readme = "README.md"
 packages = [{ include = "snowplow_signals", from = "src" }]
 
