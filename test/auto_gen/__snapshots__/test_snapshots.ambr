@@ -1479,28 +1479,28 @@
       
         
           , first_value(first_mkt_source) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as first_mkt_source
         
       
         
           , first_value(first_mkt_medium) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as first_mkt_medium
         
       
         
           , first_value(first_refr_source) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as first_referrer_source
         
       
         
           , first_value(first_refr_medium) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as first_referrer_medium
         
@@ -1508,42 +1508,42 @@
       
         
           , last_value(last_geo_country) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as last_geo_country
         
       
         
           , last_value(last_geo_timezone) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as last_timezone
         
       
         
           , last_value(last_operating_system_name) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as last_os
         
       
         
           , last_value(last_device_class) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as last_device_class
         
       
         
           , last_value(last_mkt_source) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as last_mkt_source
         
       
         
           , last_value(last_mkt_medium) over (
-                      partition by {{ var('snowplow__entity_key', 'domain_userid') }}
+                      partition by entity_key
                       order by last_event_tstamp ASC
                   ) as last_mkt_medium
         
