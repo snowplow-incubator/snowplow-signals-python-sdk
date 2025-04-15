@@ -192,9 +192,9 @@ def test_connection(
     api_key: API_KEY,
     api_key_id: API_KEY_ID,
     org_id: ORG_ID,
-    check_auth: CHECK_AUTH,
-    check_api: CHECK_API,
-    verbose: VERBOSE,
+    check_auth: CHECK_AUTH = True,
+    check_api: CHECK_API = True,
+    verbose: VERBOSE = False,
 ) -> None:
     """Test the connection to the authentication and API services."""
     try:
