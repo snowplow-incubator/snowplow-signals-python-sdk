@@ -6,8 +6,8 @@ from .model import (
     BatchSource,
     AttributeInput as Attribute,
     FieldModel as Field,
-    CriteriaInput as Criteria,
-    CriterionInput as Criterion,
+    Criteria,
+    Criterion,
     LinkEntity,
     Event,
 )
