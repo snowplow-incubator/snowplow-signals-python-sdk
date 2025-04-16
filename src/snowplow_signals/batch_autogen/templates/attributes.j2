@@ -79,7 +79,7 @@ with aggregations as (
 
 select
     
-  w.entity_key,
+  w.entity_key as {% endraw %}{{ entity_key }}{% raw %},
   current_timestamp() as valid_at_tstamp,
   cast({{ lower_limit }} as date) as lower_limit,
   cast({{ upper_limit }} as date) as upper_limit

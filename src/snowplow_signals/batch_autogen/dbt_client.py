@@ -244,7 +244,7 @@ class BatchAutogenClient:
                 asset_subpath="models/attributes",
                 filename="attributes",
                 asset_type="model",
-                custom_context=dbt_config.attributes.model_dump(),
+                custom_context={**dbt_config.attributes.model_dump(), "entity_key": base_config.entity_key},
             ),
         ]
 
