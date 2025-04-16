@@ -1,6 +1,10 @@
 import datetime
 from pathlib import Path
 from typing import Dict, Any, Protocol, TypeVar
+import json
+from snowplow_signals.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def write_file(file_path: Path, content: str) -> None:
@@ -46,12 +50,7 @@ def timedelta_isoformat(td: datetime.timedelta) -> str:
 def load_config_from_path(config_path: str, table_name: str) -> Dict[str, Any]:
     try:
         with open(config_path) as f:
-            data = json.load(f)
-        return data
-    except (json.JSONDecodeError, FileNotFoundError) as e:
-        logger.error(f"❌ Error loading config: {str(e)}")
-    except ValidationError as e:
-        logger.error(f"❌ Config validation error for {table_name}:\n{e}")
+            return json.load(f)
     except Exception as e:
-        logger.error(f"❌ Unexpected error for {table_name}: {e}")
-    return None
+        logger.error(f"❌ Error loading config for {table_name}: {e}")
+        raise

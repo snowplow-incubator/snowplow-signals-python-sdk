@@ -296,19 +296,12 @@ class BatchAutogenClient:
         batch_source_config_dict = load_config_from_path(
             config_path=str(config_path), table_name=table_name
         )
-        if batch_source_config_dict:
-            config = BatchSourceConfig.from_dict(batch_source_config_dict)
+        batch_source_config = BatchSourceConfig.from_dict(batch_source_config_dict)
 
-        if batch_source_config:
-            logger.success("✅ Config loaded successfully.")
-
-            self._register_batch_source(
-                batch_source_config, view_name, view_version, table_name
-            )
-            self._update_registry(table_name)
-
-        else:
-            logger.error("❌ Failed to load config.")
+        self._register_batch_source(
+            batch_source_config, view_name, view_version, table_name
+        )
+        self._update_registry(table_name)
 
     def _register_batch_source(
         self,
@@ -326,7 +319,7 @@ class BatchAutogenClient:
                 f"registry/views/{view_name}/versions/{view_version}/batch_source"
             )
             data = batch_source_config.model_dump(mode="json", exclude_none=True)
-            response = self.api_client.make_request(
+            self.api_client.make_request(
                 method="PUT", endpoint=view_update_endpoint, data=data
             )
 
@@ -336,7 +329,7 @@ class BatchAutogenClient:
 
         except Exception as e:
             logger.error(
-                "\n⚠️ The batch source couldn't be registered. Please check your API credentials and network connection"
+                f"\n⚠️ The batch source couldn't be registered. Error: {str(e)}"
             )
             raise e
 

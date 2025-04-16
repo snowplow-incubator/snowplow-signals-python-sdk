@@ -145,11 +145,11 @@ The CLI commands support the following options:
 If you want to make use of your .env file to load your variables, wrap it around the command like this:
 
 ```sh
-poetry run dotenv run poetry run snowplow-batch-autogen materialize --view-name ecommerce_transaction_interactions_features --view-version 1snowplow-batch-autogen
+poetry run dotenv run poetry run snowplow-batch-autogen materialize --view-name ecommerce_transaction_interactions_features --view-version 1
 ```
 
 You can use the -f flag to specify a different file you have e.g .env.dev:
 
 ```sh
-poetry run dotenv -f .env.dev run poetry run snowplow-batch-autogen materialize --view-name ecommerce_transaction_interactions_features --view-version 1snowplow-batch-autogen
+poetry run dotenv -f .env.dev run  poetry run snowplow-batch-autogen materialize --view-name ecommerce_transaction_interactions_features --view-version 1
 ```
