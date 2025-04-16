@@ -14,7 +14,7 @@ class BatchSourceConfig(BaseModel):
     timestamp_field: str
     created_timestamp_column: str
     description: str | None
-    tags: str | None
+    tags: dict[str, str] | None
     owner: str | None
 
     @model_validator(mode="after")

@@ -75,31 +75,17 @@ class DbtProjectSetup:
         Creates a pre-populated config file for users to fill out for materialization.
         """
 
-        return {
-            "database": "",
-            "wh_schema": "",
-            "table": f"{attribute_view.name}_{attribute_view.version}_attributes",
-            "name": f"{attribute_view.name}_{attribute_view.version}_attributes",
-            "timestamp_field": "lower_limit",
-            "created_timestamp_column": "valid_at_tstamp",
-            "description": f"Table containing attributes for {attribute_view.name}_{attribute_view.version} view",
-            "tags": {},
-            "owner": "",
-        }
-
-    def validate_default_batch_source_config_dict(
-        self,
-        config_data: Dict[str, Optional[str]],
-    ):
-        try:
-            BatchSourceConfig.parse_obj(config_data)
-            logger.info("✅ Batch source config is valid.")
-        except ValidationError as e:
-            logger.error(f"❌ Validation failed for BatchSourceConfig: {e}")
-            raise
-        except Exception as e:
-            logger.error(f"❌ Unexpected error during validation: {e}")
-            raise
+        return BatchSourceConfig(
+            database="",
+            wh_schema="",
+            table=f"{attribute_view.name}_{attribute_view.version}_attributes",
+            name=f"{attribute_view.name}_{attribute_view.version}_attributes",
+            timestamp_field="lower_limit",
+            created_timestamp_column="valid_at_tstamp",
+            description=f"Table containing attributes for {attribute_view.name}_{attribute_view.version} view",
+            tags={},
+            owner="",
+        ).model_dump()
 
     def setup_all_projects(self):
         """Sets up dbt files for one or all projects."""
@@ -110,7 +96,6 @@ class DbtProjectSetup:
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
             project_config = self.get_attribute_view_project_config(attribute_view)
             batch_source_config = self.get_default_batch_source_config(attribute_view)
-            self.validate_default_batch_source_config_dict(batch_source_config)
             self.create_project_directories(
                 view_project_name, project_config, batch_source_config
             )
