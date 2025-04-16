@@ -18,11 +18,14 @@ def write_file(file_path: Path, content: str) -> None:
     with open(file_path, "w") as f:
         f.write(content)
 
+
 class VersionedModel(Protocol):
     name: str
     version: Any
 
-T = TypeVar('T', bound=VersionedModel)
+
+T = TypeVar("T", bound=VersionedModel)
+
 
 def filter_latest_model_version_by_name(data: list[T]) -> list[T]:
     latest_versions: Dict[str, T] = {}
@@ -38,3 +41,17 @@ def timedelta_isoformat(td: datetime.timedelta) -> str:
     minutes, seconds = divmod(td.seconds, 60)
     hours, minutes = divmod(minutes, 60)
     return f"{'-' if td.days < 0 else ''}P{abs(td.days)}DT{hours:d}H{minutes:d}M{seconds:d}.{td.microseconds:06d}S"
+
+
+def load_config_from_path(config_path: str, table_name: str) -> Dict[str, Any]:
+    try:
+        with open(config_path) as f:
+            data = json.load(f)
+        return data
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        logger.error(f"❌ Error loading config: {str(e)}")
+    except ValidationError as e:
+        logger.error(f"❌ Config validation error for {table_name}:\n{e}")
+    except Exception as e:
+        logger.error(f"❌ Unexpected error for {table_name}: {e}")
+    return None

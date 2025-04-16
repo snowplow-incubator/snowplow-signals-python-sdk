@@ -1,7 +1,7 @@
 import json
 from pydantic import BaseModel, model_validator, ValidationError
-from typing import Optional
 import logging
+from typing import Self, Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -29,17 +29,9 @@ class BatchSourceConfig(BaseModel):
         return values
 
     @classmethod
-    def from_path(
-        cls, config_path: str, table_name: str
-    ) -> Optional["BatchSourceConfig"]:
+    def from_dict(cls, data: Dict[str, Any]) -> Self:
         try:
-            with open(config_path) as f:
-                data = json.load(f)
             return cls(**data)
-        except (json.JSONDecodeError, FileNotFoundError) as e:
-            logger.error(f"❌ Error loading batch source config: {str(e)}")
         except ValidationError as e:
-            logger.error(f"❌ Config validation error for {table_name}:\n{e}")
-        except Exception as e:
-            logger.error(f"❌ Unexpected error for {table_name}: {e}")
-        return None
+            logger.error(f"❌ Validation failed: {e}")
+            raise
