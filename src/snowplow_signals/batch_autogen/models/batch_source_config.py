@@ -1,5 +1,5 @@
 import json
-from pydantic import BaseModel, Field, model_validator, ValidationError
+from pydantic import BaseModel, model_validator, ValidationError
 from typing import Optional
 import logging
 
@@ -13,9 +13,9 @@ class BatchSourceConfig(BaseModel):
     name: str
     timestamp_field: str
     created_timestamp_column: str
-    description: Optional[str]
-    tags: Optional[dict]
-    owner: Optional[str]
+    description: str | None
+    tags: str | None
+    owner: str | None
 
     @model_validator(mode="after")
     def validate_config(cls, values):
