@@ -9,7 +9,6 @@ HTTP_METHODS = Literal["GET", "POST", "PUT", "DELETE"]
 
 
 class ApiClient:
-
     def __init__(self, api_url: str, api_key: str, api_key_id: str, org_id: str):
         self.api_url = api_url
         self.api_key = api_key

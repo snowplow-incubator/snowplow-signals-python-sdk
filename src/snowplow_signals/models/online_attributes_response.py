@@ -10,4 +10,3 @@ class OnlineAttributesResponse(BaseModel):
     def to_dataframe(self):
         df = pd.DataFrame(self.data)
         return df
-

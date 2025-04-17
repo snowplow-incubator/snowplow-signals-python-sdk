@@ -1,0 +1,138 @@
+name: 'snowplow_batch_autogen_integration_tests'
+version: '0.0.1'
+config-version: 2
+
+profile: 'integration_tests'
+
+dispatch:
+  - macro_namespace: dbt
+    search_order: ['snowplow_utils', 'dbt']
+
+model-paths: ["models"]
+analysis-paths: ["analysis"]
+test-paths: ["tests"]
+seed-paths: ["data"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+    - "target"
+    - "dbt_modules"
+    - "dbt_packages"
+
+quoting:
+  identifier: false
+  schema: false
+
+models:
+  snowplow_batch_autogen_integration_tests:
+    +materialized: table
+    bind: false
+    +schema: "snplw_batch_autogen_int_tests"
+    source:
+      snowflake:
+        +enabled: "{{ target.type == 'snowflake' | as_bool() }}"
+vars:
+  ecommerce_transaction_interactions_features_1:
+    snowplow__atomic_schema: "{{target.schema ~ '_snplw_batch_autogen_int_tests'}}"
+    snowplow__events_table: snowplow_batch_autogen_events_stg
+    snowplow__events: "{{ ref('snowplow_batch_autogen_events_stg') }}"
+    snowplow__start_date: '2025-01-01' 
+    snowplow__app_id: ['basic_test']
+    snowplow__backfill_limit_days: 3
+    snowplow__late_event_lookback_days: 1
+    snowplow__min_late_events_to_process: 1
+    snowplow__allow_refresh: false
+    snowplow__dev_target_name: dev
+
+seeds:
+  quote_columns: false
+  snowplow_batch_autogen_integration_tests:
+    +schema: "snplw_batch_autogen_int_tests"
+    source:
+      snowplow_batch_autogen_events:
+        +column_types:
+          app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          etl_tstamp: timestamp
+          collector_tstamp: timestamp
+          dvce_created_tstamp: timestamp
+          user_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ip_domain: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ip_netspeed: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          page_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          refr_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          refr_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          refr_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          refr_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          mkt_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          mkt_content: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          se_value: float
+          tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          tr_total: float
+          tr_tax: float
+          tr_shipping: float
+          tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ti_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ti_price: float
+          br_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          br_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          br_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          br_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          br_renderengine: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          br_colordepth: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          os_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          os_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          os_manufacturer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          dvce_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          dvce_ismobile: boolean
+          tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          tr_total_base: "{{ 'decimal(9,1)' if target.type in ['databricks', 'spark'] else 'float' }}"
+          tr_tax_base: float
+          tr_shipping_base: float
+          ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          ti_price_base: float
+          base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          etl_tags: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          dvce_sent_tstamp: timestamp
+          refr_domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+          refr_dvce_tstamp: timestamp
+          derived_tstamp: timestamp
+          true_tstamp: timestamp
+          load_tstamp: timestamp
+          contexts_com_snowplowanalytics_snowplow_client_session_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar(65535)' }}"
+          unstruct_event_com_snowplowanalytics_mobile_screen_view_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar(65535)' }}"
+          contexts_com_snowplowanalytics_snowplow_geolocation_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar(65535)' }}"
+    expected:
+      snowflake:
+        snowplow_batch_autogen_attributes_expected:
+          +column_types:
+            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            valid_at_tstamp: timestamp
+            lower_limit: date
+            upper_limit: date
+            first_mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            first_mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            first_referrer_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            first_referrer_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            page_view_events_count_last_7_days: float
+            page_ping_events_count_last_7_days: float
+            pricing_pageview_count_last_7_days: float
+            demo_pageview_count_last_7_days: float
+            media_video_event_count_last_7_days: float
+            form_focus_change_event_count_last_7_days: float
+            last_geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            last_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            last_os: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            last_device_class: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            last_mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            last_mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
