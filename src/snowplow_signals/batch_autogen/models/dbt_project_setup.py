@@ -70,7 +70,9 @@ class DbtProjectSetup:
         generator = BaseConfigGenerator(data=attribute_view)
         return generator.create_base_config()
 
-    def get_default_batch_source_config(self, attribute_view: ViewOutput) -> dict:
+    def get_default_batch_source_config(
+        self, attribute_view: ViewOutput
+    ) -> BatchSourceConfig:
         """
         Creates a pre-populated config file for users to fill out for materialization.
         """
@@ -85,7 +87,7 @@ class DbtProjectSetup:
             description=f"Table containing attributes for {attribute_view.name}_{attribute_view.version} view",
             tags={},
             owner="",
-        ).model_dump()
+        )
 
     def setup_all_projects(self):
         """Sets up dbt files for one or all projects."""
@@ -95,7 +97,9 @@ class DbtProjectSetup:
         for attribute_view in attribute_views:
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
             project_config = self.get_attribute_view_project_config(attribute_view)
-            batch_source_config = self.get_default_batch_source_config(attribute_view)
+            batch_source_config = self.get_default_batch_source_config(
+                attribute_view
+            ).model_dump(mode="json", exclude_none=True)
             self.create_project_directories(
                 view_project_name, project_config, batch_source_config
             )
