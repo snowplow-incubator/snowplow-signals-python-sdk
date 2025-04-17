@@ -16,7 +16,7 @@
                 "owner": null,
                 "date_partition_column": null,
                 "database": "SNOWPLOW_DEV1",
-                "schema": null,
+                "schema": "DUMMY_SCHEMA",
                 "table": "SNOWPLOW_ECOMMERCE_TRANSACTION_INTERACTIONS_FEATURES"
             },
             "online": true,

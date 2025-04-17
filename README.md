@@ -96,11 +96,3 @@ snowplow-dbt init --repo-path=path/to/your/repo [--project-name=your_project_nam
 snowplow-dbt generate --repo-path=path/to/your/repo [--project-name=your_project_name] [--update]
 ```
 
-#### Release Process
-
-To make a new release:
-
-1. **Prepare the changelog**: Create a commit (e.g., "Prepare for release") that updates the `CHANGELOG.md` with all notable changes for the new version.
-2. **Create a release PR**: Open a pull request to the `main` branch with your changelog and any other release-related changes.
-3. **Merge the PR**: Merge the release PR using a merge commit. _Do not use squash or rebase._
-4. **Run the Release workflow**: Trigger the "Release" workflow in GitHub Actions to publish the new version to PyPI.
