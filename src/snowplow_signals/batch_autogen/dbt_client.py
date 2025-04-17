@@ -14,7 +14,7 @@ from snowplow_signals.batch_autogen.models.batch_source_config import (
     BatchSourceConfig,
 )
 from snowplow_signals.batch_autogen.utils.utils import (
-    load_config_from_path,
+    batch_source_from_path,
 )
 from snowplow_signals.batch_autogen.models.dbt_project_setup import (
     DbtBaseConfig,
@@ -293,10 +293,9 @@ class BatchAutogenClient:
         config_path = Path(project_path) / "configs" / "batch_source_config.json"
         table_name = f"{view_name}_{view_version}_attributes"
 
-        batch_source_config_dict = load_config_from_path(
+        batch_source_config = batch_source_from_path(
             config_path=str(config_path), table_name=table_name
         )
-        batch_source_config = BatchSourceConfig.from_dict(batch_source_config_dict)
 
         self._register_batch_source(
             batch_source_config, view_name, view_version, table_name

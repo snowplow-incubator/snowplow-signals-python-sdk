@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict, Any, Protocol, TypeVar
 import json
 from snowplow_signals.logging import get_logger
+from snowplow_signals.batch_autogen.models.batch_source_config import BatchSourceConfig
 
 logger = get_logger(__name__)
 
@@ -47,10 +48,17 @@ def timedelta_isoformat(td: datetime.timedelta) -> str:
     return f"{'-' if td.days < 0 else ''}P{abs(td.days)}DT{hours:d}H{minutes:d}M{seconds:d}.{td.microseconds:06d}S"
 
 
-def load_config_from_path(config_path: str, table_name: str) -> Dict[str, Any]:
+def batch_source_from_path(config_path: str, table_name: str) -> BatchSourceConfig:
     try:
         with open(config_path) as f:
-            return json.load(f)
+            data = json.load(f)
+        return BatchSourceConfig(**data)
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        logger.error(f"❌ Error loading batch source config: {str(e)}")
+        raise
+    except ValidationError as e:
+        logger.error(f"❌ Config validation error for {table_name}:\n{e}")
+        raise
     except Exception as e:
-        logger.error(f"❌ Error loading config for {table_name}: {e}")
+        logger.error(f"❌ Unexpected error for {table_name}: {e}")
         raise

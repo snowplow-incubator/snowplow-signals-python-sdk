@@ -26,11 +26,3 @@ class BatchSourceConfig(BaseModel):
                 "timestamp_field and created_timestamp_column should not be the same."
             )
         return values
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> Self:
-        try:
-            return cls(**data)
-        except ValidationError as e:
-            logger.error(f"❌ Validation failed: {e}")
-            raise
