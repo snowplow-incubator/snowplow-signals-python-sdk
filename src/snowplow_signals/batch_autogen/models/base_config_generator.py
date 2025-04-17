@@ -9,7 +9,7 @@ from snowplow_signals.batch_autogen.models.modeling_step import (
     ModelingStep,
 )
 
-from ...models import AttributeOutput, CriterionOutput, Event, ViewOutput
+from ...models import AttributeOutput, Criterion, Event, ViewOutput
 from ..utils.utils import timedelta_isoformat
 
 # FIXME can we extract from auto generated model attributes ?
@@ -112,9 +112,7 @@ class BaseConfigGenerator:
         event_strings.sort()
         return event_strings
 
-    def _get_filter_condition_name_component(
-        self, filter_condition: CriterionOutput
-    ) -> str:
+    def _get_filter_condition_name_component(self, filter_condition: Criterion) -> str:
         """Generate a SQL-friendly name component from a filter condition"""
         if not filter_condition:
             return ""
@@ -248,9 +246,7 @@ class BaseConfigGenerator:
             combinator: Literal["all", "any"] | None = (
                 "all"
                 if original_criteria.all
-                else "any"
-                if original_criteria.any
-                else None
+                else "any" if original_criteria.any else None
             )
             conditions = original_criteria.all or original_criteria.any or []
 

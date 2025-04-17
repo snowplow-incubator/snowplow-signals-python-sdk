@@ -4,13 +4,6 @@ Verifies command-line argument handling and command execution.
 """
 
 from pathlib import Path
-from typing import Generator, List
-from unittest.mock import MagicMock
-
-import pytest
-import typer
-
-from snowplow_signals.batch_autogen.cli import app, validate_repo_path
 from test.utils import (
     MOCK_API_KEY,
     MOCK_API_KEY_ID,
@@ -19,6 +12,13 @@ from test.utils import (
     MOCK_VIEW_NAME,
     MOCK_VIEW_VERSION,
 )
+from typing import Generator, List
+from unittest.mock import MagicMock, patch
+
+import pytest
+import typer
+
+from snowplow_signals.batch_autogen.cli import app, validate_repo_path
 
 
 @pytest.fixture(scope="session")
