@@ -1,19 +1,26 @@
-"""Client for interacting with batch project generation"""
-
 import json
 import os
 from typing import Optional
+import json
 from pathlib import Path
 
 from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
 from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     DbtConfigGenerator,
 )
+from snowplow_signals.batch_autogen.models.batch_source_config import (
+    BatchSourceConfig,
+)
+from snowplow_signals.batch_autogen.utils.utils import (
+    batch_source_from_path,
+)
 from snowplow_signals.batch_autogen.models.dbt_project_setup import (
     DbtBaseConfig,
     DbtProjectSetup,
 )
 from snowplow_signals.logging import get_logger
+from snowplow_signals.batch_autogen.models.dbt_project_setup import DbtProjectSetup
+from snowplow_signals.logging import get_logger, setup_logging
 
 from ..api_client import ApiClient
 
@@ -262,3 +269,75 @@ class BatchAutogenClient:
         except ValueError as e:
             logger.error(f"❌ Error generating models for {project_name}: {e}")
             return False
+
+    def materialize_model(
+        self,
+        project_path: str,
+        view_name: str,
+        view_version: int,
+        verbose: bool = False,
+    ):
+        """
+        Registers the batch source for the attributes table through the API and updates Feast so that materialization can begin.
+        Args:
+            project_path: Path to the repository where the dbt project is where the config file is stored.
+            project_name: Name of a specific project (same as the unique view name and version).
+            verbose: Optional flag to enable verbose logging
+        """
+
+        setup_logging(verbose)
+
+        config_path = Path(project_path) / "configs" / "batch_source_config.json"
+        table_name = f"{view_name}_{view_version}_attributes"
+
+        batch_source_config = batch_source_from_path(
+            config_path=str(config_path), table_name=table_name
+        )
+
+        self._register_batch_source(
+            batch_source_config, view_name, view_version, table_name
+        )
+        self._update_registry(table_name)
+
+    def _register_batch_source(
+        self,
+        batch_source_config: BatchSourceConfig,
+        view_name: str,
+        view_version: int,
+        table_name: str,
+    ):
+        """Register batch source for table in the view"""
+
+        logger.info(f"🛠️ Registering batch_source for table {table_name}.")
+
+        try:
+            view_update_endpoint = (
+                f"registry/views/{view_name}/versions/{view_version}/batch_source"
+            )
+            data = batch_source_config.model_dump(mode="json", exclude_none=True)
+            self.api_client.make_request(
+                method="PUT", endpoint=view_update_endpoint, data=data
+            )
+
+            logger.success(
+                f"✅ Successfully added Batch Source information to view {view_name}_{view_version}"
+            )
+
+        except Exception as e:
+            logger.error(
+                f"\n⚠️ The batch source couldn't be registered. Error: {str(e)}"
+            )
+            raise e
+
+    def _update_registry(self, table_name: str):
+        try:
+            logger.info(f"🛠️ Updating registry")
+
+            response = self.api_client.make_request(
+                method="POST", endpoint="feature_store/apply"
+            )
+            if response.get("status") == "applied":
+                logger.success(f"✅ Successfully registered table {table_name}")
+        except Exception as e:
+            logger.error(f"\n⚠️ The table {table_name} couldn't be registered.")
+            raise e

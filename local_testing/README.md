@@ -31,6 +31,7 @@ Make sure the test dependencies are installed:
 
 ```sh
 poetry install --with dev
+
 ```
 
 ### Prepare your dbt target
@@ -110,7 +111,7 @@ You can also use the CLI interface (after installing the SDK):
 
 ```sh
 # Initialize a dbt project
-poetry run snowplow-dbt init \
+poetry run snowplow-batch-autogen init \
     --api-url=http://localhost:8087 \
     --api-key=YOUR_API_KEY \
     --api-key-id=YOUR_API_KEY_ID \
@@ -120,7 +121,7 @@ poetry run snowplow-dbt init \
     [--debug]
 
 # Generate dbt models
-poetry run snowplow-dbt generate \
+poetry run snowplow-batch-autogen generate \
     --api-url=http://localhost:8087 \
     --api-key=YOUR_API_KEY \
     --api-key-id=YOUR_API_KEY_ID \
@@ -141,3 +142,15 @@ The CLI commands support the following options:
 - `--project-name`: (Optional) Name of a specific project to initialize/generate
 - `--update`: (Optional, for generate only) Whether to update existing files
 - `--debug`: (Optional) Enable debug logging
+
+If you want to make use of your .env file to load your variables, wrap it around the command like this:
+
+```sh
+poetry run dotenv run snowplow-batch-autogen materialize --view-name ecommerce_transaction_interactions_features --view-version 1
+```
+
+You can use the -f flag to specify a different file you have e.g .env.dev:
+
+```sh
+poetry run dotenv -f .env.dev run snowplow-batch-autogen materialize --view-name ecommerce_transaction_interactions_features --view-version 1
+```
