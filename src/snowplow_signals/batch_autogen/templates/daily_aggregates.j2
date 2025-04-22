@@ -15,7 +15,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
       "field": "event_date",
       "data_type": "date"
     }, databricks_val='event_date'),
-    unique_key='user_date_id',
+    unique_key='entity_key_date_id',
     upsert_date_key='event_date',
     tags=["derived"],
     on_schema_change='append_new_columns',
