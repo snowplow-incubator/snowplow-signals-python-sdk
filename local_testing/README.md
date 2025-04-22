@@ -31,6 +31,7 @@ Make sure the test dependencies are installed:
 
 ```sh
 poetry install --with dev
+
 ```
 
 ### Prepare your dbt target
