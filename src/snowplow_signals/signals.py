@@ -1,21 +1,20 @@
 from datetime import timedelta
+
 import pandas as pd
 
+from .api_client import ApiClient
+from .attributes_client import AttributesClient
+from .feature_store_client import FeatureStoreClient
 from .models import (
     OnlineAttributesResponse,
+    Service,
     TestViewRequest,
     View,
     ViewOutput,
-    Service,
 )
-from .api_client import ApiClient
 from .prompts.client import PromptsClient
 from .registry_client import RegistryClient
-from .feature_store_client import FeatureStoreClient
-from .attributes_client import AttributesClient
 from .testing_client import TestingClient
-
-
 class Signals:
     """Interface to interact with Snowplow Signals AI"""
 
@@ -24,6 +23,7 @@ class Signals:
         self.api_client = ApiClient(
             api_url=api_url, api_key=api_key, api_key_id=api_key_id, org_id=org_id
         )
+
         self.prompts = PromptsClient(api_client=self.api_client)
         self.registry = RegistryClient(api_client=self.api_client)
         self.feature_store = FeatureStoreClient(api_client=self.api_client)

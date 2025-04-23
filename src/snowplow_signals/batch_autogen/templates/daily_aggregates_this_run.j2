@@ -1,0 +1,85 @@
+{% raw %}
+{#Copyright (c) 2025-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
+You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
+#}
+
+{{
+    config(
+        tags=["this_run"],
+        materialized="table",
+        sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
+        unique_key=['entity_key_date_id']
+    )
+}}
+
+with events as (
+  select e.* 
+  from {{ ref('{% endraw %}{{ project_name }}{% raw %}_filtered_events') }} e
+  inner join {{ ref('{% endraw %}{{ project_name }}{% raw %}_days_to_process') }} d
+      on date(e.derived_tstamp) = d.event_date
+)
+
+, aggregations as (
+  
+  select
+    entity_key_date_id,
+    entity_key,
+    event_date
+    {% endraw %}
+    {% for attribute in daily_aggregate_attributes %}
+      {% if attribute['aggregation'] == 'count' %}
+        , sum(
+      {% else %}
+        , {{ attribute['aggregation'] }}(
+      {% endif %}
+        {{ attribute["condition_clause"] }}) as {{ attribute["column_name"] }}
+    {% endfor %}
+    {% raw %}
+  from events
+  group by 1,2,3
+)
+
+--TODO: consider separating them to user_lasts and user_firsts to avoid having to do multiple window functions if these fields get bigger and the query optimizer does not catch them
+, window_calculations as (
+  
+  select
+    *,
+    last_value(derived_tstamp) over (partition by entity_key_date_id order by derived_tstamp) as last_event_tstamp
+    {% endraw %}    
+    {% for attribute in daily_first_value_attributes %}
+      , first_value({{ attribute['condition_clause'] }}) over (partition by entity_key_date_id order by derived_tstamp) as {{ attribute['column_name'] }}
+    {%- endfor %}
+    {% for attribute in daily_last_value_attributes %}
+      , last_value({{ attribute['condition_clause'] }}) over (partition by entity_key_date_id order by derived_tstamp) as {{ attribute['column_name'] }}
+    {%- endfor %}
+  {% raw %}
+  from events
+  
+)
+
+select distinct
+  a.entity_key_date_id,
+  a.entity_key,
+  a.event_date,
+  w.last_event_tstamp
+{% endraw %}
+    {% for attribute in daily_aggregate_attributes %}
+    , a.{{ attribute["column_name"] }}
+  {% endfor %}
+  
+    {% for attribute in daily_first_value_attributes %}
+    , w.{{ attribute['column_name'] }}
+  {%- endfor %}
+  
+    {% for attribute in daily_last_value_attributes %}
+    , w.{{ attribute['column_name'] }}
+  {%- endfor %}
+{% raw %}
+from aggregations a
+
+left join window_calculations w
+on w.entity_key_date_id = a.entity_key_date_id
+
+{% endraw %}

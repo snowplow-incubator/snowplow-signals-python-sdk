@@ -5,3 +5,23 @@ dist
 
 # Environments
 .env.dev
+
+*.DS_Store
+
+# Autogen
+local_testing/customer_repo/
+
+/.vscode
+
+# VSCode
+.vscode/*
+.vscode/settings.json
+
+integration_tests/ecommerce_transaction_interactions_features_1/*
+test/auto_gen/customer_repo/
+
+/.vscode
+
+# VSCode
+.vscode/*
+.vscode/settings.json

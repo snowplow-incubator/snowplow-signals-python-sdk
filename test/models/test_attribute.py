@@ -3,7 +3,6 @@ import pytest
 
 
 class TestValidAttributes:
-
     def test_all_attributes_validate(self):
         Attribute(
             name="add_to_cart_events_count",
@@ -80,7 +79,6 @@ class TestValidAttributes:
 
 
 class TestInvalidAttributes:
-
     def test_invalid_name(self):
         with pytest.raises(ValueError):
             Attribute(

@@ -1,0 +1,31 @@
+{% raw %}
+{#
+Copyright (c) 2025-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
+You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
+#}
+
+{#
+    Dynamic manifest that tracks all daily metrics models.
+    Dependencies must be declared statically for dbt's DAG.
+#}
+
+-- depends_on: {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates_this_run') }}
+-- depends_on: {{ ref('{% endraw %}{{ project_name }}{% raw %}_filtered_events_this_run') }}
+-- depends_on: {{ ref('{% endraw %}{{ project_name }}{% raw %}_filtered_events') }}
+-- depends_on: {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates') }}
+
+{{
+    config(
+        materialized='incremental',
+        unique_key=['event_date', 'source_model'],
+        on_schema_change='sync_all_columns',
+        sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')))
+}}
+
+{% set daily_aggregation_manifest_query = snowplow_utils.create_daily_aggregation_manifest('{% endraw %}{{ project_name }}{% raw %}') %}
+
+{{ daily_aggregation_manifest_query }}
+
+{% endraw %} 

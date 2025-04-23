@@ -19,7 +19,7 @@ jobs:
         uses: abatilo/actions-poetry@v3
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --extras "batch-engine"
 
       - name: Run tests
         run: poetry run pytest
