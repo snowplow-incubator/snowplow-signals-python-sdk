@@ -41,7 +41,7 @@ jobs:
           poetry --version
 
       - name: Install dependencies
-        run: poetry install --extras dbt
+        run: poetry install --extras "batch-engine"
 
       - name: Configure warehouse environment
         run: |
