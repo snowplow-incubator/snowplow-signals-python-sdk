@@ -211,13 +211,6 @@ class BatchAutogenClient:
             ),
             DbtAssetGenerator(
                 project_path=project_path,
-                asset_subpath="models/attributes",
-                filename="attributes",
-                asset_type="model",
-                custom_context=dbt_config.attributes.model_dump(),
-            ),
-            DbtAssetGenerator(
-                project_path=project_path,
                 asset_subpath="macros",
                 filename="get_limits_for_attributes",
                 asset_type="macro",
@@ -239,6 +232,7 @@ class BatchAutogenClient:
                 asset_subpath="",
                 filename="dbt_project",
                 asset_type="yml",
+                custom_context={"entity_key": base_config.entity_key},
             ),
             DbtAssetGenerator(
                 project_path=project_path,
@@ -251,6 +245,13 @@ class BatchAutogenClient:
                 asset_subpath="models/base/manifest",
                 filename="incremental_manifest",
                 asset_type="model",
+            ),
+            DbtAssetGenerator(
+                project_path=project_path,
+                asset_subpath="models/attributes",
+                filename="attributes",
+                asset_type="model",
+                custom_context={**dbt_config.attributes.model_dump(), "entity_key": base_config.entity_key},
             ),
         ]
 

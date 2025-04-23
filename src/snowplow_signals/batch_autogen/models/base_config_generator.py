@@ -26,6 +26,7 @@ class DbtBaseConfig(BaseModel):
     properties: list[dict[str, str]]
     periods: list[str]
     transformed_attributes: list[list[ModelingStep]]
+    entity_key: str
 
 
 class BaseConfigGenerator:
@@ -343,4 +344,5 @@ class BaseConfigGenerator:
             properties=self.properties,
             periods=[item for item in self.periods if item not in {None, ""}],
             transformed_attributes=transformed_attributes,
+            entity_key=self.data.entity_key,
         )

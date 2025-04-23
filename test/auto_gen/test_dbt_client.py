@@ -132,7 +132,8 @@ def test_generate_models_single_project_success(
             "events": [],
             "properties": [],
             "periods": [],
-            "transformed_attributes": []
+            "transformed_attributes": [],
+            "entity_key": "user_id"
         }, f)
 
     result = dbt_client.generate_models(temp_repo_path, project_name=project_name)
@@ -159,7 +160,8 @@ def test_generate_models_all_projects_success(
                 "events": [],
                 "properties": [],
                 "periods": [],
-                "transformed_attributes": []
+                "transformed_attributes": [],
+                "entity_key": "user_id"
             }, f)
 
     result = dbt_client.generate_models(temp_repo_path)
@@ -185,7 +187,8 @@ def test_generate_models_with_update_flag(
             "events": [],
             "properties": [],
             "periods": [],
-            "transformed_attributes": []
+            "transformed_attributes": [],
+            "entity_key": "user_id"
         }, f)
 
     result = dbt_client.generate_models(
