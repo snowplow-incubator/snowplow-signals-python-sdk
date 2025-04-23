@@ -2248,7 +2248,7 @@
       
       packages:
         - git: "https://github.com/snowplow/dbt-snowplow-utils.git"
-          revision: "refactor/time-based-macros"
+          revision: "release/snowplow-utils/0.18.0"
   
     ''',
   })
