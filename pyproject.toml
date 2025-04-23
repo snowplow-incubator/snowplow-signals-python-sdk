@@ -19,7 +19,7 @@ jinja2 = { version = "^3.1.6", optional = true }
 typer = { version = "^0.15.2", optional = true }
 
 [tool.poetry.extras]
-dbt = ["jinja2", "typer"]
+batch-engine = ["jinja2", "typer"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
