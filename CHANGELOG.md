@@ -1,6 +1,14 @@
 # Changelog
 
-## [0.4.0] - 2024-04-15
+## [0.5.0] - 2025-04-23
+
+### Added
+
+- Batch Engine with CLI support
+
+[0.5.0]: https://github.com/snowplow/snowplow-signals-sdk/releases/tag/v0.5.0
+
+## [0.4.0] - 2025-04-15
 
 ### Changed
 
@@ -8,7 +16,7 @@
 
 [0.4.0]: https://github.com/snowplow/snowplow-signals-sdk/releases/tag/v0.4.0
 
-## [0.3.0] - 2024-04-15
+## [0.3.0] - 2025-04-15
 
 ### Added
 
