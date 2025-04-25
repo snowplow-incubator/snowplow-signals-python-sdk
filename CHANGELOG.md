@@ -1,22 +1,24 @@
 # Changelog
 
-## [0.5.0] - 2025-04-23
+## [0.0.6] - 2025-04-25
+
+### Changed
+
+- Update models based on API version 0.2.5
+
+## [0.0.5] - 2025-04-23
 
 ### Added
 
 - Batch Engine with CLI support
 
-[0.5.0]: https://github.com/snowplow/snowplow-signals-sdk/releases/tag/v0.5.0
-
-## [0.4.0] - 2025-04-15
+## [0.0.4] - 2025-04-15
 
 ### Changed
 
 - Updated README.md to reflect the current project status
 
-[0.4.0]: https://github.com/snowplow/snowplow-signals-sdk/releases/tag/v0.4.0
-
-## [0.3.0] - 2025-04-15
+## [0.0.3] - 2025-04-15
 
 ### Added
 
@@ -25,5 +27,3 @@
 ### Dependencies
 
 - Python 3.11+ support
-
-[0.3.0]: https://github.com/snowplow/snowplow-signals-sdk/releases/tag/v0.3.0
