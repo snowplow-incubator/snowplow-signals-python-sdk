@@ -48,8 +48,17 @@ class DbtConfigGenerator:
         parsed_events = self.base_config_data.events
         event_dict_list: list[ConfigEvents] = []
         for event in parsed_events:
+            if not event.startswith("iglu:"):
+                raise ValueError(f"Event '{event}' does not start with 'iglu:' prefix.")
             cleaned_event = event.removeprefix("iglu:")
-            vendor, name, format_type, version = cleaned_event.split("/")
+
+            parts = cleaned_event.split("/")
+            if len(parts) != 4:
+                raise ValueError(
+                    f"Event '{event}' does not have 4 parts separated by '/'."
+                )
+
+            vendor, name, format_type, version = parts
 
             event_dict_list.append(
                 ConfigEvents(
@@ -177,16 +186,21 @@ class DbtConfigGenerator:
             operator = condition.operator
             property_name = condition.property
             value = condition.value
-            if operator == "=":
-                condition_sql = f" {property_name} = '{value}'"
-            elif operator == "!=":
-                condition_sql = f" {property_name} != '{value}'"
+            if operator in ["<", ">", "<=", ">="] and isinstance(value, str):
+                raise ValueError(
+                    f"Cannot apply comparison operator '{operator}' on a string value: '{value}'."
+                )
+            if operator in ["=", "!=", "<", ">", "<=", ">="]:
+                value_formatted = f"'{value}'" if isinstance(value, str) else value
+                condition_sql = f" {property_name} {operator} {value_formatted}"
             elif operator == "like":
                 condition_sql = f" {property_name} LIKE '%{value}%'"
             elif operator == "in":
                 condition_sql = f" {property_name} IN({value})"
             else:
                 raise ValueError(f"Unsupported operator: {operator}")
+            if condition_sql == "":
+                raise ValueError(f"Filter condition missing for condition: {condition}")
             condition_sql_list.append(condition_sql)
         return f" {condition_type} ".join(condition_sql_list)
 
@@ -206,10 +220,11 @@ class DbtConfigGenerator:
                     if step.aggregation in ["first", "last"]:
                         # For first/last values, we need to reference the column directly
 
-                        if step.column_name is None:
-                            raise ValueError("Column name is required for first/last value attributes")
+                        if step.column_name is None or step.column_name == "":
+                            raise ValueError(
+                                "Column name is required for first/last value attributes"
+                            )
                         ref_column_name: str = step.column_name
-
 
                         if ref_column_name.startswith("first_"):
                             ref_column_name = ref_column_name[
