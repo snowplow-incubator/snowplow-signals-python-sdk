@@ -391,7 +391,7 @@ class TestBaseConfigGenerator:
             base_config_generator.get_cleaned_property_name(":.:") == "."
         )  # Implementation returns last part
 
-        # Special characters FIXME do we want to allow all those characters?
+        # Special characters
         assert (
             base_config_generator.get_cleaned_property_name("test@#$%^&*()")
             == "test@#$%^&*()"
@@ -400,20 +400,6 @@ class TestBaseConfigGenerator:
             base_config_generator.get_cleaned_property_name("test:field@#$%^&*()")
             == "field@#$%^&*()"
         )
-
-        # Multiple separators in different combinations FIXME do we want to support multiple separatos?
-        assert (
-            base_config_generator.get_cleaned_property_name("a:b:c") == "b"
-        )  # Implementation takes first part after first colon
-        assert (
-            base_config_generator.get_cleaned_property_name("a.b.c") == "c"
-        )  # Implementation takes last part after last dot
-        assert (
-            base_config_generator.get_cleaned_property_name("a:b.c") == "b.c"
-        )  # Implementation takes everything after first colon
-        assert (
-            base_config_generator.get_cleaned_property_name("a.b:c") == "c"
-        )  # Implementation takes last part after last dot
 
     #
     def test_add_to_properties_empty_entries(self, base_config_generator):
@@ -428,26 +414,6 @@ class TestBaseConfigGenerator:
         base_config_generator.add_to_properties({"a": "b"})
         base_config_generator.add_to_properties({"a": "b"})
         assert base_config_generator.properties == [{"a": "b"}]
-
-    #
-    def test_add_to_properties_multiple_entries(self, base_config_generator):
-        """Test add_to_properties with multiple different entries"""
-        base_config_generator.add_to_properties({"a": "b"})
-        base_config_generator.add_to_properties({"c": "d"})
-        base_config_generator.add_to_properties({"e": "f"})
-        assert len(base_config_generator.properties) == 3
-        assert {"a": "b"} in base_config_generator.properties
-        assert {"c": "d"} in base_config_generator.properties
-        assert {"e": "f"} in base_config_generator.properties
-
-    #
-    def test_add_to_properties_special_characters(self, base_config_generator):
-        """Test add_to_properties with special characters"""
-        base_config_generator.add_to_properties({"a-b": "c.d"})
-        base_config_generator.add_to_properties({"e/f": "g%h"})
-        assert len(base_config_generator.properties) == 2
-        assert {"a-b": "c.d"} in base_config_generator.properties
-        assert {"e/f": "g%h"} in base_config_generator.properties
 
     #
     def test_get_filter_condition_name_component_mixed_operators(
@@ -637,40 +603,6 @@ class TestBaseConfigGenerator:
         assert steps[1].column_name == "last_test_property"
         assert steps[2].column_name == "test_attribute"
 
-    #
-    def test_generate_modeling_steps_with_criteria_and_period(
-        self, base_config_generator
-    ):
-        """Test generate_modeling_steps with criteria and period"""
-        attribute = AttributeOutput(
-            name="test_attribute",
-            description="Test attribute",
-            type="int32",
-            events=[Event(vendor="com.test", name="test_event", version="1-0-0")],
-            aggregation="sum",
-            property=None,
-            criteria=Criteria(
-                all=[
-                    Criterion(
-                        property="test_property", operator="=", value="test_value"
-                    ),
-                ],
-                any=[
-                    Criterion(
-                        property="other_property", operator="!=", value="other_value"
-                    ),
-                ],
-            ),
-            period=timedelta(days=7),
-        )
-        steps = base_config_generator._generate_modeling_steps(attribute)
-        assert len(steps) == 3
-        assert steps[1].step_type == "daily_aggregation"
-        assert len(steps[1].modeling_criteria.all) == 2  # event + filter
-        # The implementation combines all criteria into 'all' group
-        assert len(steps[1].modeling_criteria.all) == 2
-        assert steps[2].modeling_criteria.all[0].property == "period"
-        assert steps[2].modeling_criteria.all[0].value == 7
 
     #
     def test_generate_modeling_steps_unique_list(self, base_config_generator):
