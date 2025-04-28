@@ -319,7 +319,9 @@ class BaseConfigGenerator:
             )
         )
 
-        self.events.extend(self._get_full_event_reference_array(attribute.events))
+        new_events = self._get_full_event_reference_array(attribute.events)
+        # Use dict.fromkeys to maintain order while deduplicating
+        self.events = list(dict.fromkeys(self.events + new_events))
         if attribute.property:
             self.add_to_properties(
                 {attribute.property: self.get_cleaned_property_name(attribute.property)}

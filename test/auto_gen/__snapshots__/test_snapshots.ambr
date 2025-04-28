@@ -6,18 +6,6 @@
           "events": [
               "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
               "iglu:com.snowplowanalytics.snowplow/page_ping/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/page_view/jsonschema/1-0-0",
               "iglu:com.snowplowanalytics.snowplow.media/ad_break_end_event/jsonschema/1-0-0",
               "iglu:com.snowplowanalytics.snowplow.media/ad_break_start_event/jsonschema/1-0-0",
               "iglu:com.snowplowanalytics.snowplow.media/ad_complete_event/jsonschema/1-0-0",
@@ -754,78 +742,6 @@
                   {
                       "event_vendor": "com.snowplowanalytics.snowplow",
                       "event_name": "page_ping",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
-                      "event_format": "jsonschema",
-                      "event_version": "1-0-0"
-                  },
-                  {
-                      "event_vendor": "com.snowplowanalytics.snowplow",
-                      "event_name": "page_view",
                       "event_format": "jsonschema",
                       "event_version": "1-0-0"
                   },
@@ -2026,78 +1942,6 @@
       
       
           (event_name = 'page_ping'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_view'
               and event_vendor = 'com.snowplowanalytics.snowplow'
               and event_version = '1-0-0'
           ) or 
