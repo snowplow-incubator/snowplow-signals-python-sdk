@@ -12,7 +12,13 @@ from snowplow_signals.batch_autogen.models.dbt_config_generator import (
 from snowplow_signals.batch_autogen.models.modeling_step import (
     ModelingStep,
     FilterCondition,
-    ModelingCriteria,
+    ModelingStep,
+)
+from test.auto_gen.test_base_config_attributes import (
+    first_value_attr,
+    last_value_attr,
+    last_n_day_aggregates_attr,
+    lifetime_aggregates_attr,
 )
 
 """Tests for the DbtConfigGenerator class"""
@@ -126,134 +132,6 @@ def test_invalid_comparison_with_string(instance):
         match="Cannot apply comparison operator '>' on a string value: 'banana'",
     ):
         instance._get_condition_sql(conditions, "AND")
-
-
-# Attribute templates for different test cases
-first_value_attr = [
-    ModelingStep(
-        step_type="filtered_events",
-        enabled=False,
-        aggregation=None,
-        column_name="mkt_source",
-        modeling_criteria=None,
-    ),
-    ModelingStep(
-        step_type="daily_aggregation",
-        enabled=True,
-        aggregation="first",
-        column_name="first_mkt_source",
-        modeling_criteria=None,
-    ),
-    ModelingStep(
-        step_type="attribute_aggregation",
-        enabled=True,
-        aggregation="first",
-        column_name="first_mkt_source",
-        modeling_criteria=None,
-    ),
-]
-
-last_value_attr = [
-    ModelingStep(
-        step_type="filtered_events",
-        enabled=False,
-        aggregation=None,
-        column_name="mkt_source",
-        modeling_criteria=None,
-    ),
-    ModelingStep(
-        step_type="daily_aggregation",
-        enabled=True,
-        aggregation="last",
-        column_name="last_mkt_source",
-        modeling_criteria=None,
-    ),
-    ModelingStep(
-        step_type="attribute_aggregation",
-        enabled=True,
-        aggregation="last",
-        column_name="last_mkt_source",
-        modeling_criteria=None,
-    ),
-]
-
-last_n_day_aggregates_attr = [
-    ModelingStep(
-        step_type="filtered_events",
-        enabled=False,
-        aggregation=None,
-        column_name="mkt_source",
-        modeling_criteria=None,
-    ),
-    ModelingStep(
-        step_type="daily_aggregation",
-        enabled=True,
-        aggregation="unique_list",
-        column_name="unique_list_source",
-        modeling_criteria=ModelingCriteria(
-            all=[FilterCondition(operator=">", property="period", value=7)],
-            any=[],
-        ),
-    ),
-    ModelingStep(
-        step_type="attribute_aggregation",
-        enabled=True,
-        aggregation="unique_list",
-        column_name="unique_list_source",
-        modeling_criteria=ModelingCriteria(
-            all=[FilterCondition(operator=">", property="period", value=7)],
-            any=[],
-        ),
-    ),
-]
-
-lifetime_aggregates_attr = [
-    ModelingStep(
-        step_type="filtered_events",
-        enabled=False,
-        aggregation=None,
-        column_name="mkt_source",
-        modeling_criteria=None,
-    ),
-    ModelingStep(
-        step_type="daily_aggregation",
-        enabled=True,
-        aggregation="count",
-        column_name="lifetime_count_source",
-        modeling_criteria=None,
-    ),
-    ModelingStep(
-        step_type="attribute_aggregation",
-        enabled=True,
-        aggregation="sum",
-        column_name="lifetime_count_source",
-        modeling_criteria=None,
-    ),
-]
-
-first_value_attr_with_missing_column_name = [
-    ModelingStep(
-        step_type="filtered_events",
-        enabled=False,
-        aggregation=None,
-        column_name="mkt_source",
-        modeling_criteria=None,
-    ),
-    ModelingStep(
-        step_type="daily_aggregation",
-        enabled=True,
-        aggregation="first",
-        column_name="",
-        modeling_criteria=None,
-    ),
-    ModelingStep(
-        step_type="attribute_aggregation",
-        enabled=True,
-        aggregation="first",
-        column_name="first_mkt_source",
-        modeling_criteria=None,
-    ),
-]
 
 
 def test_first_value_attributes(instance):
@@ -439,6 +317,30 @@ def test_create_dbt_config_happy_path(instance):
 
 
 def test_create_dbt_config_missing_column_name(instance):
+
+    first_value_attr_with_missing_column_name = [
+        ModelingStep(
+            step_type="filtered_events",
+            enabled=False,
+            aggregation=None,
+            column_name="mkt_source",
+            modeling_criteria=None,
+        ),
+        ModelingStep(
+            step_type="daily_aggregation",
+            enabled=True,
+            aggregation="first",
+            column_name="",
+            modeling_criteria=None,
+        ),
+        ModelingStep(
+            step_type="attribute_aggregation",
+            enabled=True,
+            aggregation="first",
+            column_name="first_mkt_source",
+            modeling_criteria=None,
+        ),
+    ]
     instance.base_config_data.transformed_attributes = [
         first_value_attr_with_missing_column_name
     ]
