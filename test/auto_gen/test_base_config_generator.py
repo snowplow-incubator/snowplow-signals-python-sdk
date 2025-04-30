@@ -43,9 +43,7 @@ def test_view_output():
         feast_name="test_feast",
         offline=True,
         stream_source_name="test_stream",
-        entity_key="user_id",
         attributes=[],
-        view_or_entity_ttl=timedelta(days=30),
     )
 
 

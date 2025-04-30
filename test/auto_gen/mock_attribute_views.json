@@ -417,9 +417,7 @@
             ],
             "feast_name": "ecommerce_transaction_interactions_features_v1",
             "offline": true,
-            "stream_source_name": "ecommerce_transaction_interactions_features_stream",
-            "entity_key": "domain_userid",
-            "view_or_entity_ttl": null
+            "stream_source_name": "ecommerce_transaction_interactions_features_stream"
         }
     ]
 }

@@ -724,8 +724,7 @@
                       }
                   }
               ]
-          ],
-          "entity_key": "domain_userid"
+          ]
       }
     ''',
     'ecommerce_transaction_interactions_features_1/configs/batch_source_config.json': '''
