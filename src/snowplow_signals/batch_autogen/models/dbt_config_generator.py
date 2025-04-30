@@ -277,8 +277,8 @@ class DbtConfigGenerator:
                                 condition_statement = ""
 
                             if step.aggregation == "unique_list":
-                                # For unique_list, we use the column_name directly
-                                condition_clause = f"distinct case when {condition_statement} then {step.column_name} else null end"
+                                property_name = attribute[0].column_name
+                                condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
                                 # FIXME we need to confirm this logic with a unit test
                                 aggregate_attributes.append(
                                     {

@@ -251,7 +251,7 @@ def test_create_dbt_config_happy_path(instance):
                     "step_type": "daily_aggregation",
                     "aggregation": "array_agg",
                     "column_name": "unique_list_source",
-                    "condition_clause": "distinct case when  period > 7 then unique_list_source else null end",
+                    "condition_clause": "distinct case when  period > 7 then mkt_source else null end",
                 },
                 {
                     "step_type": "daily_aggregation",
