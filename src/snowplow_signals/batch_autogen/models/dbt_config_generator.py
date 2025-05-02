@@ -207,12 +207,9 @@ class DbtConfigGenerator:
             condition_sql_list.append(condition_sql)
         return f" {condition_type} ".join(condition_sql_list)
 
-    def create_dbt_config(self) -> DbtConfig:
-        """
-        Process dbt config in case there are changes and prepare properties for the jinja template.
-        """
+    def get_daily_aggs_by_type(self, attribute_type) -> list:
+        """Returns a list of attributes base on type that is needed to create jinja context for the daily_aggregates table (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
-        #
         aggregate_attributes = []
         first_value_attributes = []
         last_value_attributes = []
@@ -318,15 +315,40 @@ class DbtConfigGenerator:
                                 }
                             )
 
+        type_mapping = {
+            "aggregate_attributes": aggregate_attributes,
+            "first_value_attributes": first_value_attributes,
+            "last_value_attributes": last_value_attributes,
+        }
+
+        if attribute_type not in type_mapping:
+            raise ValueError(f"Invalid type: {attribute_type}")
+
+        selected_list = type_mapping[attribute_type]
+        deduped_list = list({frozenset(d.items()): d for d in selected_list}.values())
+
+        return deduped_list
+
+    def create_dbt_config(self) -> DbtConfig:
+        """
+        Process dbt config in case there are changes and prepare properties for the jinja template.
+        """
+
         return DbtConfig(
             filtered_events=FilteredEvents(
                 events=self.get_events_dict(),
                 properties=self.base_config_data.properties,
             ),
             daily_agg=DailyAggregations(
-                daily_aggregate_attributes=aggregate_attributes,
-                daily_first_value_attributes=first_value_attributes,
-                daily_last_value_attributes=last_value_attributes,
+                daily_aggregate_attributes=self.get_daily_aggs_by_type(
+                    "aggregate_attributes"
+                ),
+                daily_first_value_attributes=self.get_daily_aggs_by_type(
+                    "first_value_attributes"
+                ),
+                daily_last_value_attributes=self.get_daily_aggs_by_type(
+                    "last_value_attributes"
+                ),
             ),
             attributes=ConfigAttributes(
                 lifetime_aggregates=self.get_attributes_by_type("lifetime_aggregates"),
