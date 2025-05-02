@@ -292,7 +292,11 @@ class DbtConfigGenerator:
                             else:
                                 if step.aggregation == "count":
                                     condition_clause = f"case when {condition_statement} then 1 else 0 end"
-                                elif step.aggregation == "sum":
+                                elif (
+                                    step.aggregation == "sum"
+                                    or step.aggregation == "min"
+                                    or step.aggregation == "max"
+                                ):
                                     property_name = attribute[0].column_name
                                     condition_clause = f"case when {condition_statement} then cast({property_name} as {{{{ dbt.type_float()}}}}) else 0 end"
 
