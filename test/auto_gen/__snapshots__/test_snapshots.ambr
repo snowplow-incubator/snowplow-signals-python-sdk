@@ -1491,10 +1491,9 @@
       select
           
         a.entity_key as domain_userid,
-        current_timestamp() as valid_at_tstamp,
+        {{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
         cast({{ lower_limit }} as date) as lower_limit,
         cast({{ upper_limit }} as date) as upper_limit
-      
         
           , w.first_mkt_source
           , w.first_mkt_medium

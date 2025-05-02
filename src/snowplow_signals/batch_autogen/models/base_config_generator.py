@@ -1,4 +1,5 @@
 import re
+from collections import OrderedDict
 from typing import Dict, FrozenSet, Literal, Set
 
 from pydantic import BaseModel
@@ -12,6 +13,9 @@ from snowplow_signals.batch_autogen.models.modeling_step import (
 from ...models import AttributeOutput, Criterion, Event, ViewResponse
 from ..utils.utils import timedelta_isoformat
 
+from sqlglot.dialects.snowflake import Snowflake
+
+
 # FIXME can we extract from auto generated model attributes ?
 AggregationLiteral = Literal[
     "counter", "sum", "min", "max", "mean", "first", "last", "unique_list"
@@ -19,6 +23,8 @@ AggregationLiteral = Literal[
 SQLAggregationLiteral = Literal[
     "count", "sum", "min", "max", "avg", "first", "last", "unique_list"
 ]
+reserwed_words_dict = Snowflake.Tokenizer.KEYWORDS
+SQL_RESERVED_WORDS = sorted(reserwed_words_dict.keys())
 
 
 class DbtBaseConfig(BaseModel):
@@ -75,15 +81,26 @@ class BaseConfigGenerator:
             return None
 
         if ":" in property:
-            suffix = property.split(":")[1]  # Take the part after ':'
-            return re.sub(
-                r"([a-z])([A-Z])", r"\1_\2", suffix
-            ).lower()  # Convert to snake_case
+            suffix = property.split(":")[1]
+            # Convert to snake_case
+            cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
+            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
+                cleaned += "_col"
+            return cleaned
         elif "." in property:
             suffix = property.split(".")[-1]
-            return re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
-
-        return property  # Return the original value if no conditions are met
+            # Convert to snake_case
+            cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
+            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
+                cleaned += "_col"
+            return cleaned
+        else:
+            cleaned = property.lower()
+            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
+                cleaned += "_col"
+                return cleaned
+            else:
+                return property
 
     def add_to_properties(self, new_entry: Dict[str, str]):
         """Dynamically add a new property while ensuring deduplication to create a unique list of cleaned properties."""
@@ -102,6 +119,23 @@ class BaseConfigGenerator:
         frozen_entry = frozenset(filtered_entry.items())
         if frozen_entry not in seen:
             self.properties.append(filtered_entry)
+
+    def resolve_property_name_collisions(self):
+        seen = set()
+        updated = []
+
+        for entry in self.properties:
+            for raw_key, cleaned in entry.items():
+                if cleaned in seen:
+                    base = cleaned
+                    i = 2
+                    while f"{base}_{i}" in seen:
+                        i += 1
+                    cleaned = f"{base}_{i}"
+                seen.add(cleaned)
+                updated.append({raw_key: cleaned})
+
+        self.properties = updated
 
     def _get_full_event_reference_array(
         self, event_object_list: list[Event]
@@ -207,6 +241,16 @@ class BaseConfigGenerator:
         """Generate 3 modeling steps based on attribute type and attributes defined as part of the JSON.
         Through looping through the attributes, events, properties and periods are also extracted.
         """
+        # First add events and properties, they are needed for proper column reference for the steps
+        self.events.extend(self._get_full_event_reference_array(attribute.events))
+        if attribute.property:
+            self.add_to_properties(
+                {attribute.property: self.get_cleaned_property_name(attribute.property)}
+            )
+            self.resolve_property_name_collisions()
+        if attribute.period is not None:
+            self.periods.add(timedelta_isoformat(attribute.period))
+
         steps = []
         attribute_agg_short_name = self.get_agg_short_name(attribute.aggregation)
         if attribute_agg_short_name is None:
@@ -218,11 +262,15 @@ class BaseConfigGenerator:
                 step_type="filtered_events",
                 enabled=False,
                 aggregation=None,
-                column_name=(
-                    self.get_cleaned_property_name(attribute.property)
-                    if attribute.property
-                    else None
-                ),
+                column_name=next(
+                    (
+                        v
+                        for d in self.properties
+                        for k, v in d.items()
+                        if k == attribute.property
+                    ),
+                    None,
+                ),  # Get the cleaned column name for a given raw property key from the list of property mappings. Returns None if the key is not found.
                 modeling_criteria=None,
             )
         )

@@ -1820,6 +1820,23 @@ files = [
 ]
 
 [[package]]
+name = "sqlglot"
+version = "26.16.4"
+description = "An easily customizable SQL parser and transpiler"
+optional = true
+python-versions = ">=3.8"
+groups = ["main"]
+markers = "extra == \"batch-engine\""
+files = [
+    {file = "sqlglot-26.16.4-py3-none-any.whl", hash = "sha256:dbff0ace2e21c9169182d6852b8f6eb56d86fc6477354abcb5bda7ab93292975"},
+    {file = "sqlglot-26.16.4.tar.gz", hash = "sha256:0de74266e4ab1286801c40640a8bd99f96c1ec0fc20681f3c55802f39ce4b3ec"},
+]
+
+[package.extras]
+dev = ["duckdb (>=0.6)", "maturin (>=1.4,<2.0)", "mypy", "pandas", "pandas-stubs", "pdoc", "pre-commit", "python-dateutil", "pytz", "ruff (==0.7.2)", "types-python-dateutil", "types-pytz", "typing_extensions"]
+rs = ["sqlglotrs (==0.4.0)"]
+
+[[package]]
 name = "stack-data"
 version = "0.6.3"
 description = "Extract data from python stack frames and tracebacks for informative displays"
@@ -2026,9 +2043,9 @@ files = [
 ]
 
 [extras]
-batch-engine = ["jinja2", "typer"]
+batch-engine = ["jinja2", "sqlglot", "typer"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "a5466ff4a9eea7a5ab3b8b4f556e1925130d4af37ceedd8e708d9b2d2448b38e"
+content-hash = "36a7abe3a65a840d1c9decddc83807fd5933bc3a578f4eefe10374c631eff250"

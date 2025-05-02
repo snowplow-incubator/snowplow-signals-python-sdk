@@ -241,14 +241,6 @@ def test_get_attributes_by_type_invalid_type(instance):
 
 
 def test_create_dbt_config_happy_path(instance):
-    print("heeeere")
-    print(dbg.__file__)
-    print(
-        "unique_list_attributesddd",
-        instance.get_attributes_by_type("unique_list_attributes"),
-    )
-    print(inspect.getfile(ConfigAttributes))
-    print(ConfigAttributes.__annotations__)
     instance.base_config_data.transformed_attributes = [
         first_value_attr,
         last_value_attr,
@@ -357,8 +349,6 @@ def test_create_dbt_config_happy_path(instance):
             ],
         ),
     )
-    print("result:", result)
-    print(result.model_dump_json(indent=2))
 
     assert result == expectation
 
