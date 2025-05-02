@@ -1213,7 +1213,8 @@
                       "period": null,
                       "aggregation_type": "last"
                   }
-              ]
+              ],
+              "unique_list_attributes": []
           }
       }
     ''',
@@ -1454,10 +1455,11 @@
       
       {%- set lower_limit, upper_limit = get_limits_for_attributes() %}
       
-      with aggregations as (
+      with  aggregations as (
       
         select 
           entity_key
+          , min(1) --dummy value in case there are no aggregate values in the view definitions
       
           
           
@@ -1483,11 +1485,13 @@
         
       )
       
+      
+      
+      
       , window_calculations as (
         
         select distinct
           entity_key
-      
       
         
           , first_value(first_mkt_source) over (
@@ -1565,9 +1569,11 @@
         
       )
       
+      
+      
       select
           
-        w.entity_key as domain_userid,
+        a.entity_key as domain_userid,
         current_timestamp() as valid_at_tstamp,
         cast({{ lower_limit }} as date) as lower_limit,
         cast({{ upper_limit }} as date) as upper_limit
@@ -1606,11 +1612,13 @@
           , w.last_device_class
           , w.last_mkt_source
           , w.last_mkt_medium
-      
+        
+        -- unique_list_attributes
+        
       from aggregations as a
-      
       left join window_calculations as w
       on a.entity_key = w.entity_key
+      
       
   
     ''',

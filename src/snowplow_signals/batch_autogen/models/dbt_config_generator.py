@@ -18,6 +18,7 @@ class ConfigAttributes(BaseModel):
     last_n_day_aggregates: list
     first_value_attributes: list
     last_value_attributes: list
+    unique_list_attributes: list
 
 
 class DailyAggregations(BaseModel):
@@ -48,8 +49,17 @@ class DbtConfigGenerator:
         parsed_events = self.base_config_data.events
         event_dict_list: list[ConfigEvents] = []
         for event in parsed_events:
+            if not event.startswith("iglu:"):
+                raise ValueError(f"Event '{event}' does not start with 'iglu:' prefix.")
             cleaned_event = event.removeprefix("iglu:")
-            vendor, name, format_type, version = cleaned_event.split("/")
+
+            parts = cleaned_event.split("/")
+            if len(parts) != 4:
+                raise ValueError(
+                    f"Event '{event}' does not have 4 parts separated by '/'."
+                )
+
+            vendor, name, format_type, version = parts
 
             event_dict_list.append(
                 ConfigEvents(
@@ -63,12 +73,13 @@ class DbtConfigGenerator:
         return event_dict_list
 
     def get_attributes_by_type(self, attribute_type) -> list:
-        """Returns a list of attributes base on type (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
+        """Returns a list of attributes base on type that is needed to create jinja context for the attributes table (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
         first_value_attributes = []
         last_value_attributes = []
         last_n_day_aggregates = []
         lifetime_aggregates = []
+        unique_list_attributes = []
 
         for attribute in self.base_config_data.transformed_attributes:
             for step in attribute:
@@ -117,7 +128,7 @@ class DbtConfigGenerator:
                         )
                     elif period is not None:
                         if step.aggregation == "unique_list":
-                            last_n_day_aggregates.append(
+                            unique_list_attributes.append(
                                 {
                                     "daily_agg_column_name": daily_agg_column_name,
                                     "column_name": step.column_name,
@@ -136,7 +147,7 @@ class DbtConfigGenerator:
                             )
                     else:
                         if step.aggregation == "unique_list":
-                            lifetime_aggregates.append(
+                            unique_list_attributes.append(
                                 {
                                     "daily_agg_column_name": daily_agg_column_name,
                                     "column_name": step.column_name,
@@ -159,6 +170,7 @@ class DbtConfigGenerator:
             "last_value_attributes": last_value_attributes,
             "last_n_day_aggregates": last_n_day_aggregates,
             "lifetime_aggregates": lifetime_aggregates,
+            "unique_list_attributes": unique_list_attributes,
         }
 
         if attribute_type not in type_mapping:
@@ -177,23 +189,26 @@ class DbtConfigGenerator:
             operator = condition.operator
             property_name = condition.property
             value = condition.value
-            if operator == "=":
-                condition_sql = f" {property_name} = '{value}'"
-            elif operator == "!=":
-                condition_sql = f" {property_name} != '{value}'"
+            if operator in ["<", ">", "<=", ">="] and isinstance(value, str):
+                raise ValueError(
+                    f"Cannot apply comparison operator '{operator}' on a string value: '{value}'."
+                )
+            if operator in ["=", "!=", "<", ">", "<=", ">="]:
+                value_formatted = f"'{value}'" if isinstance(value, str) else value
+                condition_sql = f" {property_name} {operator} {value_formatted}"
             elif operator == "like":
                 condition_sql = f" {property_name} LIKE '%{value}%'"
             elif operator == "in":
                 condition_sql = f" {property_name} IN({value})"
             else:
                 raise ValueError(f"Unsupported operator: {operator}")
+            if condition_sql == "":
+                raise ValueError(f"Filter condition missing for condition: {condition}")
             condition_sql_list.append(condition_sql)
         return f" {condition_type} ".join(condition_sql_list)
 
-    def create_dbt_config(self) -> DbtConfig:
-        """
-        Process dbt config in case there are changes and prepare properties for the jinja template.
-        """
+    def get_daily_aggs_by_type(self, attribute_type) -> list:
+        """Returns a list of attributes base on type that is needed to create jinja context for the daily_aggregates table (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
         aggregate_attributes = []
         first_value_attributes = []
@@ -206,10 +221,11 @@ class DbtConfigGenerator:
                     if step.aggregation in ["first", "last"]:
                         # For first/last values, we need to reference the column directly
 
-                        if step.column_name is None:
-                            raise ValueError("Column name is required for first/last value attributes")
+                        if step.column_name is None or step.column_name == "":
+                            raise ValueError(
+                                "Column name is required for first/last value attributes"
+                            )
                         ref_column_name: str = step.column_name
-
 
                         if ref_column_name.startswith("first_"):
                             ref_column_name = ref_column_name[
@@ -262,8 +278,8 @@ class DbtConfigGenerator:
                                 condition_statement = ""
 
                             if step.aggregation == "unique_list":
-                                # For unique_list, we use the column_name directly
-                                condition_clause = f"distinct case when {condition_statement} then {step.column_name} else null end"
+                                property_name = attribute[0].column_name
+                                condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
                                 # FIXME we need to confirm this logic with a unit test
                                 aggregate_attributes.append(
                                     {
@@ -299,15 +315,40 @@ class DbtConfigGenerator:
                                 }
                             )
 
+        type_mapping = {
+            "aggregate_attributes": aggregate_attributes,
+            "first_value_attributes": first_value_attributes,
+            "last_value_attributes": last_value_attributes,
+        }
+
+        if attribute_type not in type_mapping:
+            raise ValueError(f"Invalid type: {attribute_type}")
+
+        selected_list = type_mapping[attribute_type]
+        deduped_list = list({frozenset(d.items()): d for d in selected_list}.values())
+
+        return deduped_list
+
+    def create_dbt_config(self) -> DbtConfig:
+        """
+        Process dbt config in case there are changes and prepare properties for the jinja template.
+        """
+
         return DbtConfig(
             filtered_events=FilteredEvents(
                 events=self.get_events_dict(),
                 properties=self.base_config_data.properties,
             ),
             daily_agg=DailyAggregations(
-                daily_aggregate_attributes=aggregate_attributes,
-                daily_first_value_attributes=first_value_attributes,
-                daily_last_value_attributes=last_value_attributes,
+                daily_aggregate_attributes=self.get_daily_aggs_by_type(
+                    "aggregate_attributes"
+                ),
+                daily_first_value_attributes=self.get_daily_aggs_by_type(
+                    "first_value_attributes"
+                ),
+                daily_last_value_attributes=self.get_daily_aggs_by_type(
+                    "last_value_attributes"
+                ),
             ),
             attributes=ConfigAttributes(
                 lifetime_aggregates=self.get_attributes_by_type("lifetime_aggregates"),
@@ -319,6 +360,9 @@ class DbtConfigGenerator:
                 ),
                 last_value_attributes=self.get_attributes_by_type(
                     "last_value_attributes"
+                ),
+                unique_list_attributes=self.get_attributes_by_type(
+                    "unique_list_attributes"
                 ),
             ),
         )

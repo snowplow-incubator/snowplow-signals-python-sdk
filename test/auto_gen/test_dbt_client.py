@@ -51,25 +51,28 @@ def mock_dbt_config_generator():
         instance = mock.return_value
         mock_config = DbtConfig(
             filtered_events=FilteredEvents(
-                events=[ConfigEvents(
-                    event_vendor="test",
-                    event_name="test",
-                    event_format="test",
-                    event_version="test"
-                )],
-                properties=[]
+                events=[
+                    ConfigEvents(
+                        event_vendor="test",
+                        event_name="test",
+                        event_format="test",
+                        event_version="test",
+                    )
+                ],
+                properties=[],
             ),
             daily_agg=DailyAggregations(
                 daily_aggregate_attributes=[],
                 daily_first_value_attributes=[],
-                daily_last_value_attributes=[]
+                daily_last_value_attributes=[],
             ),
             attributes=ConfigAttributes(
                 lifetime_aggregates=[],
                 last_n_day_aggregates=[],
                 first_value_attributes=[],
-                last_value_attributes=[]
-            )
+                last_value_attributes=[],
+                unique_list_attributes=[],
+            ),
         )
         instance.create_dbt_config.return_value = mock_config
         yield mock
@@ -128,13 +131,16 @@ def test_generate_models_single_project_success(
 
     # Create base config file
     with open(os.path.join(project_path, "configs", "base_config.json"), "w") as f:
-        json.dump({
-            "events": [],
-            "properties": [],
-            "periods": [],
-            "transformed_attributes": [],
-            "entity_key": "user_id"
-        }, f)
+        json.dump(
+            {
+                "events": [],
+                "properties": [],
+                "periods": [],
+                "transformed_attributes": [],
+                "entity_key": "user_id",
+            },
+            f,
+        )
 
     result = dbt_client.generate_models(temp_repo_path, project_name=project_name)
     assert result is True
@@ -156,13 +162,16 @@ def test_generate_models_all_projects_success(
         project_path = os.path.join(temp_repo_path, project)
         os.makedirs(os.path.join(project_path, "configs"), exist_ok=True)
         with open(os.path.join(project_path, "configs", "base_config.json"), "w") as f:
-            json.dump({
-                "events": [],
-                "properties": [],
-                "periods": [],
-                "transformed_attributes": [],
-                "entity_key": "user_id"
-            }, f)
+            json.dump(
+                {
+                    "events": [],
+                    "properties": [],
+                    "periods": [],
+                    "transformed_attributes": [],
+                    "entity_key": "user_id",
+                },
+                f,
+            )
 
     result = dbt_client.generate_models(temp_repo_path)
     assert result is True
@@ -183,13 +192,16 @@ def test_generate_models_with_update_flag(
     os.makedirs(os.path.join(project_path, "configs"), exist_ok=True)
 
     with open(os.path.join(project_path, "configs", "base_config.json"), "w") as f:
-        json.dump({
-            "events": [],
-            "properties": [],
-            "periods": [],
-            "transformed_attributes": [],
-            "entity_key": "user_id"
-        }, f)
+        json.dump(
+            {
+                "events": [],
+                "properties": [],
+                "periods": [],
+                "transformed_attributes": [],
+                "entity_key": "user_id",
+            },
+            f,
+        )
 
     result = dbt_client.generate_models(
         temp_repo_path, project_name=project_name, update=True

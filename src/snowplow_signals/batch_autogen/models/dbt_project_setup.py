@@ -124,13 +124,25 @@ class DbtProjectSetup:
         latest_views = filter_latest_model_version_by_name(all_attribute_views)
         # Filter by project name if specified
         if self.view_name:
-            project_views = [
-                view for view in latest_views if view.name == self.view_name
-            ]
-            if not project_views:
-                raise ValueError(
-                    f"No project/attribute view found with name: {self.view_name}"
-                )
-            return project_views
+            if not self.view_version:
+                project_views = [
+                    view for view in latest_views if view.name == self.view_name
+                ]
+                if not project_views:
+                    raise ValueError(
+                        f"No project/attribute view found with name: {self.view_name}"
+                    )
+                return project_views
+            else:
+                project_views = [
+                    view
+                    for view in all_attribute_views
+                    if view.name == self.view_name and view.version == self.view_version
+                ]
+                if not project_views:
+                    raise ValueError(
+                        f"No project/attribute view found with name: {self.view_name} and version: {self.view_version}"
+                    )
+                return project_views
         else:
             return latest_views
