@@ -186,6 +186,10 @@ class BaseConfigGenerator:
 
         # Join all components with underscores and ensure SQL-friendly
         column_name = "_".join(name_components)
+
+        # replace hyphens with underscores
+        column_name = column_name.replace("-", "_")
+
         # Remove any remaining special characters
         column_name = "".join(c for c in column_name if c.isalnum() or c == "_")
         # Ensure it doesn't start with a number

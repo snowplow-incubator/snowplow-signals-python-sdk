@@ -82,7 +82,7 @@ class TestBaseConfigGenerator:
             period=None,
         )
         result = base_config_generator._generate_column_name(attribute, "count")
-        assert result == "count_testproperty_testevent"
+        assert result == "count_test_property_test_event"
 
     def test_generate_column_name_with_numeric_start(self, base_config_generator):
         attribute = AttributeOutput(
@@ -276,7 +276,7 @@ class TestBaseConfigGenerator:
             period=None,
         )
         result = base_config_generator._generate_column_name(attribute, "count")
-        assert result == "count_testevent_123"  # Implementation removes hyphens
+        assert result == "count_test_event_123"  # Implementation removes hyphens
 
         # Multiple properties
         attribute = AttributeOutput(
@@ -401,7 +401,6 @@ class TestBaseConfigGenerator:
             == "field@#$%^&*()"
         )
 
-    #
     def test_add_to_properties_empty_entries(self, base_config_generator):
         """Test add_to_properties with empty key or value"""
         base_config_generator.add_to_properties({"": "x"})
