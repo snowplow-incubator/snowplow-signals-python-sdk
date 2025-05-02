@@ -71,6 +71,7 @@ def mock_dbt_config_generator():
                 last_n_day_aggregates=[],
                 first_value_attributes=[],
                 last_value_attributes=[],
+                unique_list_attributes=[],
             ),
         )
         instance.create_dbt_config.return_value = mock_config

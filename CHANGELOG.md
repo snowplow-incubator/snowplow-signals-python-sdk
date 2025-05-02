@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.7] - 2025-04-30
+
+### Changed
+
+- Remove entity_key and view_or_entity_ttl properties from ViewOutput per latest API changes
+
 ## [0.0.6] - 2025-04-25
 
 ### Changed

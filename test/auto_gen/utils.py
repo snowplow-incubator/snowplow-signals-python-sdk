@@ -53,8 +53,6 @@ MOCK_ECOMMERCE_VIEW = {
     "feast_name": "ecommerce_transaction_interactions_features_v1",
     "offline": True,
     "stream_source_name": "ecommerce_transaction_interactions_features_stream",
-    "entity_key": "user",
-    "view_or_entity_ttl": None,
 }
 
 MOCK_USERS_VIEW = {
@@ -97,8 +95,6 @@ MOCK_USERS_VIEW = {
     "feast_name": "unified_users_features_v1",
     "offline": True,
     "stream_source_name": "unified_users_features_stream",
-    "entity_key": "user",
-    "view_or_entity_ttl": None,
 }
 
 MOCK_ATTRIBUTE_VIEWS = [MOCK_ECOMMERCE_VIEW, MOCK_USERS_VIEW]
