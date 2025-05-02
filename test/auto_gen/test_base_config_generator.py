@@ -456,7 +456,7 @@ class TestBaseConfigGenerator:
         assert steps[2].aggregation == "sum"  # count becomes sum in final aggregation
         assert steps[2].column_name == "test_attribute"
 
-    def test_generate_modeling_steps_first_last_aggregation(
+    def test_generate_modeling_steps_first_aggregation(
         self, base_config_generator
     ):
         attribute = AttributeOutput(
@@ -546,7 +546,7 @@ class TestBaseConfigGenerator:
         with pytest.raises(ValueError, match="Unsupported aggregation: unsupported"):
             base_config_generator._generate_modeling_steps(attribute)
 
-    def test_generate_modeling_steps_first_last_without_property(
+    def test_generate_modeling_steps_first_without_property(
         self, base_config_generator
     ):
         attribute = AttributeOutput(
