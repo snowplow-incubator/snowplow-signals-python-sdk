@@ -18,6 +18,7 @@ class ConfigAttributes(BaseModel):
     last_n_day_aggregates: list
     first_value_attributes: list
     last_value_attributes: list
+    unique_list_attributes: list
 
 
 class DailyAggregations(BaseModel):
@@ -72,12 +73,13 @@ class DbtConfigGenerator:
         return event_dict_list
 
     def get_attributes_by_type(self, attribute_type) -> list:
-        """Returns a list of attributes base on type (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
+        """Returns a list of attributes base on type that is needed to create jinja context for the attributes table (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
         first_value_attributes = []
         last_value_attributes = []
         last_n_day_aggregates = []
         lifetime_aggregates = []
+        unique_list_attributes = []
 
         for attribute in self.base_config_data.transformed_attributes:
             for step in attribute:
@@ -126,7 +128,7 @@ class DbtConfigGenerator:
                         )
                     elif period is not None:
                         if step.aggregation == "unique_list":
-                            last_n_day_aggregates.append(
+                            unique_list_attributes.append(
                                 {
                                     "daily_agg_column_name": daily_agg_column_name,
                                     "column_name": step.column_name,
@@ -145,7 +147,7 @@ class DbtConfigGenerator:
                             )
                     else:
                         if step.aggregation == "unique_list":
-                            lifetime_aggregates.append(
+                            unique_list_attributes.append(
                                 {
                                     "daily_agg_column_name": daily_agg_column_name,
                                     "column_name": step.column_name,
@@ -168,6 +170,7 @@ class DbtConfigGenerator:
             "last_value_attributes": last_value_attributes,
             "last_n_day_aggregates": last_n_day_aggregates,
             "lifetime_aggregates": lifetime_aggregates,
+            "unique_list_attributes": unique_list_attributes,
         }
 
         if attribute_type not in type_mapping:
@@ -209,6 +212,7 @@ class DbtConfigGenerator:
         Process dbt config in case there are changes and prepare properties for the jinja template.
         """
 
+        #
         aggregate_attributes = []
         first_value_attributes = []
         last_value_attributes = []
@@ -334,6 +338,9 @@ class DbtConfigGenerator:
                 ),
                 last_value_attributes=self.get_attributes_by_type(
                     "last_value_attributes"
+                ),
+                unique_list_attributes=self.get_attributes_by_type(
+                    "unique_list_attributes"
                 ),
             ),
         )

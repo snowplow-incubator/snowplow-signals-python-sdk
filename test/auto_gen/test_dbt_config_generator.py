@@ -9,6 +9,9 @@ from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     FilteredEvents,
     DbtConfig,
 )
+
+import snowplow_signals.batch_autogen.models.dbt_config_generator as dbg
+
 from snowplow_signals.batch_autogen.models.modeling_step import (
     ModelingStep,
     FilterCondition,
@@ -19,7 +22,9 @@ from test.auto_gen.test_base_config_attributes import (
     last_value_attr,
     last_n_day_aggregates_attr,
     lifetime_aggregates_attr,
+    unique_list_attr,
 )
+import inspect
 
 """Tests for the DbtConfigGenerator class"""
 
@@ -184,6 +189,23 @@ def test_get_attributes_by_type_last_n_day_aggregates(instance):
     # Expectation for last_n_day_aggregates with aggregation "unique_list" coerced to "array_agg"
     expectation = [
         {
+            "daily_agg_column_name": "revenue",
+            "column_name": "revenue",
+            "period": 7,
+            "aggregation_type": "sum",
+        },
+    ]
+    assert result == expectation
+
+
+def test_get_attributes_by_type_unique_list_attributes(instance):
+    instance.base_config_data.transformed_attributes = [unique_list_attr]
+
+    result = instance.get_attributes_by_type("unique_list_attributes")
+
+    # Expectation for "unique_list" aggregation coerced to "array_agg"
+    expectation = [
+        {
             "daily_agg_column_name": "unique_list_source",
             "column_name": "unique_list_source",
             "period": 7,
@@ -219,11 +241,20 @@ def test_get_attributes_by_type_invalid_type(instance):
 
 
 def test_create_dbt_config_happy_path(instance):
+    print("heeeere")
+    print(dbg.__file__)
+    print(
+        "unique_list_attributesddd",
+        instance.get_attributes_by_type("unique_list_attributes"),
+    )
+    print(inspect.getfile(ConfigAttributes))
+    print(ConfigAttributes.__annotations__)
     instance.base_config_data.transformed_attributes = [
         first_value_attr,
         last_value_attr,
         last_n_day_aggregates_attr,
         lifetime_aggregates_attr,
+        unique_list_attr,
     ]
     result = instance.create_dbt_config()
 
@@ -249,15 +280,21 @@ def test_create_dbt_config_happy_path(instance):
             daily_aggregate_attributes=[
                 {
                     "step_type": "daily_aggregation",
-                    "aggregation": "array_agg",
-                    "column_name": "unique_list_source",
-                    "condition_clause": "distinct case when  period > 7 then mkt_source else null end",
+                    "aggregation": "sum",
+                    "column_name": "revenue",
+                    "condition_clause": "case when  period > 7 then cast(revenue as {{ dbt.type_float()}}) else 0 end",
                 },
                 {
                     "step_type": "daily_aggregation",
                     "aggregation": "count",
                     "column_name": "lifetime_count_source",
                     "condition_clause": "1",
+                },
+                {
+                    "step_type": "daily_aggregation",
+                    "aggregation": "array_agg",
+                    "column_name": "unique_list_source",
+                    "condition_clause": "distinct case when  period > 7 then mkt_source else null end",
                 },
             ],
             daily_first_value_attributes=[
@@ -288,10 +325,10 @@ def test_create_dbt_config_happy_path(instance):
             ],
             last_n_day_aggregates=[
                 {
-                    "daily_agg_column_name": "unique_list_source",
-                    "column_name": "unique_list_source",
+                    "daily_agg_column_name": "revenue",
+                    "column_name": "revenue",
                     "period": 7,
-                    "aggregation_type": "array_agg",
+                    "aggregation_type": "sum",
                 }
             ],
             first_value_attributes=[
@@ -310,8 +347,18 @@ def test_create_dbt_config_happy_path(instance):
                     "aggregation_type": "last",
                 }
             ],
+            unique_list_attributes=[
+                {
+                    "daily_agg_column_name": "unique_list_source",
+                    "column_name": "unique_list_source",
+                    "period": 7,
+                    "aggregation_type": "array_agg",
+                }
+            ],
         ),
     )
+    print("result:", result)
+    print(result.model_dump_json(indent=2))
 
     assert result == expectation
 

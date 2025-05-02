@@ -59,6 +59,36 @@ last_n_day_aggregates_attr = [
         step_type="filtered_events",
         enabled=False,
         aggregation=None,
+        column_name="revenue",
+        modeling_criteria=None,
+    ),
+    ModelingStep(
+        step_type="daily_aggregation",
+        enabled=True,
+        aggregation="sum",
+        column_name="revenue",
+        modeling_criteria=ModelingCriteria(
+            all=[FilterCondition(operator=">", property="period", value=7)],
+            any=[],
+        ),
+    ),
+    ModelingStep(
+        step_type="attribute_aggregation",
+        enabled=True,
+        aggregation="sum",
+        column_name="revenue",
+        modeling_criteria=ModelingCriteria(
+            all=[FilterCondition(operator=">", property="period", value=7)],
+            any=[],
+        ),
+    ),
+]
+
+unique_list_attr = [
+    ModelingStep(
+        step_type="filtered_events",
+        enabled=False,
+        aggregation=None,
         column_name="mkt_source",
         modeling_criteria=None,
     ),
