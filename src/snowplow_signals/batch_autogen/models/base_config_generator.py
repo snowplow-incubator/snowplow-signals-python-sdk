@@ -1,4 +1,5 @@
 import re
+from collections import OrderedDict
 from typing import Dict, FrozenSet, Literal, Set
 
 from pydantic import BaseModel
@@ -19,6 +20,74 @@ AggregationLiteral = Literal[
 SQLAggregationLiteral = Literal[
     "count", "sum", "min", "max", "avg", "first", "last", "unique_list"
 ]
+
+SQL_RESERVED_WORDS = {
+    "select",
+    "from",
+    "where",
+    "join",
+    "inner",
+    "left",
+    "right",
+    "on",
+    "group",
+    "by",
+    "order",
+    "having",
+    "limit",
+    "offset",
+    "union",
+    "all",
+    "as",
+    "and",
+    "or",
+    "not",
+    "null",
+    "is",
+    "in",
+    "between",
+    "like",
+    "exists",
+    "create",
+    "alter",
+    "drop",
+    "insert",
+    "update",
+    "delete",
+    "into",
+    "values",
+    "table",
+    "view",
+    "database",
+    "index",
+    "primary",
+    "key",
+    "foreign",
+    "constraint",
+    "unique",
+    "check",
+    "default",
+    "trigger",
+    "function",
+    "procedure",
+    "schema",
+    "transaction",
+    "commit",
+    "rollback",
+    "grant",
+    "revoke",
+    "user",
+    "role",
+    "replace",
+    "set",
+    "add",
+    "column",
+    "case",
+    "when",
+    "then",
+    "else",
+    "end",
+}
 
 
 class DbtBaseConfig(BaseModel):
@@ -74,15 +143,20 @@ class BaseConfigGenerator:
             return None
 
         if ":" in property:
-            suffix = property.split(":")[1]  # Take the part after ':'
-            return re.sub(
-                r"([a-z])([A-Z])", r"\1_\2", suffix
-            ).lower()  # Convert to snake_case
+            suffix = property.split(":")[-1]
         elif "." in property:
             suffix = property.split(".")[-1]
-            return re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
+        else:
+            suffix = property
 
-        return property  # Return the original value if no conditions are met
+        # Convert to snake_case
+        cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
+
+        # Avoid SQL reserved keywords
+        if cleaned in SQL_RESERVED_WORDS:
+            cleaned += "_col"
+
+        return cleaned
 
     def add_to_properties(self, new_entry: Dict[str, str]):
         """Dynamically add a new property while ensuring deduplication to create a unique list of cleaned properties."""
@@ -101,6 +175,23 @@ class BaseConfigGenerator:
         frozen_entry = frozenset(filtered_entry.items())
         if frozen_entry not in seen:
             self.properties.append(filtered_entry)
+
+    def resolve_property_name_collisions(self):
+        seen = set()
+        updated = []
+
+        for entry in self.properties:
+            for raw_key, cleaned in entry.items():
+                if cleaned in seen:
+                    base = cleaned
+                    i = 2
+                    while f"{base}_{i}" in seen:
+                        i += 1
+                    cleaned = f"{base}_{i}"
+                seen.add(cleaned)
+                updated.append({raw_key: cleaned})
+
+        self.properties = updated
 
     def _get_full_event_reference_array(
         self, event_object_list: list[Event]
@@ -206,6 +297,16 @@ class BaseConfigGenerator:
         """Generate 3 modeling steps based on attribute type and attributes defined as part of the JSON.
         Through looping through the attributes, events, properties and periods are also extracted.
         """
+        # First add events and properties, they are needed for proper column reference for the steps
+        self.events.extend(self._get_full_event_reference_array(attribute.events))
+        if attribute.property:
+            self.add_to_properties(
+                {attribute.property: self.get_cleaned_property_name(attribute.property)}
+            )
+            self.resolve_property_name_collisions()
+        if attribute.period is not None:
+            self.periods.add(timedelta_isoformat(attribute.period))
+
         steps = []
         attribute_agg_short_name = self.get_agg_short_name(attribute.aggregation)
         if attribute_agg_short_name is None:
@@ -217,11 +318,15 @@ class BaseConfigGenerator:
                 step_type="filtered_events",
                 enabled=False,
                 aggregation=None,
-                column_name=(
-                    self.get_cleaned_property_name(attribute.property)
-                    if attribute.property
-                    else None
-                ),
+                column_name=next(
+                    (
+                        v
+                        for d in self.properties
+                        for k, v in d.items()
+                        if k == attribute.property
+                    ),
+                    None,
+                ),  # Get the cleaned column name for a given raw property key from the list of property mappings. Returns None if the key is not found.
                 modeling_criteria=None,
             )
         )
