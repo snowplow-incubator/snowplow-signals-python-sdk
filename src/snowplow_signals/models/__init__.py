@@ -10,7 +10,6 @@ from .model import (
     Criterion,
     LinkEntity,
     GetOnlineAttributesRequest,
-    LinkEntity,
     TestViewRequest,
     ViewOutput,
 )
