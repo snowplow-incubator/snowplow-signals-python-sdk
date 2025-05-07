@@ -3,7 +3,7 @@ import json
 import pytest
 from datetime import timedelta
 
-from snowplow_signals import View, user_entity, LinkEntity, Attribute, Event, BatchSource
+from snowplow_signals import View, domain_userid, LinkEntity, Attribute, Event, BatchSource
 from snowplow_signals.models import ViewOutput
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.registry_client import RegistryClient
@@ -23,7 +23,7 @@ class TestRegistryClient:
     def test_serializes_period_correctly_using_iso_format(self, respx_mock, api_client):
         view = View(
             name="my_view",
-            entity=user_entity,
+            entity=domain_userid,
             attributes=[
                 Attribute(
                     name="add_to_cart_events_count",
@@ -63,7 +63,7 @@ class TestRegistryClient:
     def test_serializes_batch_source_correctly(self, respx_mock, api_client):
         view = View(
             name="my_view",
-            entity=user_entity,
+            entity=domain_userid,
             attributes=[
                 Attribute(
                     name="add_to_cart_events_count",

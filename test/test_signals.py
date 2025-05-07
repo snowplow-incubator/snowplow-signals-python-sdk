@@ -1,6 +1,6 @@
 import httpx
 
-from snowplow_signals import LinkEntity, Service, View, user_entity
+from snowplow_signals import LinkEntity, Service, View, domain_userid
 from snowplow_signals.models import ViewOutput
 
 
@@ -8,7 +8,7 @@ class TestSignalsApply:
     def test_apply_view_and_service(self, signals_client, respx_mock):
         view = View(
             name="my_view",
-            entity=user_entity,
+            entity=domain_userid,
         )
         view_output = ViewOutput(
             name="my_view",
@@ -49,7 +49,7 @@ class TestSignalsApply:
     def test_already_existing_view(self, signals_client, respx_mock):
         view = View(
             name="my_view",
-            entity=user_entity,
+            entity=domain_userid,
         )
         view_output = ViewOutput(
             name="my_view",
