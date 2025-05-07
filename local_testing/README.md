@@ -156,7 +156,6 @@ You can use the -f flag to specify a different file you have e.g .env.dev:
 poetry run dotenv -f .env.dev run snowplow-batch-autogen test-connection --verbose
 # initialize dbt project
 poetry run dotenv -f .env.dev run snowplow-batch-autogen init --repo-path local_testing --view-name test_batch_view --view-version 1 --verbose
-Initializing dbt project(s) in local_testing
 # generate dbt project
 poetry run dotenv -f .env.dev run snowplow-batch-autogen generate --repo-path local_testing --project-name test_batch_view_1 --verbose 
 # materialize table
