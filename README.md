@@ -11,7 +11,7 @@ pip install snowplow-signals
 ## Quickstart
 
 ```python
-from snowplow_signals import Signals, Attribute, Event, View, session_entity
+from snowplow_signals import Signals, Attribute, Event, View, domain_sessionid
 
 # Initialize the SDK
 signals = Signals(
@@ -39,7 +39,7 @@ page_view_count = Attribute(
 view = View(
     name="my_view",
     version=1,
-    entity=session_entity,
+    entity=domain_sessionid,
     attributes=[page_view_count],
 )
 signals.apply([view])
