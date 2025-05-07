@@ -1,7 +1,7 @@
 import httpx
 
 from snowplow_signals import LinkEntity, Service, View, domain_userid
-from snowplow_signals.models import ViewOutput
+from snowplow_signals.models import ViewResponse
 
 
 class TestSignalsApply:

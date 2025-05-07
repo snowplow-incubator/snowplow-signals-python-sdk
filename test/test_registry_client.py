@@ -1,8 +1,18 @@
 import json
 from datetime import timedelta
 
-from snowplow_signals import View, domain_userid, LinkEntity, Attribute, Event, BatchSource
-from snowplow_signals.models import ViewOutput
+import httpx
+import pytest
+
+from snowplow_signals import (
+    Attribute,
+    BatchSource,
+    Event,
+    LinkEntity,
+    View,
+    domain_userid,
+)
+from snowplow_signals.models import ViewResponse
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.models import ViewResponse
 from snowplow_signals.registry_client import RegistryClient
