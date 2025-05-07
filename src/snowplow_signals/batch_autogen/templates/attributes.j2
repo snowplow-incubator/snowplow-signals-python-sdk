@@ -116,11 +116,10 @@ with  aggregations as (
 
 select
     
-  a.entity_key as {{ entity_key }}{% raw %},
-  current_timestamp() as valid_at_tstamp,
+  a.entity_key as {{ entity_key }},
+  {% raw %}{{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
   cast({{ lower_limit }} as date) as lower_limit,
-  cast({{ upper_limit }} as date) as upper_limit
-{% endraw %}
+  cast({{ upper_limit }} as date) as upper_limit{% endraw %}
   {% for attribute in first_value_attributes %}
     , w.{{ attribute['column_name'] }} 
   {%- endfor %}
