@@ -1,7 +1,7 @@
 import httpx
 
 from snowplow_signals import LinkEntity, Service, View, user_entity
-from snowplow_signals.models import ViewOutput
+from snowplow_signals.models import ViewResponse
 
 
 class TestSignalsApply:
@@ -10,7 +10,7 @@ class TestSignalsApply:
             name="my_view",
             entity=user_entity,
         )
-        view_output = ViewOutput(
+        view_output = ViewResponse(
             name="my_view",
             entity=LinkEntity(name="user"),
             feast_name="my_view_v1",
@@ -51,7 +51,7 @@ class TestSignalsApply:
             name="my_view",
             entity=user_entity,
         )
-        view_output = ViewOutput(
+        view_output = ViewResponse(
             name="my_view",
             entity=LinkEntity(name="user"),
             feast_name="my_view_v1",

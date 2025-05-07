@@ -1,10 +1,10 @@
 from .api_client import ApiClient
 from .models import (
-    Service,
-    View,
-    ViewOutput,
     GetOnlineAttributesRequest,
     OnlineAttributesResponse,
+    Service,
+    View,
+    ViewResponse,
 )
 
 
@@ -14,7 +14,7 @@ class AttributesClient:
 
     def get_view_attributes(
         self,
-        view: View | ViewOutput,
+        view: View | ViewResponse,
         identifiers: list[str] | str,
     ) -> OnlineAttributesResponse:
         attributes = [
