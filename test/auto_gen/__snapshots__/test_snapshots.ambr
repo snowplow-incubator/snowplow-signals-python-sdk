@@ -953,7 +953,7 @@
                       "step_type": "daily_aggregation",
                       "aggregation": "sum",
                       "column_name": "sum_revenue_snowplow_ecommerce_action",
-                      "condition_clause": "case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else null end"
+                      "condition_clause": "case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else 0 end"
                   }
               ],
               "daily_first_value_attributes": [
@@ -1765,7 +1765,7 @@
             
               , sum(
             
-              case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else null end) as sum_revenue_snowplow_ecommerce_action
+              case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else 0 end) as sum_revenue_snowplow_ecommerce_action
           
           
         from events

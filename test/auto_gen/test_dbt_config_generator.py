@@ -274,7 +274,7 @@ def test_create_dbt_config_happy_path(instance):
                     "step_type": "daily_aggregation",
                     "aggregation": "sum",
                     "column_name": "revenue",
-                    "condition_clause": "case when  period > 7 then cast(revenue as {{ dbt.type_float()}}) else null end",
+                    "condition_clause": "case when  period > 7 then cast(revenue as {{ dbt.type_float()}}) else 0 end",
                 },
                 {
                     "step_type": "daily_aggregation",
