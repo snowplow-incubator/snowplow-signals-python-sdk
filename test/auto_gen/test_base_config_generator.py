@@ -401,6 +401,9 @@ class TestBaseConfigGenerator:
             == "field@#$%^&*()"
         )
 
+        # SQL reserved words
+        assert base_config_generator.get_cleaned_property_name("select") == "select_col"
+
     def test_add_to_properties_empty_entries(self, base_config_generator):
         """Test add_to_properties with empty key or value"""
         base_config_generator.add_to_properties({"": "x"})
@@ -456,9 +459,7 @@ class TestBaseConfigGenerator:
         assert steps[2].aggregation == "sum"  # count becomes sum in final aggregation
         assert steps[2].column_name == "test_attribute"
 
-    def test_generate_modeling_steps_first_aggregation(
-        self, base_config_generator
-    ):
+    def test_generate_modeling_steps_first_aggregation(self, base_config_generator):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute with first aggregation",
@@ -602,7 +603,6 @@ class TestBaseConfigGenerator:
         assert steps[1].column_name == "last_test_property"
         assert steps[2].column_name == "test_attribute"
 
-
     #
     def test_generate_modeling_steps_unique_list(self, base_config_generator):
         """Test generate_modeling_steps with unique_list aggregation"""
@@ -665,7 +665,7 @@ class TestBaseConfigGenerator:
         assert config.transformed_attributes == []
         assert config.entity_key == base_config_generator.data.entity_key
 
-    # 
+    #
     def test_create_base_config_multiple_attributes(self, base_config_generator):
         """Test create_base_config with multiple attributes"""
         base_config_generator.data.attributes = [

@@ -953,7 +953,7 @@
                       "step_type": "daily_aggregation",
                       "aggregation": "sum",
                       "column_name": "sum_revenue_snowplow_ecommerce_action",
-                      "condition_clause": "case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else 0 end"
+                      "condition_clause": "case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else null end"
                   }
               ],
               "daily_first_value_attributes": [
@@ -1491,10 +1491,9 @@
       select
           
         a.entity_key as domain_userid,
-        current_timestamp() as valid_at_tstamp,
+        {{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
         cast({{ lower_limit }} as date) as lower_limit,
         cast({{ upper_limit }} as date) as upper_limit
-      
         
           , w.first_mkt_source
           , w.first_mkt_medium
@@ -1766,7 +1765,7 @@
             
               , sum(
             
-              case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else 0 end) as sum_revenue_snowplow_ecommerce_action
+              case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else null end) as sum_revenue_snowplow_ecommerce_action
           
           
         from events

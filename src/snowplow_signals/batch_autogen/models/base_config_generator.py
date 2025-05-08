@@ -13,6 +13,9 @@ from snowplow_signals.batch_autogen.models.modeling_step import (
 from ...models import AttributeOutput, Criterion, Event, ViewOutput
 from ..utils.utils import timedelta_isoformat
 
+from sqlglot.dialects.snowflake import Snowflake
+
+
 # FIXME can we extract from auto generated model attributes ?
 AggregationLiteral = Literal[
     "counter", "sum", "min", "max", "mean", "first", "last", "unique_list"
@@ -20,74 +23,8 @@ AggregationLiteral = Literal[
 SQLAggregationLiteral = Literal[
     "count", "sum", "min", "max", "avg", "first", "last", "unique_list"
 ]
-
-SQL_RESERVED_WORDS = {
-    "select",
-    "from",
-    "where",
-    "join",
-    "inner",
-    "left",
-    "right",
-    "on",
-    "group",
-    "by",
-    "order",
-    "having",
-    "limit",
-    "offset",
-    "union",
-    "all",
-    "as",
-    "and",
-    "or",
-    "not",
-    "null",
-    "is",
-    "in",
-    "between",
-    "like",
-    "exists",
-    "create",
-    "alter",
-    "drop",
-    "insert",
-    "update",
-    "delete",
-    "into",
-    "values",
-    "table",
-    "view",
-    "database",
-    "index",
-    "primary",
-    "key",
-    "foreign",
-    "constraint",
-    "unique",
-    "check",
-    "default",
-    "trigger",
-    "function",
-    "procedure",
-    "schema",
-    "transaction",
-    "commit",
-    "rollback",
-    "grant",
-    "revoke",
-    "user",
-    "role",
-    "replace",
-    "set",
-    "add",
-    "column",
-    "case",
-    "when",
-    "then",
-    "else",
-    "end",
-}
+reserwed_words_dict = Snowflake.Tokenizer.KEYWORDS
+SQL_RESERVED_WORDS = sorted(reserwed_words_dict.keys())
 
 
 class DbtBaseConfig(BaseModel):
@@ -143,20 +80,26 @@ class BaseConfigGenerator:
             return None
 
         if ":" in property:
-            suffix = property.split(":")[-1]
+            suffix = property.split(":")[1]
+            # Convert to snake_case
+            cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
+            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
+                cleaned += "_col"
+            return cleaned
         elif "." in property:
             suffix = property.split(".")[-1]
+            # Convert to snake_case
+            cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
+            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
+                cleaned += "_col"
+            return cleaned
         else:
-            suffix = property
-
-        # Convert to snake_case
-        cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
-
-        # Avoid SQL reserved keywords
-        if cleaned in SQL_RESERVED_WORDS:
-            cleaned += "_col"
-
-        return cleaned
+            cleaned = property.lower()
+            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
+                cleaned += "_col"
+                return cleaned
+            else:
+                return property
 
     def add_to_properties(self, new_entry: Dict[str, str]):
         """Dynamically add a new property while ensuring deduplication to create a unique list of cleaned properties."""
