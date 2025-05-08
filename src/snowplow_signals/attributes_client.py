@@ -6,6 +6,7 @@ from .models import (
     View,
     ViewResponse,
 )
+from .registry_client import RegistryClient
 
 
 class AttributesClient:
@@ -40,7 +41,14 @@ class AttributesClient:
         if not service.views:
             raise ValueError("No views to fetch.")
 
-        entity_names = {view.entity.name for view in service.views}
+        entity_names = set()
+
+        for view in service.views:
+            fetched_view = RegistryClient(api_client=self.api_client).get_view(
+                name=view.name, version=view.version
+            )
+            entity_names.add(fetched_view.entity.name)
+
         if len(entity_names) > 1:
             raise ValueError(
                 "The service contains views with different entities which is not supported."
