@@ -34,6 +34,3 @@ network_userid = Entity(
     key="network_userid",
     description="The network user ID for the user.",
 )
-
-
-entities: list[Entity] = [user_entity, session_entity, domain_userid, domain_sessionid, user_id, network_userid]
