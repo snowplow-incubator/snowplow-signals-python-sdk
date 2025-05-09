@@ -5,9 +5,7 @@ description = ""
 authors = ["Snowplow <support@snowplow.io>"]
 readme = "README.md"
 packages = [{ include = "snowplow_signals", from = "src" }]
-classifiers = [
-    "License :: OSI Approved :: Apache Software License"
-]
+classifiers = ["License :: OSI Approved :: Apache Software License"]
 
 [tool.poetry.dependencies]
 python = "^3.11"

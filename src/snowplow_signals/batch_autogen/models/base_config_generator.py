@@ -9,7 +9,7 @@ from snowplow_signals.batch_autogen.models.modeling_step import (
     ModelingStep,
 )
 
-from ...models import AttributeOutput, Criterion, Event, ViewOutput
+from ...models import AttributeOutput, Criterion, Event, ViewResponse
 from ..utils.utils import timedelta_isoformat
 
 # FIXME can we extract from auto generated model attributes ?
@@ -33,10 +33,11 @@ class BaseConfigGenerator:
     events: list[str]
     properties: list[dict[str, str]]
     periods: Set[str]
+    data: ViewResponse
 
     def __init__(
         self,
-        data: ViewOutput,
+        data: ViewResponse,
     ):
         self.data = data
         self.events = []
