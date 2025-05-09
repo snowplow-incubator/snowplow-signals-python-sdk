@@ -6,6 +6,7 @@ from .model import (
     Criterion,
     Entity,
     Event,
+    LinkEntity,
 )
 from .model import FieldModel as Field
 from .model import (
@@ -32,5 +33,5 @@ Attribute
 Criteria
 Criterion
 Field
-LinkEntity
 Event
+LinkEntity
