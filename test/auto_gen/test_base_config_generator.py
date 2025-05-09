@@ -13,13 +13,13 @@ from snowplow_signals.models import (
     Criterion,
     Event,
     LinkEntity,
-    ViewOutput,
+    ViewResponse,
 )
 
 
 @pytest.fixture
-def test_view_output():
-    return ViewOutput(
+def test_view_response():
+    return ViewResponse(
         name="test_view",
         version=1,
         entity=LinkEntity(name="user"),
@@ -49,8 +49,8 @@ def test_view_output():
 
 
 @pytest.fixture
-def base_config_generator(test_view_output):
-    return BaseConfigGenerator(data=test_view_output)
+def base_config_generator(test_view_response):
+    return BaseConfigGenerator(data=test_view_response)
 
 
 class TestBaseConfigGenerator:
