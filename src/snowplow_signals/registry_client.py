@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 from .api_client import ApiClient, SignalsAPIError
 from .models import Service, View, ViewResponse
+from .models.required_owner_view import RequiredOwnerView
 
 
 class RegistryClient:
@@ -14,7 +15,9 @@ class RegistryClient:
         # First apply all views in case they are dependencies of services
         for object in objects:
             if isinstance(object, View):
-                updated_objects.append(self._create_or_update_view(view=object))
+                # Convert View to RequiredOwnerView for creation/update
+                required_owner_view = RequiredOwnerView.model_validate(object.model_dump(by_alias=True))
+                updated_objects.append(self._create_or_update_view(view=required_owner_view))
 
         for object in objects:
             if isinstance(object, Service):

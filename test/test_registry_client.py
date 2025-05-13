@@ -34,6 +34,7 @@ class TestRegistryClient:
         view = View(
             name="my_view",
             entity=domain_userid,
+            owner="test@example.com",
             attributes=[
                 Attribute(
                     name="add_to_cart_events_count",
@@ -58,6 +59,7 @@ class TestRegistryClient:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@example.com",
         )
 
         view_mock = respx_mock.post(
@@ -74,6 +76,7 @@ class TestRegistryClient:
         view = View(
             name="my_view",
             entity=domain_userid,
+            owner="test@example.com",
             attributes=[
                 Attribute(
                     name="add_to_cart_events_count",
