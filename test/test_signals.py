@@ -9,6 +9,7 @@ class TestSignalsApply:
         view = View(
             name="my_view",
             entity=user_entity,
+            owner="test@example.com",
         )
         view_output = ViewResponse(
             name="my_view",
@@ -50,6 +51,7 @@ class TestSignalsApply:
         view = View(
             name="my_view",
             entity=user_entity,
+            owner="test@example.com",
         )
         view_output = ViewResponse(
             name="my_view",
