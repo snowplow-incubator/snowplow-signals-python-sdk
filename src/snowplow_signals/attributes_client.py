@@ -4,7 +4,7 @@ from .models import (
     OnlineAttributesResponse,
     Service,
     View,
-    ViewResponse,
+    ViewOutput,
 )
 from .registry_client import RegistryClient
 
@@ -15,7 +15,7 @@ class AttributesClient:
 
     def get_view_attributes(
         self,
-        view: View | ViewResponse,
+        view: View | ViewOutput,
         identifiers: list[str] | str,
     ) -> OnlineAttributesResponse:
         attributes = [

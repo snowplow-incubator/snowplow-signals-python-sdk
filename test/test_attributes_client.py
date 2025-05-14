@@ -10,7 +10,7 @@ from snowplow_signals import (
 )
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.attributes_client import AttributesClient
-from snowplow_signals.models import ViewOutput
+from snowplow_signals.models import ViewResponse
 
 from .utils import MOCK_ORG_ID
 
@@ -35,7 +35,7 @@ class TestAttributesClient:
             entity=user_entity,
         )
 
-        user_view_a_output = ViewOutput(
+        user_view_a_output = ViewResponse(
             name="user_view_a",
             entity=LinkEntity(name="user"),
             feast_name="user_view_a_v1",
@@ -44,7 +44,7 @@ class TestAttributesClient:
             entity_key="user_id",
             view_or_entity_ttl=None,
         )
-        user_view_b_output = ViewOutput(
+        user_view_b_output = ViewResponse(
             name="user_view_b_output",
             entity=LinkEntity(name="user"),
             feast_name="user_view_b_v1",
@@ -79,7 +79,7 @@ class TestAttributesClient:
             name="session_view",
             entity=session_entity,
         )
-        user_view_output = ViewOutput(
+        user_view_output = ViewResponse(
             name="user_view",
             entity=LinkEntity(name="user"),
             feast_name="user_view_v1",
@@ -88,7 +88,7 @@ class TestAttributesClient:
             entity_key="user_id",
             view_or_entity_ttl=None,
         )
-        session_view_output = ViewOutput(
+        session_view_output = ViewResponse(
             name="session_view",
             entity=LinkEntity(name="session"),
             feast_name="session_view_v1",
