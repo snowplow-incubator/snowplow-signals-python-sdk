@@ -3,21 +3,18 @@ import os
 
 import typer
 from typing_extensions import Annotated
-from typing import Dict, Optional
 
 from snowplow_signals.batch_autogen.models.base_config_generator import (
     BaseConfigGenerator,
     DbtBaseConfig,
 )
-
 from snowplow_signals.batch_autogen.models.batch_source_config import (
     BatchSourceConfig,
 )
-
 from snowplow_signals.logging import get_logger
 
 from ...api_client import ApiClient
-from ...models import ViewOutput
+from ...models import ViewResponse
 from ..utils.utils import filter_latest_model_version_by_name
 
 logger = get_logger(__name__)
@@ -63,15 +60,15 @@ class DbtProjectSetup:
             f"📄 Batch source config file generated for {setup_project_name}"
         )
 
-    def get_attribute_view_project_config(
+    def _get_attribute_view_project_config(
         self,
-        attribute_view: ViewOutput,
+        attribute_view: ViewResponse,
     ) -> DbtBaseConfig:
         generator = BaseConfigGenerator(data=attribute_view)
         return generator.create_base_config()
 
-    def get_default_batch_source_config(
-        self, attribute_view: ViewOutput
+    def _get_default_batch_source_config(
+        self, attribute_view: ViewResponse
     ) -> BatchSourceConfig:
         """
         Creates a pre-populated config file for users to fill out for materialization.
@@ -82,8 +79,8 @@ class DbtProjectSetup:
             wh_schema="",
             table=f"{attribute_view.name}_{attribute_view.version}_attributes",
             name=f"{attribute_view.name}_{attribute_view.version}_attributes",
-            timestamp_field="lower_limit",
-            created_timestamp_column="valid_at_tstamp",
+            timestamp_field="valid_at_tstamp",
+            created_timestamp_column="lower_limit",
             description=f"Table containing attributes for {attribute_view.name}_{attribute_view.version} view",
             tags={},
             owner="",
@@ -95,8 +92,8 @@ class DbtProjectSetup:
         attribute_views = self._get_attribute_views()
         for attribute_view in attribute_views:
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
-            project_config = self.get_attribute_view_project_config(attribute_view)
-            batch_source_config = self.get_default_batch_source_config(
+            project_config = self._get_attribute_view_project_config(attribute_view)
+            batch_source_config = self._get_default_batch_source_config(
                 attribute_view
             ).model_dump(mode="json", exclude_none=True)
             self.create_project_directories(
@@ -105,15 +102,15 @@ class DbtProjectSetup:
 
         return True
 
-    def _fetch_attribute_views(self) -> list[ViewOutput]:
+    def _fetch_attribute_views(self) -> list[ViewResponse]:
         attribute_views = self.api_client.make_request(
             method="GET",
             endpoint="registry/views/",
             params={"offline": True},
         )
-        return [ViewOutput.model_validate(view) for view in attribute_views]
+        return [ViewResponse.model_validate(view) for view in attribute_views]
 
-    def _get_attribute_views(self) -> list[ViewOutput]:
+    def _get_attribute_views(self) -> list[ViewResponse]:
         logger.info("🔗 Fetching attribute views from API")
         all_attribute_views = self._fetch_attribute_views()
         logger.debug(
@@ -124,13 +121,25 @@ class DbtProjectSetup:
         latest_views = filter_latest_model_version_by_name(all_attribute_views)
         # Filter by project name if specified
         if self.view_name:
-            project_views = [
-                view for view in latest_views if view.name == self.view_name
-            ]
-            if not project_views:
-                raise ValueError(
-                    f"No project/attribute view found with name: {self.view_name}"
-                )
-            return project_views
+            if not self.view_version:
+                project_views = [
+                    view for view in latest_views if view.name == self.view_name
+                ]
+                if not project_views:
+                    raise ValueError(
+                        f"No project/attribute view found with name: {self.view_name}"
+                    )
+                return project_views
+            else:
+                project_views = [
+                    view
+                    for view in all_attribute_views
+                    if view.name == self.view_name and view.version == self.view_version
+                ]
+                if not project_views:
+                    raise ValueError(
+                        f"No project/attribute view found with name: {self.view_name} and version: {self.view_version}"
+                    )
+                return project_views
         else:
             return latest_views

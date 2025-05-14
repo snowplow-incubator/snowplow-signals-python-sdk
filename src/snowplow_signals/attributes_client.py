@@ -1,11 +1,12 @@
 from .api_client import ApiClient
 from .models import (
-    Service,
-    View,
-    ViewOutput,
     GetOnlineAttributesRequest,
     OnlineAttributesResponse,
+    Service,
+    View,
+    ViewResponse,
 )
+from .registry_client import RegistryClient
 
 
 class AttributesClient:
@@ -14,7 +15,7 @@ class AttributesClient:
 
     def get_view_attributes(
         self,
-        view: View | ViewOutput,
+        view: View | ViewResponse,
         identifiers: list[str] | str,
     ) -> OnlineAttributesResponse:
         attributes = [
@@ -32,6 +33,21 @@ class AttributesClient:
         )
         return self._make_request(request)
 
+    def _get_entity_name(self, service: Service) -> str:
+        unique_entity_names: set[str] = set()
+        for view in service.views:
+            fetched_view = RegistryClient(api_client=self.api_client).get_view(
+                name=view.name, version=view.version
+            )
+            unique_entity_names.add(fetched_view.entity.name)
+
+        if len(unique_entity_names) > 1:
+            raise ValueError(
+                "The service contains views with different entities which is not supported."
+            )
+
+        return unique_entity_names.pop()
+
     def get_service_attributes(
         self,
         service: Service,
@@ -40,13 +56,7 @@ class AttributesClient:
         if not service.views:
             raise ValueError("No views to fetch.")
 
-        entity_names = {view.entity.name for view in service.views}
-        if len(entity_names) > 1:
-            raise ValueError(
-                "The service contains views with different entities which is not supported."
-            )
-        entity_name = entity_names.pop()
-
+        entity_name = self._get_entity_name(service=service)
         request = GetOnlineAttributesRequest(
             service=service.name,
             entities={

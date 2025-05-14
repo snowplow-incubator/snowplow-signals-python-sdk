@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.7] - 2025-05-14
+
+### Changed
+
+- Add unit testing for dbt transformations
+- Address feedback from internal testing
+- Add missing import
+- Fix batch source timestamp columns
+- Fix Service creation with multiple views (#58)
+
 ## [0.0.6] - 2025-04-25
 
 ### Changed

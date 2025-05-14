@@ -2,12 +2,22 @@
 
 Integration test suite for batch autogen dbt models.
 
-The `./scripts` directory contains the following:
+To test locally, run this script from the root to create the repo:
+```bash
+poetry run python integration_tests/replicate_files.py test/auto_gen/__snapshots__/test_snapshots.ambr integration_tests
+```
 
-Run the scripts using:
+Then copy the integration_test folder over to this repo and cd into it and install the package:
 
 ```bash
-bash integration_tests.sh -d {warehouse}
+cd integration_tests/ecommerce_transaction_interactions_features_1/integration_test
+dbt deps
+```
+
+Finally, run the scripts using:
+
+```bash
+bash .scripts/integration_test.sh -d {warehouse}
 ```
 
 Supported warehouses (should be the same as your target in your profile.yml):

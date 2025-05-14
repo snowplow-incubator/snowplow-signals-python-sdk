@@ -10,11 +10,13 @@ from .models import (
     Service,
     TestViewRequest,
     View,
-    ViewOutput,
+    ViewResponse,
 )
 from .prompts.client import PromptsClient
 from .registry_client import RegistryClient
 from .testing_client import TestingClient
+
+
 class Signals:
     """Interface to interact with Snowplow Signals AI"""
 
@@ -30,7 +32,7 @@ class Signals:
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
 
-    def apply(self, objects: list[View | Service]) -> list[ViewOutput | Service]:
+    def apply(self, objects: list[View | Service]) -> list[View | Service]:
         """
         Registers the provided objects to the Signals registry.
 
@@ -43,11 +45,7 @@ class Signals:
         self.feature_store.apply()
         return updated_objets
 
-    def get_view(
-        self,
-        name: str,
-        version: int | None = None
-    ) -> ViewOutput:
+    def get_view(self, name: str, version: int | None = None) -> ViewResponse:
         """
         Returns a View from the Signals registry by name.
         If no version is provided, returns the latest one.
@@ -63,7 +61,7 @@ class Signals:
 
     def get_online_attributes(
         self,
-        source: Service | View | ViewOutput,
+        source: Service | View | ViewResponse,
         identifiers: list[str] | str,
     ) -> OnlineAttributesResponse | None:
         """
@@ -78,7 +76,7 @@ class Signals:
                 service=source,
                 identifiers=identifiers,
             )
-        elif isinstance(source, View) or isinstance(source, ViewOutput):
+        elif isinstance(source, View) or isinstance(source, ViewResponse):
             return self.attributes.get_view_attributes(
                 view=source,
                 identifiers=identifiers,

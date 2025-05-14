@@ -1,12 +1,21 @@
-import httpx
 import json
-import pytest
 from datetime import timedelta
 
-from snowplow_signals import View, user_entity, LinkEntity, Attribute, Event, BatchSource
-from snowplow_signals.models import ViewOutput
+import httpx
+import pytest
+
+from snowplow_signals import (
+    Attribute,
+    BatchSource,
+    Event,
+    LinkEntity,
+    View,
+    user_entity,
+)
 from snowplow_signals.api_client import ApiClient
+from snowplow_signals.models import ViewResponse
 from snowplow_signals.registry_client import RegistryClient
+
 from .utils import MOCK_ORG_ID
 
 
@@ -40,7 +49,7 @@ class TestRegistryClient:
                 )
             ],
         )
-        view_output = ViewOutput(
+        view_output = ViewResponse(
             name="my_view",
             entity=LinkEntity(name="user"),
             feast_name="my_view_v1",
@@ -83,9 +92,9 @@ class TestRegistryClient:
                 database="my_database",
                 schema="my_schema",
                 table="my_table",
-            )
+            ),
         )
-        view_output = ViewOutput(
+        view_output = ViewResponse(
             name="my_view",
             entity=LinkEntity(name="user"),
             feast_name="my_view_v1",

@@ -20,16 +20,17 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {%- set lower_limit, upper_limit = get_limits_for_attributes() %}
 
-with aggregations as (
+with  aggregations as (
 
   select 
     entity_key
+    , min(1) --dummy value in case there are no aggregate values in the view definitions
 {% endraw %}
     {% for attribute in lifetime_aggregates %}
-      , {{ attribute['aggregation_type'] }}({% if attribute['aggregation_type'] == 'array_agg' %}distinct {% endif %}{{ attribute["daily_agg_column_name"] }}) as {{ attribute["column_name"] }}
+      , {{ attribute['aggregation_type'] }}({{ attribute["daily_agg_column_name"] }}) as {{ attribute["column_name"] }}
     {% endfor %}
     {% for attribute in last_n_day_aggregates %}
-      , {{ attribute['aggregation_type'] }}({% if attribute['aggregation_type'] == 'array_agg' %}distinct {% endif %}{% raw %}case when event_date >= {{dbt.dateadd('day', -{% endraw %}{{ attribute["period"] }}{% raw %}, upper_limit)}} then {% endraw %}{{ attribute["daily_agg_column_name"] }} end) as {{ attribute["column_name"] }}
+      , {{ attribute['aggregation_type'] }}({% raw %}case when event_date >= {{dbt.dateadd('day', -{% endraw %}{{ attribute["period"] }}{% raw %}, upper_limit)}} then {% endraw %}{{ attribute["daily_agg_column_name"] }} end) as {{ attribute["column_name"] }}
     {% endfor %}
 
 {% raw %}
@@ -38,12 +39,46 @@ with aggregations as (
   group by 1
   
 )
+{% endraw %}
+
+{% for attribute in unique_list_attributes %}
+  {% if attribute['period'] is not none %}
+    , filtered_data_{{ attribute['column_name'] }} as (
+      select
+          entity_key,
+          {{ attribute['daily_agg_column_name'] }}{% raw %}
+      from {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates')}}
+      where event_date >= {{ dbt.dateadd('day', -{% endraw %}{{ attribute["period"] }}{% raw %}, upper_limit) }}
+    ),
+    {% endraw %}{{ attribute['column_name'] }}_flattened as (
+      select
+          d.entity_key,
+          array_agg(distinct f.value::string) as {{ attribute['column_name'] }}{% raw %}
+      from filtered_data_{% endraw %}{{ attribute['column_name'] }} d,
+      LATERAL FLATTEN(input => {{ attribute['daily_agg_column_name'] }}) f
+      group by d.entity_key
+      
+    )
+
+  {% else %}
+
+    , {{ attribute['column_name'] }}_flattened as (
+      select
+          d.entity_key,
+          array_agg(distinct f.value::string) as {{ attribute['column_name'] }}{% raw %}
+      from {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates')}} d,
+      LATERAL FLATTEN(input => {% endraw %}{{ attribute['daily_agg_column_name'] }}) f
+      group by d.entity_key
+    )
+  {% endif %}
+{% endfor %}
+
+{%- if first_value_attributes | length > 0 or last_value_attributes | length > 0 %}
 
 , window_calculations as (
   
   select distinct
     entity_key
-{% endraw %}
 {% for attribute in first_value_attributes %}
   {% if attribute['period'] %}
     , first_value({{ attribute['daily_agg_column_name'] }}) over (
@@ -73,17 +108,18 @@ with aggregations as (
   {% endif %}
 {% endfor %}
 {% raw %}
-  from {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates')}}
+  from {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates')}}{% endraw %}
   
 )
 
+{% endif %}
+
 select
     
-  w.entity_key as {% endraw %}{{ entity_key }}{% raw %},
-  current_timestamp() as valid_at_tstamp,
+  a.entity_key as {{ entity_key }},
+  {% raw %}{{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
   cast({{ lower_limit }} as date) as lower_limit,
-  cast({{ upper_limit }} as date) as upper_limit
-{% endraw %}
+  cast({{ upper_limit }} as date) as upper_limit{% endraw %}
   {% for attribute in first_value_attributes %}
     , w.{{ attribute['column_name'] }} 
   {%- endfor %}
@@ -102,10 +138,19 @@ select
   {% for attribute in last_value_attributes %}
     , w.{{ attribute['column_name'] }}
   {%- endfor %}
-
+  
+  -- unique_list_attributes
+  {% for attribute in unique_list_attributes %}
+  , {{ attribute['column_name'] }}
+  {%- endfor %}
 from aggregations as a
 
+{%- if first_value_attributes | length > 0 or last_value_attributes | length > 0 %}
 left join window_calculations as w
 on a.entity_key = w.entity_key
+{% endif %}
 
-
+{% for attribute in unique_list_attributes %}
+  left join {{ attribute['column_name']}}_flattened as {{ attribute['column_name']}}_flattened
+  on a.entity_key = {{ attribute['column_name']}}_flattened.entity_key
+{% endfor %}
