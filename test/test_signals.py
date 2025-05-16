@@ -19,6 +19,7 @@ class TestSignalsApply:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@example.com",
         )
         service = Service(
             name="my_service",
@@ -61,6 +62,7 @@ class TestSignalsApply:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@example.com",
         )
 
         view_post_mock = respx_mock.post(
