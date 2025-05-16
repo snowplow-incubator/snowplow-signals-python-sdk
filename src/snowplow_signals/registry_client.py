@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from .api_client import ApiClient, SignalsAPIError
-from .models import RuleIntervention, Service, View, ViewResponse
+from .models import RuleIntervention, Service, View, ViewResponse, Entity
 
 
 class RegistryClient:
@@ -9,9 +9,14 @@ class RegistryClient:
         self.api_client = api_client
 
     def apply(
-        self, objects: list[View | Service | RuleIntervention]
-    ) -> list[View | Service | RuleIntervention]:
-        updated_objects: list[View | Service | RuleIntervention] = []
+        self, objects: list[View | Service | Entity | RuleIntervention]
+    ) -> list[View | Service | Entity | RuleIntervention]:
+        updated_objects: list[View | Service | Entity | RuleIntervention] = []
+
+        # First apply all entities in case they are dependencies of views
+        for object in objects:
+            if isinstance(object, Entity):
+                updated_objects.append(self._create_entity(entity=object))
 
         # First apply all views in case they are dependencies of services
         for object in objects:
@@ -111,6 +116,24 @@ class RegistryClient:
                 raise e
 
         return RuleIntervention.model_validate(response)
+    def _create_or_update_entity(self, entity: Entity) -> Entity:
+        try:
+            response = self.api_client.make_request(
+                method="POST",
+                endpoint="registry/entities/",
+                data=self._model_dump(entity),
+            )
+        except SignalsAPIError as e:
+            if e.status_code == 400:
+                response = self.api_client.make_request(
+                    method="PUT",
+                    endpoint=(f"registry/entities/{entity.name}"),
+                    data=self._model_dump(entity),
+                )
+            else:
+                raise e
+
+        return Entity.model_validate(response)
 
     def _model_dump(self, model: BaseModel) -> dict:
         return model.model_dump(
