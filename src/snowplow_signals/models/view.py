@@ -1,4 +1,4 @@
-from pydantic import Field as PydanticField, BeforeValidator
+from pydantic import Field as PydanticField, BeforeValidator, EmailStr
 from typing import Annotated
 from .model import (
     ViewInput,
@@ -19,4 +19,9 @@ class View(ViewInput):
             ...,
             description="The entity that this view is associated with.",
         )
+    ),
+    owner: EmailStr = PydanticField(
+        ...,
+        description="The owner of the view, typically the email of the primary maintainer. This field is required for view creation.",
+        title="Owner",
     )
