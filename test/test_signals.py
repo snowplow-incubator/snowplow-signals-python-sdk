@@ -24,6 +24,7 @@ class TestSignalsApply:
         service = Service(
             name="my_service",
             views=[view],
+            owner="test@example.com",
         )
 
         view_mock = respx_mock.post(
