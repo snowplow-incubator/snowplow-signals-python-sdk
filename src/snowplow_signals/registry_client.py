@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from .api_client import ApiClient, SignalsAPIError
-from .models import Service, View, ViewResponse
+from .models import Service, View, ViewResponse 
 
 
 class RegistryClient:
@@ -35,6 +35,16 @@ class RegistryClient:
             )
 
         return ViewResponse.model_validate(response)
+    
+    def get_service(self, name: str) -> Service:
+
+        response = self.api_client.make_request(
+            method="GET",
+            endpoint=(f"registry/services/{name}"),
+        )
+
+        return Service.model_validate(response)
+    
 
     def _create_or_update_view(self, view: View) -> View:
         try:

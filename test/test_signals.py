@@ -9,6 +9,7 @@ class TestSignalsApply:
         view = View(
             name="my_view",
             entity=domain_userid,
+            owner="test@example.com",
         )
         view_output = ViewResponse(
             name="my_view",
@@ -18,10 +19,12 @@ class TestSignalsApply:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@example.com",
         )
         service = Service(
             name="my_service",
             views=[view],
+            owner="test@example.com",
         )
 
         view_mock = respx_mock.post(
@@ -50,6 +53,7 @@ class TestSignalsApply:
         view = View(
             name="my_view",
             entity=domain_userid,
+            owner="test@example.com",
         )
         view_output = ViewResponse(
             name="my_view",
@@ -59,6 +63,7 @@ class TestSignalsApply:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@example.com",
         )
 
         view_post_mock = respx_mock.post(
