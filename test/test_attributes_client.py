@@ -29,10 +29,12 @@ class TestAttributesClient:
         user_view_a = View(
             name="user_view_a",
             entity=user_entity,
+            owner="test@test.com",
         )
         user_view_b = View(
             name="user_view_b",
             entity=user_entity,
+            owner="test@test.com",
         )
 
         user_view_a_output = ViewResponse(
@@ -43,6 +45,7 @@ class TestAttributesClient:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@test.com",
         )
         user_view_b_output = ViewResponse(
             name="user_view_b_output",
@@ -52,6 +55,7 @@ class TestAttributesClient:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@test.com",
         )
         attributes_client = AttributesClient(api_client=api_client)
 
@@ -66,6 +70,7 @@ class TestAttributesClient:
         service = Service(
             name="my_service",
             views=[user_view_a, user_view_b],
+            owner="test@test.com",
         )
         entity = attributes_client._get_entity_name(service=service)
         assert entity == "user"
@@ -74,10 +79,12 @@ class TestAttributesClient:
         user_view = View(
             name="user_view",
             entity=user_entity,
+            owner="test@test.com",
         )
         session_view = View(
             name="session_view",
             entity=session_entity,
+            owner="test@test.com",
         )
         user_view_output = ViewResponse(
             name="user_view",
@@ -87,6 +94,7 @@ class TestAttributesClient:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@test.com",
         )
         session_view_output = ViewResponse(
             name="session_view",
@@ -96,6 +104,7 @@ class TestAttributesClient:
             stream_source_name="my_stream",
             entity_key="domain_sessionid",
             view_or_entity_ttl=None,
+            owner="test@test.com",
         )
         attributes_client = AttributesClient(api_client=api_client)
 
@@ -110,6 +119,7 @@ class TestAttributesClient:
         service = Service(
             name="my_service",
             views=[user_view, session_view],
+            owner="test@test.com",
         )
         with pytest.raises(
             ValueError,
