@@ -5,7 +5,7 @@ from .model import (
     VersionedLinkView,
 )
 from .view import View
-
+from pydantic import EmailStr
 
 def view_to_link(
     views: list[View | VersionedLinkView | dict] | None,
@@ -31,4 +31,9 @@ class Service(ServiceInput):
             min_length=1,
             title="Views",
         )
+    ),
+    owner: EmailStr = Field(
+        ...,
+        description="The owner of the service, typically the email of the primary maintainer. This field is required for service creation.",
+        title="Owner",
     )
