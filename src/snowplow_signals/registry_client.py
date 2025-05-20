@@ -16,7 +16,7 @@ class RegistryClient:
         # First apply all entities in case they are dependencies of views
         for object in objects:
             if isinstance(object, Entity):
-                updated_objects.append(self._create_entity(entity=object))
+                updated_objects.append(self._create_or_update_entity(entity=object))
 
         # First apply all views in case they are dependencies of services
         for object in objects:
