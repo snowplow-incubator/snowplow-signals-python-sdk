@@ -30,8 +30,8 @@ class Service(ServiceInput):
             max_length=100,
             min_length=1,
             title="Views",
-        )
-    ),
+        )  # type: ignore[assignment]
+    )
     owner: EmailStr = Field(
         ...,
         description="The owner of the service, typically the email of the primary maintainer. This field is required for service creation.",
