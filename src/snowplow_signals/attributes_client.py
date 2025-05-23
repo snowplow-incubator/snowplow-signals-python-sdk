@@ -52,7 +52,7 @@ class AttributesClient:
         self,
         service: Service,
         identifiers: list[str] | str,
-    ) -> None:
+    ) -> OnlineAttributesResponse:
         if not service.views:
             raise ValueError("No views to fetch.")
 
@@ -69,10 +69,10 @@ class AttributesClient:
 
     def _make_request(
         self, request: GetOnlineAttributesRequest
-    ) -> OnlineAttributesResponse | None:
+    ) -> OnlineAttributesResponse:
         response = self.api_client.make_request(
             method="POST",
             endpoint="get-online-attributes",
             data=request.model_dump(mode="json"),
         )
-        return OnlineAttributesResponse(data=response) if response else None
+        return OnlineAttributesResponse(data=response)

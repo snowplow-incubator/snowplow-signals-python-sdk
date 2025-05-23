@@ -1,6 +1,6 @@
 import httpx
 
-from snowplow_signals import LinkEntity, Service, View, user_entity
+from snowplow_signals import LinkEntity, Service, View, domain_userid
 from snowplow_signals.models import ViewResponse
 
 
@@ -8,7 +8,8 @@ class TestSignalsApply:
     def test_apply_view_and_service(self, signals_client, respx_mock):
         view = View(
             name="my_view",
-            entity=user_entity,
+            entity=domain_userid,
+            owner="test@example.com",
         )
         view_output = ViewResponse(
             name="my_view",
@@ -18,10 +19,12 @@ class TestSignalsApply:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@example.com",
         )
         service = Service(
             name="my_service",
             views=[view],
+            owner="test@example.com",
         )
 
         view_mock = respx_mock.post(
@@ -49,7 +52,8 @@ class TestSignalsApply:
     def test_already_existing_view(self, signals_client, respx_mock):
         view = View(
             name="my_view",
-            entity=user_entity,
+            entity=domain_userid,
+            owner="test@example.com",
         )
         view_output = ViewResponse(
             name="my_view",
@@ -59,6 +63,7 @@ class TestSignalsApply:
             stream_source_name="my_stream",
             entity_key="user_id",
             view_or_entity_ttl=None,
+            owner="test@example.com",
         )
 
         view_post_mock = respx_mock.post(
