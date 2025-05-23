@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.0] - 2025-05-23
+
+### Changed
+
+- [AISP-435] Slash API URL
+- [AISP-348] Make owner required in views (#56)
+- [AISP-310] Rename user and session entity to domain_userid and domain_sessionid and add user_id and network_userid (#57)
+- Small fixes in the types (#60)
+
 ## [0.0.7] - 2025-05-14
 
 ### Changed
