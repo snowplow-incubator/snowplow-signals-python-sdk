@@ -7,6 +7,7 @@ from .model import (
 from .view import View
 from pydantic import EmailStr
 
+
 def view_to_link(
     views: list[View | VersionedLinkView | dict] | None,
 ) -> list[VersionedLinkView | dict] | None:
