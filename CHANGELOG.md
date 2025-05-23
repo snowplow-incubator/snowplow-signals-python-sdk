@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.1] - 2025-05-23
+
+### Changed
+
+- Fix entity name references in the retrieve attributes request
+
 ## [0.1.0] - 2025-05-23
 
 ### Changed
