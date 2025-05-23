@@ -5,6 +5,7 @@ import pandas as pd
 from .api_client import ApiClient
 from .attributes_client import AttributesClient
 from .feature_store_client import FeatureStoreClient
+from .interventions_client import InterventionsClient
 from .models import (
     OnlineAttributesResponse,
     Service,
@@ -31,6 +32,7 @@ class Signals:
         self.feature_store = FeatureStoreClient(api_client=self.api_client)
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
+        self.interventions = InterventionsClient(api_client=self.api_client)
 
     def apply(self, objects: list[View | Service]) -> list[View | Service]:
         """

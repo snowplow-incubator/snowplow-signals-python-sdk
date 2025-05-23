@@ -5,7 +5,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
+from uuid import UUID
 
 from pydantic import UUID4, BaseModel, Field, conint, constr
 
@@ -60,25 +61,23 @@ class BatchSource(BaseModel):
     )
 
 
-class Criterion(BaseModel):
-    property_syntax: Optional[Literal["blobl", "snowflake"]] = Field(
-        "snowflake",
-        description="The syntax used to reference the property.",
-        title="Property Syntax",
+class ClearAttributeContext(BaseModel):
+    field_attributes: Optional[Dict[str, Any]] = Field(
+        None, alias="$attributes", title="$Attributes"
     )
-    property: str = Field(
+    attribute: constr(
+        pattern=r"^[A-Za-z0-9_]{1,128}:[A-Za-z0-9_]{1,128}$",
+        min_length=3,
+        max_length=257,
+    ) = Field(
         ...,
-        description="The path to the property on the event or entity you wish to filter.",
-        title="Property",
+        description="An unversioned reference to a view and attribute, delimited by a colon.",
+        title="Attribute",
     )
-    operator: Literal["=", "!=", "<", ">", "<=", ">=", "like", "in"] = Field(
-        ...,
-        description="The operator used to compare the property to the value.",
-        title="Operator",
-    )
-    value: Union[
-        str, int, float, bool, List[str], List[int], List[float], List[bool]
-    ] = Field(..., description="The value to compare the property to.", title="Value")
+
+
+class DeliveryStatus(BaseModel):
+    status: Literal["failure", "success", "undelivered"] = Field(..., title="Status")
 
 
 class Entity(BaseModel):
@@ -318,6 +317,34 @@ class PushAttributesRequest(BaseModel):
     to: Optional[Literal["online", "online_and_offline"]] = Field("online", title="To")
 
 
+class SetAttributeContext(BaseModel):
+    field_attributes: Optional[Dict[str, Any]] = Field(
+        None, alias="$attributes", title="$Attributes"
+    )
+    attribute: constr(
+        pattern=r"^[A-Za-z0-9_]{1,128}:[A-Za-z0-9_]{1,128}$",
+        min_length=3,
+        max_length=257,
+    ) = Field(
+        ...,
+        description="An unversioned reference to a view and attribute, delimited by a colon.",
+        title="Attribute",
+    )
+    value: Optional[Any] = Field(None, title="Value")
+    path: Optional[
+        constr(
+            pattern=r"^[A-Za-z0-9_]{1,128}:[A-Za-z0-9_]{1,128}$",
+            min_length=3,
+            max_length=257,
+        )
+    ] = Field(
+        None,
+        description="An unversioned reference to a view and attribute, delimited by a colon.",
+        title="Path",
+    )
+    clear_history: Optional[bool] = Field(None, title="Clear History")
+
+
 class ValidationError(BaseModel):
     loc: List[Union[str, int]] = Field(..., title="Location")
     msg: str = Field(..., title="Message")
@@ -333,13 +360,123 @@ class VersionedLinkView(BaseModel):
     )
 
 
+class SignalsApiModelsInterventionCriterionCriterion(BaseModel):
+    attribute: constr(
+        pattern=r"^[A-Za-z0-9_]{1,128}:[A-Za-z0-9_]{1,128}$",
+        min_length=3,
+        max_length=257,
+    ) = Field(
+        ...,
+        description="The name of the attribute to evaluate for this criterion using operator and value. The attribute name should be qualified, including the name of the view that contains it",
+        title="Attribute",
+    )
+    operator: Literal[
+        "=",
+        "!=",
+        "<",
+        ">",
+        "<=",
+        ">=",
+        "like",
+        "not like",
+        "rlike",
+        "not rlike",
+        "in",
+        "not in",
+        "is null",
+        "is not null",
+    ] = Field(
+        ...,
+        description="The operator used to compare the attribute to the value.",
+        title="Operator",
+    )
+    value: Optional[
+        Union[str, int, float, bool, List[str], List[int], List[float], List[bool]]
+    ] = Field(
+        None,
+        description="The value to be compared using operator against the attribute value for this criterion.",
+        title="Value",
+    )
+
+
+class SignalsApiModelsViewCriterionCriterion(BaseModel):
+    property_syntax: Optional[Literal["blobl", "snowflake"]] = Field(
+        "snowflake",
+        description="The syntax used to reference the property.",
+        title="Property Syntax",
+    )
+    property: str = Field(
+        ...,
+        description="The path to the property on the event or entity you wish to filter.",
+        title="Property",
+    )
+    operator: Literal["=", "!=", "<", ">", "<=", ">=", "like", "in"] = Field(
+        ...,
+        description="The operator used to compare the property to the value.",
+        title="Operator",
+    )
+    value: Union[
+        str, int, float, bool, List[str], List[int], List[float], List[bool]
+    ] = Field(..., description="The value to compare the property to.", title="Value")
+
+
+class BaseIntervention(BaseModel):
+    name: constr(pattern=r"^[A-Za-z0-9_]+$", min_length=1, max_length=128) = Field(
+        ..., description="The unique name of the object.", title="Name"
+    )
+    version: Optional[int] = Field(
+        1, description="The version of the object.", title="Version"
+    )
+    method: Literal[
+        "clear_attribute",
+        "set_attribute",
+        "script",
+        "computer_use_agent",
+        "remote_agent",
+    ] = Field(
+        ...,
+        description="Type of intervention capabilities that are required to handle the intervention",
+        title="Method",
+    )
+    target_agents: Optional[List[str]] = Field(
+        None,
+        description="List of identifiers for agents that should handle this intervention. If not provided, generic intervention all agents should be allowed to process",
+        title="Target Agents",
+    )
+    script_uri: Optional[str] = Field(
+        None,
+        description="Script text or content that should be interpreted by the handling agent(s)",
+        title="Script Uri",
+    )
+    context: Optional[
+        Union[SetAttributeContext, ClearAttributeContext, Dict[str, Any]]
+    ] = Field(
+        None,
+        description="Additional context that is passed to the agent alongside the script content",
+        title="Context",
+    )
+    description: Optional[str] = Field(
+        None, description="A human-readable description.", title="Description"
+    )
+    tags: Optional[Dict[str, str]] = Field(
+        None,
+        description="A dictionary of key-value pairs to store arbitrary metadata.",
+        title="Tags",
+    )
+    owner: Optional[str] = Field(
+        None,
+        description="The owner of the intervention, typically the email of the primary maintainer.",
+        title="Owner",
+    )
+
+
 class Criteria(BaseModel):
-    all: Optional[List[Criterion]] = Field(
+    all: Optional[List[SignalsApiModelsViewCriterionCriterion]] = Field(
         None,
         description="An array of conditions used to filter the events. All conditions must be met.",
         title="All",
     )
-    any: Optional[List[Criterion]] = Field(
+    any: Optional[List[SignalsApiModelsViewCriterionCriterion]] = Field(
         None,
         description="An array of conditions used to filter the events. At least one condition must be met.",
         title="Any",
@@ -348,6 +485,42 @@ class Criteria(BaseModel):
 
 class HTTPValidationError(BaseModel):
     detail: Optional[List[ValidationError]] = Field(None, title="Detail")
+
+
+class InterventionInstance(BaseModel):
+    method: Literal[
+        "clear_attribute",
+        "set_attribute",
+        "script",
+        "computer_use_agent",
+        "remote_agent",
+    ] = Field(
+        ...,
+        description="Type of intervention capabilities that are required to handle the intervention",
+        title="Method",
+    )
+    target_agents: Optional[List[str]] = Field(
+        None,
+        description="List of identifiers for agents that should handle this intervention. If not provided, generic intervention all agents should be allowed to process",
+        title="Target Agents",
+    )
+    script_uri: Optional[str] = Field(
+        None,
+        description="Script text or content that should be interpreted by the handling agent(s)",
+        title="Script Uri",
+    )
+    context: Optional[
+        Union[SetAttributeContext, ClearAttributeContext, Dict[str, Any]]
+    ] = Field(
+        None,
+        description="Additional context that is passed to the agent alongside the script content",
+        title="Context",
+    )
+    intervention_id: Optional[UUID] = Field(None, title="Intervention Id")
+    name: constr(pattern=r"^[A-Za-z0-9_]+$", min_length=1, max_length=128) = Field(
+        ..., description="The unique name of the intervention.", title="Name"
+    )
+    version: int = Field(..., description="The version of the object.", title="Version")
 
 
 class Service(BaseModel):
@@ -705,8 +878,232 @@ class TestViewRequest(BaseModel):
         description="The time window to consider when querying the atomic events table",
         title="Window",
     )
-    entity_ids: List[str] = Field(
-        ...,
+    entity_ids: Optional[List[str]] = Field(
+        None,
         description="List of entity IDs to test (e.g., list of domain_userid). If empty, a sample of 10 random IDs will be used",
         title="Entity Ids",
     )
+
+
+class AppliedInterventionsForStream(BaseModel):
+    interventions: List[Union[RuleInterventionOutput, BaseIntervention]] = Field(
+        ..., title="Interventions"
+    )
+    applied_at: Optional[datetime] = Field(None, title="Applied At")
+
+
+class CriteriaAllInput(BaseModel):
+    all: List[
+        Union[
+            CriteriaAllInput,
+            CriteriaAnyInput,
+            CriteriaNoneInput,
+            SignalsApiModelsInterventionCriterionCriterion,
+        ]
+    ] = Field(
+        ...,
+        description="An array of conditions used to determine if the intervention should trigger. All conditions must be met.",
+        title="All",
+    )
+
+
+class CriteriaAllOutput(BaseModel):
+    all: List[
+        Union[
+            CriteriaAllOutput,
+            CriteriaAnyOutput,
+            CriteriaNoneOutput,
+            SignalsApiModelsInterventionCriterionCriterion,
+        ]
+    ] = Field(
+        ...,
+        description="An array of conditions used to determine if the intervention should trigger. All conditions must be met.",
+        title="All",
+    )
+
+
+class CriteriaAnyInput(BaseModel):
+    any: List[
+        Union[
+            CriteriaAllInput,
+            CriteriaAnyInput,
+            CriteriaNoneInput,
+            SignalsApiModelsInterventionCriterionCriterion,
+        ]
+    ] = Field(
+        ...,
+        description="An array of conditions used to determine if the intervention should trigger. At least one condition must be met.",
+        title="Any",
+    )
+
+
+class CriteriaAnyOutput(BaseModel):
+    any: List[
+        Union[
+            CriteriaAllOutput,
+            CriteriaAnyOutput,
+            CriteriaNoneOutput,
+            SignalsApiModelsInterventionCriterionCriterion,
+        ]
+    ] = Field(
+        ...,
+        description="An array of conditions used to determine if the intervention should trigger. At least one condition must be met.",
+        title="Any",
+    )
+
+
+class CriteriaNoneInput(BaseModel):
+    none: List[
+        Union[
+            CriteriaAllInput,
+            CriteriaAnyInput,
+            CriteriaNoneInput,
+            SignalsApiModelsInterventionCriterionCriterion,
+        ]
+    ] = Field(
+        ...,
+        description="An array of conditions used to determine if the intervention should trigger. None of the conditions may be met.",
+        title="None",
+    )
+
+
+class CriteriaNoneOutput(BaseModel):
+    none: List[
+        Union[
+            CriteriaAllOutput,
+            CriteriaAnyOutput,
+            CriteriaNoneOutput,
+            SignalsApiModelsInterventionCriterionCriterion,
+        ]
+    ] = Field(
+        ...,
+        description="An array of conditions used to determine if the intervention should trigger. None of the conditions may be met.",
+        title="None",
+    )
+
+
+class RuleInterventionInput(BaseModel):
+    name: constr(pattern=r"^[A-Za-z0-9_]+$", min_length=1, max_length=128) = Field(
+        ..., description="The unique name of the object.", title="Name"
+    )
+    version: Optional[int] = Field(
+        1, description="The version of the object.", title="Version"
+    )
+    method: Literal[
+        "clear_attribute",
+        "set_attribute",
+        "script",
+        "computer_use_agent",
+        "remote_agent",
+    ] = Field(
+        ...,
+        description="Type of intervention capabilities that are required to handle the intervention",
+        title="Method",
+    )
+    target_agents: Optional[List[str]] = Field(
+        None,
+        description="List of identifiers for agents that should handle this intervention. If not provided, generic intervention all agents should be allowed to process",
+        title="Target Agents",
+    )
+    script_uri: Optional[str] = Field(
+        None,
+        description="Script text or content that should be interpreted by the handling agent(s)",
+        title="Script Uri",
+    )
+    context: Optional[
+        Union[SetAttributeContext, ClearAttributeContext, Dict[str, Any]]
+    ] = Field(
+        None,
+        description="Additional context that is passed to the agent alongside the script content",
+        title="Context",
+    )
+    description: Optional[str] = Field(
+        None, description="A human-readable description.", title="Description"
+    )
+    tags: Optional[Dict[str, str]] = Field(
+        None,
+        description="A dictionary of key-value pairs to store arbitrary metadata.",
+        title="Tags",
+    )
+    owner: Optional[str] = Field(
+        None,
+        description="The owner of the intervention, typically the email of the primary maintainer.",
+        title="Owner",
+    )
+    criteria: Union[
+        CriteriaAllInput,
+        CriteriaAnyInput,
+        CriteriaNoneInput,
+        SignalsApiModelsInterventionCriterionCriterion,
+    ] = Field(
+        ...,
+        description="Rule or group of rules defining features that should be evaluated to determine if the intervention should be triggered",
+        title="Criteria",
+    )
+
+
+class RuleInterventionOutput(BaseModel):
+    name: constr(pattern=r"^[A-Za-z0-9_]+$", min_length=1, max_length=128) = Field(
+        ..., description="The unique name of the object.", title="Name"
+    )
+    version: Optional[int] = Field(
+        1, description="The version of the object.", title="Version"
+    )
+    method: Literal[
+        "clear_attribute",
+        "set_attribute",
+        "script",
+        "computer_use_agent",
+        "remote_agent",
+    ] = Field(
+        ...,
+        description="Type of intervention capabilities that are required to handle the intervention",
+        title="Method",
+    )
+    target_agents: Optional[List[str]] = Field(
+        None,
+        description="List of identifiers for agents that should handle this intervention. If not provided, generic intervention all agents should be allowed to process",
+        title="Target Agents",
+    )
+    script_uri: Optional[str] = Field(
+        None,
+        description="Script text or content that should be interpreted by the handling agent(s)",
+        title="Script Uri",
+    )
+    context: Optional[
+        Union[SetAttributeContext, ClearAttributeContext, Dict[str, Any]]
+    ] = Field(
+        None,
+        description="Additional context that is passed to the agent alongside the script content",
+        title="Context",
+    )
+    description: Optional[str] = Field(
+        None, description="A human-readable description.", title="Description"
+    )
+    tags: Optional[Dict[str, str]] = Field(
+        None,
+        description="A dictionary of key-value pairs to store arbitrary metadata.",
+        title="Tags",
+    )
+    owner: Optional[str] = Field(
+        None,
+        description="The owner of the intervention, typically the email of the primary maintainer.",
+        title="Owner",
+    )
+    criteria: Union[
+        CriteriaAllOutput,
+        CriteriaAnyOutput,
+        CriteriaNoneOutput,
+        SignalsApiModelsInterventionCriterionCriterion,
+    ] = Field(
+        ...,
+        description="Rule or group of rules defining features that should be evaluated to determine if the intervention should be triggered",
+        title="Criteria",
+    )
+
+
+AppliedInterventionsForStream.model_rebuild()
+CriteriaAllInput.model_rebuild()
+CriteriaAllOutput.model_rebuild()
+CriteriaAnyInput.model_rebuild()
+CriteriaAnyOutput.model_rebuild()

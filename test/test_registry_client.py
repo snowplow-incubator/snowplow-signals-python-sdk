@@ -2,7 +2,6 @@ import json
 from datetime import timedelta
 
 import httpx
-import pytest
 
 from snowplow_signals import (
     Attribute,
@@ -19,17 +18,7 @@ from snowplow_signals.registry_client import RegistryClient
 
 from .utils import MOCK_ORG_ID
 
-
 class TestRegistryClient:
-    @pytest.fixture
-    def api_client(self):
-        return ApiClient(
-            api_url="http://localhost:8000",
-            api_key="foo",
-            api_key_id="bar",
-            org_id=MOCK_ORG_ID,
-        )
-
     def test_serializes_period_correctly_using_iso_format(self, respx_mock, api_client):
         view = View(
             name="my_view",
