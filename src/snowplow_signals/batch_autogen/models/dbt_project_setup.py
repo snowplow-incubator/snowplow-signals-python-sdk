@@ -91,6 +91,10 @@ class DbtProjectSetup:
 
         attribute_views = self._get_attribute_views()
         for attribute_view in attribute_views:
+            # Skip views that have no attributes (i.e., only materialize existing tables)
+            if (not attribute_view.attributes) and attribute_view.fields:
+                logger.info(f"Skipping batch view '{attribute_view.name}_{attribute_view.version}' as it has no attributes and only fields.")
+                continue
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
             project_config = self._get_attribute_view_project_config(attribute_view)
             batch_source_config = self._get_default_batch_source_config(
