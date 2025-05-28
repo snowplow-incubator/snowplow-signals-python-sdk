@@ -11,12 +11,12 @@ from snowplow_signals import (
     View,
     domain_userid,
 )
-from snowplow_signals.models import ViewResponse
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.models import ViewResponse
 from snowplow_signals.registry_client import RegistryClient
 
 from .utils import MOCK_ORG_ID
+
 
 class TestRegistryClient:
     def test_serializes_period_correctly_using_iso_format(self, respx_mock, api_client):

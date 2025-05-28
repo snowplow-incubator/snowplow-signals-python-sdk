@@ -1,3 +1,4 @@
+from .interventions import RuleIntervention
 from .model import AttributeInput as Attribute
 from .model import (
     AttributeOutput,
@@ -51,6 +52,7 @@ Field
 LinkEntity
 Event
 # Interventions
+RuleIntervention
 RuleInterventionOutput
 RuleInterventionInput
 InterventionSetAttributeContext

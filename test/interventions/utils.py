@@ -17,7 +17,7 @@ example_intervention = {
     },
     "description": "Resets the number of add_to_cart events when it becomes more than three.",
     "tags": None,
-    "owner": None,
+    "owner": "peter@snowplowanalytics.com",
     "criteria": {
         "attribute": "sample_ecommerce_stream_features:add_to_cart_events_count",
         "operator": ">",
@@ -38,7 +38,7 @@ another_intervention = {
     },
     "description": "Resets the number of add_to_cart events when it becomes more than three.",
     "tags": None,
-    "owner": None,
+    "owner": "peter@snowplowanalytics.com",
     "criteria": {
         "attribute": "sample_ecommerce_stream_features:add_to_cart_events_count",
         "operator": ">",

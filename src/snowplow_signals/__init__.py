@@ -21,14 +21,20 @@ from snowplow_signals.models import (
     InterventionCriterion,
     InterventionSetAttributeContext,
     LinkEntity,
-)
-from snowplow_signals.models import RuleInterventionInput as RuleIntervention
-from snowplow_signals.models import (
+    RuleIntervention,
     Service,
     View,
 )
 from snowplow_signals.signals import Signals
-from .definitions import session_entity, user_entity, domain_userid, domain_sessionid, user_id, network_userid
+
+from .definitions import (
+    domain_sessionid,
+    domain_userid,
+    network_userid,
+    session_entity,
+    user_entity,
+    user_id,
+)
 
 Signals
 View
