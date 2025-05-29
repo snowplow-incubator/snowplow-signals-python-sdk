@@ -6,13 +6,35 @@ from snowplow_signals.models import (
     Entity,
     Event,
     Field,
+    InterventionClearAttributeContext,
+)
+from snowplow_signals.models import (
+    InterventionCriteriaAllInput as InterventionCriteriaAll,
+)
+from snowplow_signals.models import (
+    InterventionCriteriaAnyInput as InterventionCriteriaAny,
+)
+from snowplow_signals.models import (
+    InterventionCriteriaNoneInput as InterventionCriteriaNone,
+)
+from snowplow_signals.models import (
+    InterventionCriterion,
+    InterventionSetAttributeContext,
     LinkEntity,
+    RuleIntervention,
     Service,
     View,
 )
 from snowplow_signals.signals import Signals
-from .definitions import session_entity, user_entity, domain_userid, domain_sessionid, user_id, network_userid
 
+from .definitions import (
+    domain_sessionid,
+    domain_userid,
+    network_userid,
+    session_entity,
+    user_entity,
+    user_id,
+)
 
 Signals
 View
@@ -31,3 +53,12 @@ domain_userid
 domain_sessionid
 user_id
 network_userid
+
+# Interventions
+RuleIntervention
+InterventionSetAttributeContext
+InterventionClearAttributeContext
+InterventionCriteriaAll
+InterventionCriteriaAny
+InterventionCriteriaNone
+InterventionCriterion

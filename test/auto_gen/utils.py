@@ -5,7 +5,7 @@ Provides mock data and helper functions for testing.
 
 import json
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 # Mock data for testing
 MOCK_ECOMMERCE_VIEW = {
@@ -22,7 +22,7 @@ MOCK_ECOMMERCE_VIEW = {
         "owner": None,
         "date_partition_column": None,
         "database": "SNOWPLOW_DEV1",
-        "schema" : "DUMMY_SCHEMA",
+        "schema": "DUMMY_SCHEMA",
         "table": "SNOWPLOW_ECOMMERCE_TRANSACTION_INTERACTIONS_FEATURES",
     },
     "online": True,
@@ -129,7 +129,6 @@ def get_attribute_view_response_from_file() -> List[Dict[str, Any]]:
     with open(json_path, "r") as f:
         data = json.load(f)
     return data["mock_attribute_views"]
-
 
 
 def get_integration_test_view_response() -> List[Dict[str, Any]]:
