@@ -54,6 +54,7 @@ def _load_env_from_default_snowplow_yml():
     }
     for key, value in env_map.items():
         if value and not os.environ.get(key):
+            logger.info(f"Setting {key} from {yaml_path}")
             os.environ[key] = value
 
 
