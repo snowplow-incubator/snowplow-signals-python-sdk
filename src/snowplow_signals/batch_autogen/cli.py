@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 import os
+import yaml  # type: ignore
 
 import typer
 
@@ -33,6 +34,31 @@ app = typer.Typer(
 )
 # Configure logging
 logger = get_logger(__name__)
+
+
+def _load_env_from_default_snowplow_yml():
+    yaml_path = Path.home() / ".config" / "snowplow" / "snowplow.yml"
+    
+    if not yaml_path.exists():
+        return
+    with open(yaml_path, "r") as f:
+        config = yaml.safe_load(f)
+    console = config.get("console")
+
+    if not console:
+        return
+    env_map = {
+        "SNOWPLOW_CONSOLE_ORG_ID": console.get("org-id"),
+        "SNOWPLOW_CONSOLE_API_KEY_ID": console.get("api-key-id"),
+        "SNOWPLOW_CONSOLE_API_KEY": console.get("api-key"),
+    }
+    for key, value in env_map.items():
+        if value and not os.environ.get(key):
+            logger.info(f"Setting {key} from {yaml_path}")
+            os.environ[key] = value
+
+
+_load_env_from_default_snowplow_yml()
 
 
 def validate_repo_path(repo_path: str) -> Path:
