@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from .api_client import ApiClient, SignalsAPIError
-from .models import RuleIntervention, Service, View, ViewResponse, Entity
+from .models import Entity, RuleIntervention, Service, View, ViewResponse
 
 
 class RegistryClient:
@@ -18,7 +18,7 @@ class RegistryClient:
             if isinstance(object, Entity):
                 updated_objects.append(self._create_or_update_entity(entity=object))
 
-        # First apply all views in case they are dependencies of services
+        # Apply all views in case they are dependencies of services
         for object in objects:
             if isinstance(object, View):
                 updated_objects.append(self._create_or_update_view(view=object))
@@ -116,6 +116,7 @@ class RegistryClient:
                 raise e
 
         return RuleIntervention.model_validate(response)
+
     def _create_or_update_entity(self, entity: Entity) -> Entity:
         try:
             response = self.api_client.make_request(
