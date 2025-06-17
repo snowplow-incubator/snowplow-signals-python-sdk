@@ -45,7 +45,7 @@ class Service(ServiceInput):
         self, signals: "Signals", identifiers: list[str] | str, entity: str
     ):
         """
-        Retrieves the online attributes for this service.
+        Retrieves the attributes for this service.
 
         Args:
             signals: The Signals instance to use for retrieving attributes.
@@ -53,7 +53,7 @@ class Service(ServiceInput):
             entity: The entity name to retrieve attributes for.
 
         Returns:
-            The online attributes for the service.
+            The attributes for the service.
         """
 
         return signals.attributes.get_service_attributes(
