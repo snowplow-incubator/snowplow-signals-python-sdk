@@ -64,30 +64,51 @@ class Signals:
         view = self.registry.get_view(name, version)
         return view
 
-    def get_online_attributes(
+    def get_view_attributes(
         self,
-        source: Service | View | ViewResponse,
+        name: str,
+        version: int,
+        entity: str,
+        identifiers: list[str] | str,
+        attributes: list[str] | str,
+    ) -> GetAttributesResponse:
+        """
+        Retrieves the attributes for a given view by name and version.
+
+        Args:
+            name: The name of the View.
+            version: The version of the View.
+            entity: The entity name to retrieve attributes for.
+            identifiers: The list of entity identifiers to retrieve attributes for.
+            attributes: The list of attributes to retrieve.
+        """
+        return self.attributes.get_view_attributes(
+            name=name,
+            version=version,
+            entity=entity,
+            identifiers=identifiers,
+            attributes=attributes,
+        )
+
+    def get_service_attributes(
+        self,
+        name: str,
+        entity: str,
         identifiers: list[str] | str,
     ) -> GetAttributesResponse:
         """
-        Retrieves the online attributes for a given source and identifiers.
+        Retrieves the attributes for a given service by name.
 
         Args:
-            source: Either a View or Service to retrieve attributes for.
-            identifiers: The list of entity (user or session) identifiers to retrieve attributes for.
+            name: The name of the Service.
+            entity: The entity name to retrieve attributes for.
+            identifiers: The list of entity identifiers to retrieve attributes for.
         """
-        if isinstance(source, Service):
-            return self.attributes.get_service_attributes(
-                service=source,
-                identifiers=identifiers,
-            )
-        elif isinstance(source, View) or isinstance(source, ViewResponse):
-            return self.attributes.get_view_attributes(
-                view=source,
-                identifiers=identifiers,
-            )
-        else:
-            raise TypeError("Source must be a FeatureService or a FeatureView.")
+        return self.attributes.get_service_attributes(
+            name=name,
+            entity=entity,
+            identifiers=identifiers,
+        )
 
     def test(
         self,
