@@ -1,5 +1,6 @@
 from .api_client import ApiClient
 from .models import (
+    GetAttributesResponse,
     GetOnlineAttributesRequest,
     OnlineAttributesResponse,
     Service,

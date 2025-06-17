@@ -7,7 +7,7 @@ from .attributes_client import AttributesClient
 from .feature_store_client import FeatureStoreClient
 from .interventions_client import InterventionsClient
 from .models import (
-    OnlineAttributesResponse,
+    GetAttributesResponse,
     RuleIntervention,
     Service,
     TestViewRequest,
@@ -68,7 +68,7 @@ class Signals:
         self,
         source: Service | View | ViewResponse,
         identifiers: list[str] | str,
-    ) -> OnlineAttributesResponse | None:
+    ) -> GetAttributesResponse:
         """
         Retrieves the online attributes for a given source and identifiers.
 
