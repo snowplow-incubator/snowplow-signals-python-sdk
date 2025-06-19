@@ -68,9 +68,9 @@ class Signals:
         self,
         name: str,
         version: int,
-        entity: str,
-        identifiers: list[str] | str,
         attributes: list[str] | str,
+        entity: str,
+        identifier: str,
     ) -> GetAttributesResponse:
         """
         Retrieves the attributes for a given view by name and version.
@@ -79,22 +79,22 @@ class Signals:
             name: The name of the View.
             version: The version of the View.
             entity: The entity name to retrieve attributes for.
-            identifiers: The list of entity identifiers to retrieve attributes for.
+            identifier: The entity identifier to retrieve attributes for.
             attributes: The list of attributes to retrieve.
         """
         return self.attributes.get_view_attributes(
             name=name,
             version=version,
-            entity=entity,
-            identifiers=identifiers,
             attributes=attributes,
+            entity=entity,
+            identifier=identifier,
         )
 
     def get_service_attributes(
         self,
         name: str,
         entity: str,
-        identifiers: list[str] | str,
+        identifier: str,
     ) -> GetAttributesResponse:
         """
         Retrieves the attributes for a given service by name.
@@ -102,12 +102,12 @@ class Signals:
         Args:
             name: The name of the Service.
             entity: The entity name to retrieve attributes for.
-            identifiers: The list of entity identifiers to retrieve attributes for.
+            identifier: The entity identifier to retrieve attributes for.
         """
         return self.attributes.get_service_attributes(
             name=name,
             entity=entity,
-            identifiers=identifiers,
+            identifier=identifier,
         )
 
     def test(

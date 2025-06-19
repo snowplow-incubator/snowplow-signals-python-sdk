@@ -13,9 +13,9 @@ class AttributesClient:
         self,
         name: str,
         version: int,
-        entity: str,
-        identifiers: list[str] | str,
         attributes: list[str] | str,
+        entity: str,
+        identifier: str,
     ) -> GetAttributesResponse:
 
         attributes = (
@@ -26,11 +26,7 @@ class AttributesClient:
 
         request = GetOnlineAttributesRequest(
             attributes=attributes,
-            entities={
-                entity: (
-                    identifiers if isinstance(identifiers, list) else [identifiers]
-                )
-            },
+            entities={entity: [identifier]},
         )
         return self._make_request(request)
 
@@ -38,16 +34,12 @@ class AttributesClient:
         self,
         name: str,
         entity: str,
-        identifiers: list[str] | str,
+        identifier: str,
     ) -> GetAttributesResponse:
 
         request = GetOnlineAttributesRequest(
             service=name,
-            entities={
-                entity: (
-                    identifiers if isinstance(identifiers, list) else [identifiers]
-                )
-            },
+            entities={entity: [identifier]},
         )
         return self._make_request(request)
 

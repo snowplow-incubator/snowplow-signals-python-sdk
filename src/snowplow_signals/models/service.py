@@ -41,15 +41,13 @@ class Service(ServiceInput):
         title="Owner",
     )
 
-    def get_attributes(
-        self, signals: "Signals", identifiers: list[str] | str, entity: str
-    ):
+    def get_attributes(self, signals: "Signals", identifier: str, entity: str):
         """
         Retrieves the attributes for this service.
 
         Args:
             signals: The Signals instance to use for retrieving attributes.
-            identifiers: The list of entity identifiers to retrieve attributes for.
+            identifier: The entity identifier to retrieve attributes for.
             entity: The entity name to retrieve attributes for.
 
         Returns:
@@ -59,5 +57,5 @@ class Service(ServiceInput):
         return signals.attributes.get_service_attributes(
             name=self.name,
             entity=entity,
-            identifiers=identifiers,
+            identifier=identifier,
         )

@@ -32,22 +32,22 @@ class View(ViewInput):
         title="Owner",
     )
 
-    def get_attributes(self, signals: "Signals", identifiers: list[str] | str):
+    def get_attributes(self, signals: "Signals", identifier: str):
         """
-        Retrieves the online attributes for this view.
+        Retrieves the attributes for this view.
 
         Args:
             signals: The Signals instance to use for retrieving attributes.
-            identifiers: The list of entity identifiers to retrieve attributes for.
+            identifier: The entity identifier to retrieve attributes for.
 
         Returns:
-            The online attributes for the view.
+            The attributes for the view.
         """
 
         return signals.get_view_attributes(
             name=self.name,
             version=self.version,
             entity=self.entity.name,
-            identifiers=identifiers,
+            identifier=identifier,
             attributes=[attribute.name for attribute in self.attributes],
         )

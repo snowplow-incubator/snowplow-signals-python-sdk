@@ -8,7 +8,7 @@ class TestAttributesClient:
 
     def test_get_view_attributes(self, respx_mock, api_client):
         attributes_client = AttributesClient(api_client=api_client)
-        identifiers = ["user-123"]
+        identifier = "user-123"
 
         expected_response = GetAttributesResponse(
             data={
@@ -24,14 +24,14 @@ class TestAttributesClient:
             name="my_view",
             version=1,
             entity="domain_userid",
-            identifiers=identifiers,
+            identifier=identifier,
             attributes="page_views_count",
         )
         assert response.data == expected_response.data
 
     def test_get_service_attributes(self, respx_mock, api_client):
         attributes_client = AttributesClient(api_client=api_client)
-        identifiers = ["user-123"]
+        identifier = "user-123"
 
         expected_response = GetAttributesResponse(
             data={
@@ -46,6 +46,6 @@ class TestAttributesClient:
         response = attributes_client.get_service_attributes(
             name="my_service",
             entity="domain_userid",
-            identifiers=identifiers,
+            identifier=identifier,
         )
         assert response.data == expected_response.data
