@@ -10,7 +10,7 @@ class TestAttributesClient:
         attributes_client = AttributesClient(api_client=api_client)
         identifier = "user-123"
 
-        expected_response = GetAttributesResponse(
+        api_request_response = GetAttributesResponse(
             data={
                 "domain_userid": ["user-123"],
                 "page_views_count": [10],
@@ -18,7 +18,7 @@ class TestAttributesClient:
         )
 
         respx_mock.post("http://localhost:8000/api/v1/get-online-attributes").mock(
-            return_value=httpx.Response(200, json=expected_response.data)
+            return_value=httpx.Response(200, json=api_request_response.data)
         )
         response = attributes_client.get_view_attributes(
             name="my_view",
@@ -27,13 +27,19 @@ class TestAttributesClient:
             identifier=identifier,
             attributes="page_views_count",
         )
-        assert response.data == expected_response.data
+
+        sdk_expected_response = {
+            "domain_userid": "user-123",
+            "page_views_count": 10,
+        }
+
+        assert response == sdk_expected_response
 
     def test_get_service_attributes(self, respx_mock, api_client):
         attributes_client = AttributesClient(api_client=api_client)
-        identifier = "user-123"
+        identifier = ["user-123"]
 
-        expected_response = GetAttributesResponse(
+        api_request_response = GetAttributesResponse(
             data={
                 "domain_userid": ["user-123"],
                 "page_views_count": [10],
@@ -41,11 +47,16 @@ class TestAttributesClient:
         )
 
         respx_mock.post("http://localhost:8000/api/v1/get-online-attributes").mock(
-            return_value=httpx.Response(200, json=expected_response.data)
+            return_value=httpx.Response(200, json=api_request_response.data)
         )
         response = attributes_client.get_service_attributes(
             name="my_service",
             entity="domain_userid",
             identifier=identifier,
         )
-        assert response.data == expected_response.data
+        sdk_expected_response = {
+            "domain_userid": "user-123",
+            "page_views_count": 10,
+        }
+
+        assert response == sdk_expected_response

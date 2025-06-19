@@ -1,3 +1,5 @@
+from typing import Any
+
 from .api_client import ApiClient
 from .models import (
     GetAttributesResponse,
@@ -51,4 +53,22 @@ class AttributesClient:
             endpoint="get-online-attributes",
             data=request.model_dump(mode="json"),
         )
-        return GetAttributesResponse(data=response)
+        return format_get_attributes_response(GetAttributesResponse(data=response))
+
+
+def format_get_attributes_response(response: GetAttributesResponse) -> dict[str, Any]:
+    """
+    Formats the GetAttributesResponse into a dictionary.
+
+    Args:
+        response: The GetAttributesResponse to format.
+
+    Returns:
+        A dictionary with attribute names as keys and lists of values.
+    """
+    result: dict[str, Any] = {}
+    for key, value in response.data.items():
+        if isinstance(value, list):
+            result[key] = value[0] if value else None
+
+    return result
