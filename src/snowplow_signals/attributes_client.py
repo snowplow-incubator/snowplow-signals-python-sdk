@@ -18,7 +18,7 @@ class AttributesClient:
         attributes: list[str] | str,
         entity: str,
         identifier: str,
-    ) -> GetAttributesResponse:
+    ) -> dict[str, Any]:
 
         attributes = (
             [f"{name}_v{version}:{attribute}" for attribute in attributes]
@@ -37,7 +37,7 @@ class AttributesClient:
         name: str,
         entity: str,
         identifier: str,
-    ) -> GetAttributesResponse:
+    ) -> dict[str, Any]:
 
         request = GetOnlineAttributesRequest(
             service=name,
@@ -45,9 +45,7 @@ class AttributesClient:
         )
         return self._make_request(request)
 
-    def _make_request(
-        self, request: GetOnlineAttributesRequest
-    ) -> GetAttributesResponse:
+    def _make_request(self, request: GetOnlineAttributesRequest) -> dict[str, Any]:
         response = self.api_client.make_request(
             method="POST",
             endpoint="get-online-attributes",
