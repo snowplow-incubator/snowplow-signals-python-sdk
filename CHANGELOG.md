@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.2] - 2025-06-26
+
+### Changed
+
+- [AISP-307] Allow custom entities
+- [AISP-437] Use snowplow file (#62)
+- [AISP-362] Interventions management in SDK (#64)
+- [AISP-441] Filter batch views (#66)
+- [AISP-525] Fix datamodel-codegen to work properly with python linters (#69)
+
 ## [0.1.1] - 2025-05-23
 
 ### Changed
