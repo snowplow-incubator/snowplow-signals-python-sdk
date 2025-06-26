@@ -41,14 +41,14 @@ class Service(ServiceInput):
         title="Owner",
     )
 
-    def get_attributes(self, signals: "Signals", identifier: str, entity: str):
+    def get_attributes(self, signals: "Signals", entity: str, identifier: str):
         """
         Retrieves the attributes for this service.
 
         Args:
             signals: The Signals instance to use for retrieving attributes.
-            identifier: The entity identifier to retrieve attributes for.
             entity: The entity name to retrieve attributes for.
+            identifier: The entity identifier to retrieve attributes for.
 
         Returns:
             The attributes for the service.

@@ -51,10 +51,10 @@ class AttributesClient:
             endpoint="get-online-attributes",
             data=request.model_dump(mode="json"),
         )
-        return format_get_attributes_response(GetAttributesResponse(data=response))
+        return _format_get_attributes_response(GetAttributesResponse(data=response))
 
 
-def format_get_attributes_response(response: GetAttributesResponse) -> dict[str, Any]:
+def _format_get_attributes_response(response: GetAttributesResponse) -> dict[str, Any]:
     """
     Formats the GetAttributesResponse into a dictionary.
 
