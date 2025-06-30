@@ -1,6 +1,6 @@
 import httpx
 
-from snowplow_signals import LinkEntity, Service, View, domain_userid
+from snowplow_signals import Entity, LinkEntity, Service, View, domain_userid
 from snowplow_signals.models import ViewResponse
 
 
@@ -48,6 +48,59 @@ class TestSignalsApply:
         assert len(applied_objects) == 2
         assert applied_objects[0].name == "my_view"
         assert applied_objects[1].name == "my_service"
+
+    def test_apply_entity_view_and_service(self, signals_client, respx_mock):
+        custom_entity = Entity(
+            name="custom_entity",
+        )
+        view = View(
+            name="my_view",
+            entity=custom_entity,
+            owner="contact@mail.com",
+        )
+        view_output = ViewResponse(
+            name="my_view",
+            entity=LinkEntity(name="custom_entity"),
+            feast_name="my_view_v1",
+            offline=True,
+            stream_source_name="my_stream",
+            entity_key="user_id",
+            view_or_entity_ttl=None,
+            owner="contact@mail.com",
+        )
+        service = Service(
+            name="my_service",
+            views=[view],
+            owner="contact@mail.com",
+        )
+
+        entity_mock = respx_mock.post(
+            "http://localhost:8000/api/v1/registry/entities/"
+        ).mock(return_value=httpx.Response(201, json=custom_entity.model_dump()))
+
+        view_mock = respx_mock.post(
+            "http://localhost:8000/api/v1/registry/views/"
+        ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
+
+        service_mock = respx_mock.post(
+            "http://localhost:8000/api/v1/registry/services/"
+        ).mock(return_value=httpx.Response(201, json=service.model_dump()))
+
+        apply_mock = respx_mock.post(
+            "http://localhost:8000/api/v1/feature_store/apply"
+        ).mock(return_value=httpx.Response(200, json={}))
+
+        applied_objects = signals_client.apply(objects=[view, service, custom_entity])
+
+        assert entity_mock.called
+        assert view_mock.called
+        assert service_mock.called
+        assert apply_mock.called
+
+        assert len(applied_objects) == 3
+        assert applied_objects[0].name == "custom_entity"
+        assert applied_objects[1].name == "my_view"
+        assert applied_objects[2].name == "my_service"
 
     def test_already_existing_view(self, signals_client, respx_mock):
         view = View(

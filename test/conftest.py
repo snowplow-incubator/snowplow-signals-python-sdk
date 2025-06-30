@@ -3,6 +3,7 @@ import jwt
 import pytest
 
 from snowplow_signals import Signals
+from snowplow_signals.api_client import ApiClient
 
 from .utils import (
     MOCK_API_KEY,
@@ -53,6 +54,16 @@ def mock_auth(respx_mock, request, access_jwt):
     respx_mock.get(
         f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{MOCK_ORG_ID}/credentials/v3/token"
     ).mock(return_value=httpx.Response(200, json={"accessToken": access_jwt}))
+
+
+@pytest.fixture
+def api_client():
+    return ApiClient(
+        api_url="http://localhost:8000",
+        api_key="foo",
+        api_key_id="bar",
+        org_id=MOCK_ORG_ID,
+    )
 
 
 @pytest.fixture

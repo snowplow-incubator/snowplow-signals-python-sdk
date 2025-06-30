@@ -5,8 +5,10 @@ import pandas as pd
 from .api_client import ApiClient
 from .attributes_client import AttributesClient
 from .feature_store_client import FeatureStoreClient
+from .interventions_client import InterventionsClient
 from .models import (
     OnlineAttributesResponse,
+    RuleIntervention,
     Service,
     TestViewRequest,
     View,
@@ -27,12 +29,15 @@ class Signals:
         )
 
         self.prompts = PromptsClient(api_client=self.api_client)
+        self.interventions = InterventionsClient(api_client=self.api_client)
         self.registry = RegistryClient(api_client=self.api_client)
         self.feature_store = FeatureStoreClient(api_client=self.api_client)
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
 
-    def apply(self, objects: list[View | Service]) -> list[View | Service]:
+    def apply(
+        self, objects: list[View | Service | RuleIntervention]
+    ) -> list[View | Service | RuleIntervention]:
         """
         Registers the provided objects to the Signals registry.
 

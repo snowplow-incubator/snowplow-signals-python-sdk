@@ -8,23 +8,11 @@ from snowplow_signals import (
     session_entity,
     user_entity,
 )
-from snowplow_signals.api_client import ApiClient
 from snowplow_signals.attributes_client import AttributesClient
 from snowplow_signals.models import ViewResponse
 
-from .utils import MOCK_ORG_ID
-
 
 class TestAttributesClient:
-    @pytest.fixture
-    def api_client(self):
-        return ApiClient(
-            api_url="http://localhost:8000",
-            api_key="foo",
-            api_key_id="bar",
-            org_id=MOCK_ORG_ID,
-        )
-
     def test_get_entity_name_with_single_entity(self, respx_mock, api_client):
         user_view_a = View(
             name="user_view_a",
