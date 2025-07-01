@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 
 import pandas as pd
 
@@ -71,7 +72,7 @@ class Signals:
         attributes: list[str] | str,
         entity: str,
         identifier: str,
-    ) -> GetAttributesResponse:
+    ) -> dict[str, Any]:
         """
         Retrieves the attributes for a given view by name and version.
 
@@ -95,7 +96,7 @@ class Signals:
         name: str,
         entity: str,
         identifier: str,
-    ) -> GetAttributesResponse:
+    ) -> dict[str, Any]:
         """
         Retrieves the attributes for a given service by name.
 
