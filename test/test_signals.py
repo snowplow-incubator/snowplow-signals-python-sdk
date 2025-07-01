@@ -136,3 +136,47 @@ class TestSignalsApply:
         assert view_post_mock.called
         assert view_get_mock.called
         assert apply_mock.called
+
+
+class TestSignalsGetAttributes:
+    def test_get_service_attributes(self, respx_mock, signals_client):
+        # Mocked API response
+        api_response = {
+            "domain_userid": ["user-123"],
+            "page_views_count": [10],
+        }
+        respx_mock.post("http://localhost:8000/api/v1/get-online-attributes").mock(
+            return_value=httpx.Response(200, json=api_response)
+        )
+
+        # Call the method
+        response = signals_client.get_service_attributes(
+            name="my_service", entity="domain_userid", identifier="user-123"
+        )
+
+        # Assert the response
+        assert response["domain_userid"] == "user-123"
+        assert response["page_views_count"] == 10
+
+    def test_get_view_attributes(self, respx_mock, signals_client):
+        # Mocked API response
+        api_response = {
+            "domain_userid": ["user-123"],
+            "page_views_count": [10],
+        }
+        respx_mock.post("http://localhost:8000/api/v1/get-online-attributes").mock(
+            return_value=httpx.Response(200, json=api_response)
+        )
+
+        # Call the method
+        response = signals_client.get_view_attributes(
+            name="my_view",
+            version=1,
+            attributes=["page_views_count"],
+            entity="domain_userid",
+            identifier="user-123",
+        )
+
+        # Assert the response
+        assert response["domain_userid"] == "user-123"
+        assert response["page_views_count"] == 10
