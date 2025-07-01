@@ -8,7 +8,6 @@ from .attributes_client import AttributesClient
 from .feature_store_client import FeatureStoreClient
 from .interventions_client import InterventionsClient
 from .models import (
-    GetAttributesResponse,
     RuleIntervention,
     Service,
     TestViewRequest,
