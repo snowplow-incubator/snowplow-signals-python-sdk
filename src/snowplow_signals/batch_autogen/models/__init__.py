@@ -1,6 +1,12 @@
 from snowplow_signals.batch_autogen.models.base_config_generator import DbtBaseConfig
-from snowplow_signals.batch_autogen.models.dbt_config_generator import DbtConfigGenerator
-from snowplow_signals.batch_autogen.models.modeling_step import ModelingStep, ModelingCriteria, FilterCondition
+from snowplow_signals.batch_autogen.models.dbt_config_generator import (
+    DbtConfigGenerator,
+)
+from snowplow_signals.batch_autogen.models.modeling_step import (
+    FilterCondition,
+    ModelingCriteria,
+    ModelingStep,
+)
 
 __all__ = [
     "DbtBaseConfig",
@@ -8,4 +14,4 @@ __all__ = [
     "ModelingStep",
     "ModelingCriteria",
     "FilterCondition",
-] 
+]
