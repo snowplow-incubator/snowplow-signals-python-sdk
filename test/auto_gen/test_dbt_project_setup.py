@@ -1,6 +1,7 @@
+from unittest.mock import patch
+
 import httpx
 import pytest
-from unittest.mock import patch
 
 from snowplow_signals.batch_autogen.models.dbt_project_setup import DbtProjectSetup
 
@@ -55,7 +56,9 @@ def test_batch_setup_get_attribute_views_throws_on_empty_views(
         dbt_project_setup._get_attribute_views()
 
 
-def test_setup_all_projects_skips_views_with_no_attributes_and_fields(signals_client, respx_mock):
+def test_setup_all_projects_skips_views_with_no_attributes_and_fields(
+    signals_client, respx_mock
+):
     """
     Test that setup_all_projects skips batch views that have no attributes (attributes is None or empty) AND have fields (not None or empty).
     Views with attributes should be processed.
@@ -66,7 +69,14 @@ def test_setup_all_projects_skips_views_with_no_attributes_and_fields(signals_cl
             "name": "with_attributes",
             "version": 1,
             "entity": {"name": "user", "key": "user"},
-            "attributes": [{"name": "attr1", "events": [ {"name": "event1"} ], "aggregation": "sum", "type": "int32"}],
+            "attributes": [
+                {
+                    "name": "attr1",
+                    "events": [{"name": "event1"}],
+                    "aggregation": "sum",
+                    "type": "int32",
+                }
+            ],
             "fields": [],
             "feast_name": "with_attributes_v1",
             "entity_key": "user",
@@ -94,7 +104,7 @@ def test_setup_all_projects_skips_views_with_no_attributes_and_fields(signals_cl
             "entity_key": "user",
             "view_or_entity_ttl": None,
             "stream_source_name": None,
-        }
+        },
     ]
     respx_mock.get("http://localhost:8000/api/v1/registry/views/").mock(
         return_value=httpx.Response(200, json=mock_views)

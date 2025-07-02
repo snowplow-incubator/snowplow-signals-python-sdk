@@ -1,25 +1,22 @@
 import json
 import os
-from typing import Optional
-import json
 from pathlib import Path
+from typing import Optional
 
-from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
-from snowplow_signals.batch_autogen.models.dbt_config_generator import (
-    DbtConfigGenerator,
-)
 from snowplow_signals.batch_autogen.models.batch_source_config import (
     BatchSourceConfig,
 )
-from snowplow_signals.batch_autogen.utils.utils import (
-    batch_source_from_path,
+from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
+from snowplow_signals.batch_autogen.models.dbt_config_generator import (
+    DbtConfigGenerator,
 )
 from snowplow_signals.batch_autogen.models.dbt_project_setup import (
     DbtBaseConfig,
     DbtProjectSetup,
 )
-from snowplow_signals.logging import get_logger
-from snowplow_signals.batch_autogen.models.dbt_project_setup import DbtProjectSetup
+from snowplow_signals.batch_autogen.utils.utils import (
+    batch_source_from_path,
+)
 from snowplow_signals.logging import get_logger, setup_logging
 
 from ..api_client import ApiClient
@@ -251,7 +248,10 @@ class BatchAutogenClient:
                 asset_subpath="models/attributes",
                 filename="attributes",
                 asset_type="model",
-                custom_context={**dbt_config.attributes.model_dump(), "entity_key": base_config.entity_key},
+                custom_context={
+                    **dbt_config.attributes.model_dump(),
+                    "entity_key": base_config.entity_key,
+                },
             ),
         ]
 
