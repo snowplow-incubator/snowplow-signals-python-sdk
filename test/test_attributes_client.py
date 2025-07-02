@@ -49,6 +49,7 @@ class TestAttributesClient:
         respx_mock.post("http://localhost:8000/api/v1/get-online-attributes").mock(
             return_value=httpx.Response(200, json=api_request_response.data)
         )
+
         response = attributes_client.get_service_attributes(
             name="my_service",
             entity="domain_userid",
