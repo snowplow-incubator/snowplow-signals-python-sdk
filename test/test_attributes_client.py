@@ -1,116 +1,63 @@
 import httpx
-import pytest
 
-from snowplow_signals import (
-    LinkEntity,
-    Service,
-    View,
-    session_entity,
-    user_entity,
-)
 from snowplow_signals.attributes_client import AttributesClient
-from snowplow_signals.models import ViewResponse
+from snowplow_signals.models import GetAttributesResponse
 
 
 class TestAttributesClient:
-    def test_get_entity_name_with_single_entity(self, respx_mock, api_client):
-        user_view_a = View(
-            name="user_view_a",
-            entity=user_entity,
-            owner="test@test.com",
-        )
-        user_view_b = View(
-            name="user_view_b",
-            entity=user_entity,
-            owner="test@test.com",
-        )
 
-        user_view_a_output = ViewResponse(
-            name="user_view_a",
-            entity=LinkEntity(name="user"),
-            feast_name="user_view_a_v1",
-            offline=True,
-            stream_source_name="my_stream",
-            entity_key="user_id",
-            view_or_entity_ttl=None,
-            owner="test@test.com",
-        )
-        user_view_b_output = ViewResponse(
-            name="user_view_b_output",
-            entity=LinkEntity(name="user"),
-            feast_name="user_view_b_v1",
-            offline=True,
-            stream_source_name="my_stream",
-            entity_key="user_id",
-            view_or_entity_ttl=None,
-            owner="test@test.com",
-        )
+    def test_get_view_attributes(self, respx_mock, api_client):
         attributes_client = AttributesClient(api_client=api_client)
+        identifier = "user-123"
 
-        respx_mock.get(
-            "http://localhost:8000/api/v1/registry/views/user_view_a/versions/1"
-        ).mock(return_value=httpx.Response(201, json=user_view_a_output.model_dump()))
+        api_request_response = GetAttributesResponse(
+            data={
+                "domain_userid": ["user-123"],
+                "page_views_count": [10],
+            }
+        )
 
-        respx_mock.get(
-            "http://localhost:8000/api/v1/registry/views/user_view_b/versions/1"
-        ).mock(return_value=httpx.Response(201, json=user_view_b_output.model_dump()))
+        respx_mock.post("http://localhost:8000/api/v1/get-online-attributes").mock(
+            return_value=httpx.Response(200, json=api_request_response.data)
+        )
+        response = attributes_client.get_view_attributes(
+            name="my_view",
+            version=1,
+            entity="domain_userid",
+            identifier=identifier,
+            attributes="page_views_count",
+        )
 
-        service = Service(
-            name="my_service",
-            views=[user_view_a, user_view_b],
-            owner="test@test.com",
-        )
-        entity = attributes_client._get_entity_name(service=service)
-        assert entity == "user"
+        sdk_expected_response = {
+            "domain_userid": "user-123",
+            "page_views_count": 10,
+        }
 
-    def test_get_entity_name_with_multiple_entities(self, respx_mock, api_client):
-        user_view = View(
-            name="user_view",
-            entity=user_entity,
-            owner="test@test.com",
-        )
-        session_view = View(
-            name="session_view",
-            entity=session_entity,
-            owner="test@test.com",
-        )
-        user_view_output = ViewResponse(
-            name="user_view",
-            entity=LinkEntity(name="user"),
-            feast_name="user_view_v1",
-            offline=True,
-            stream_source_name="my_stream",
-            entity_key="user_id",
-            view_or_entity_ttl=None,
-            owner="test@test.com",
-        )
-        session_view_output = ViewResponse(
-            name="session_view",
-            entity=LinkEntity(name="session"),
-            feast_name="session_view_v1",
-            offline=True,
-            stream_source_name="my_stream",
-            entity_key="domain_sessionid",
-            view_or_entity_ttl=None,
-            owner="test@test.com",
-        )
+        assert response == sdk_expected_response
+
+    def test_get_service_attributes(self, respx_mock, api_client):
         attributes_client = AttributesClient(api_client=api_client)
+        identifier = ["user-123"]
 
-        respx_mock.get(
-            "http://localhost:8000/api/v1/registry/views/user_view/versions/1"
-        ).mock(return_value=httpx.Response(201, json=user_view_output.model_dump()))
-
-        respx_mock.get(
-            "http://localhost:8000/api/v1/registry/views/session_view/versions/1"
-        ).mock(return_value=httpx.Response(201, json=session_view_output.model_dump()))
-
-        service = Service(
-            name="my_service",
-            views=[user_view, session_view],
-            owner="test@test.com",
+        api_request_response = GetAttributesResponse(
+            data={
+                "domain_userid": ["user-123"],
+                "page_views_count": [10],
+            }
         )
-        with pytest.raises(
-            ValueError,
-            match="The service contains views with different entities which is not supported.",
-        ):
-            attributes_client._get_entity_name(service=service)
+
+        respx_mock.post("http://localhost:8000/api/v1/get-online-attributes").mock(
+            return_value=httpx.Response(200, json=api_request_response.data)
+        )
+
+        response = attributes_client.get_service_attributes(
+            name="my_service",
+            entity="domain_userid",
+            identifier=identifier,
+        )
+        sdk_expected_response = {
+            "domain_userid": "user-123",
+            "page_views_count": 10,
+        }
+
+        assert response == sdk_expected_response

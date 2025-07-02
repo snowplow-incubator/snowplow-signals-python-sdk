@@ -1,11 +1,13 @@
-from pydantic import Field, BeforeValidator
-from typing import Annotated
-from .model import (
-    Service as ServiceInput,
-    VersionedLinkView,
-)
+from typing import TYPE_CHECKING, Annotated
+
+from pydantic import BeforeValidator, EmailStr, Field
+
+from .model import Service as ServiceInput
+from .model import VersionedLinkView
 from .view import View
-from pydantic import EmailStr
+
+if TYPE_CHECKING:
+    from snowplow_signals.signals import Signals
 
 
 def view_to_link(
@@ -38,3 +40,22 @@ class Service(ServiceInput):
         description="The owner of the service, typically the email of the primary maintainer. This field is required for service creation.",
         title="Owner",
     )
+
+    def get_attributes(self, signals: "Signals", entity: str, identifier: str):
+        """
+        Retrieves the attributes for this service.
+
+        Args:
+            signals: The Signals instance to use for retrieving attributes.
+            entity: The entity name to retrieve attributes for.
+            identifier: The entity identifier to retrieve attributes for.
+
+        Returns:
+            The attributes for the service.
+        """
+
+        return signals.attributes.get_service_attributes(
+            name=self.name,
+            entity=entity,
+            identifier=identifier,
+        )

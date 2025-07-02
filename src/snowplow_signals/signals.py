@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 
 import pandas as pd
 
@@ -7,7 +8,6 @@ from .attributes_client import AttributesClient
 from .feature_store_client import FeatureStoreClient
 from .interventions_client import InterventionsClient
 from .models import (
-    OnlineAttributesResponse,
     RuleIntervention,
     Service,
     TestViewRequest,
@@ -64,30 +64,51 @@ class Signals:
         view = self.registry.get_view(name, version)
         return view
 
-    def get_online_attributes(
+    def get_view_attributes(
         self,
-        source: Service | View | ViewResponse,
-        identifiers: list[str] | str,
-    ) -> OnlineAttributesResponse | None:
+        name: str,
+        version: int,
+        attributes: list[str] | str,
+        entity: str,
+        identifier: str,
+    ) -> dict[str, Any]:
         """
-        Retrieves the online attributes for a given source and identifiers.
+        Retrieves the attributes for a given view by name and version.
 
         Args:
-            source: Either a View or Service to retrieve attributes for.
-            identifiers: The list of entity (user or session) identifiers to retrieve attributes for.
+            name: The name of the View.
+            version: The version of the View.
+            entity: The entity name to retrieve attributes for.
+            identifier: The entity identifier to retrieve attributes for.
+            attributes: The list of attributes to retrieve.
         """
-        if isinstance(source, Service):
-            return self.attributes.get_service_attributes(
-                service=source,
-                identifiers=identifiers,
-            )
-        elif isinstance(source, View) or isinstance(source, ViewResponse):
-            return self.attributes.get_view_attributes(
-                view=source,
-                identifiers=identifiers,
-            )
-        else:
-            raise TypeError("Source must be a FeatureService or a FeatureView.")
+        return self.attributes.get_view_attributes(
+            name=name,
+            version=version,
+            attributes=attributes,
+            entity=entity,
+            identifier=identifier,
+        )
+
+    def get_service_attributes(
+        self,
+        name: str,
+        entity: str,
+        identifier: str,
+    ) -> dict[str, Any]:
+        """
+        Retrieves the attributes for a given service by name.
+
+        Args:
+            name: The name of the Service.
+            entity: The entity name to retrieve attributes for.
+            identifier: The entity identifier to retrieve attributes for.
+        """
+        return self.attributes.get_service_attributes(
+            name=name,
+            entity=entity,
+            identifier=identifier,
+        )
 
     def test(
         self,

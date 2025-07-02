@@ -1,10 +1,16 @@
-from pydantic import Field as PydanticField, BeforeValidator, EmailStr
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
+
+from pydantic import BeforeValidator, EmailStr
+from pydantic import Field as PydanticField
+
 from .model import (
-    ViewInput,
     Entity,
     LinkEntity,
+    ViewInput,
 )
+
+if TYPE_CHECKING:
+    from snowplow_signals.signals import Signals
 
 
 def entity_to_link(entity: Entity | LinkEntity) -> LinkEntity:
@@ -25,3 +31,23 @@ class View(ViewInput):
         description="The owner of the view, typically the email of the primary maintainer. This field is required for view creation.",
         title="Owner",
     )
+
+    def get_attributes(self, signals: "Signals", identifier: str):
+        """
+        Retrieves the attributes for this view.
+
+        Args:
+            signals: The Signals instance to use for retrieving attributes.
+            identifier: The entity identifier to retrieve attributes for.
+
+        Returns:
+            The attributes for the view.
+        """
+
+        return signals.get_view_attributes(
+            name=self.name,
+            version=self.version,
+            entity=self.entity.name,
+            identifier=identifier,
+            attributes=[attribute.name for attribute in self.attributes],
+        )

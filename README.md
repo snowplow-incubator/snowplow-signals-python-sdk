@@ -45,8 +45,11 @@ view = View(
 signals.apply([view])
 
 # Retrieve attributes
-response = signals.get_online_attributes(
-    source=view,
+response = signals.get_view_attributes(
+    name="my_view",
+    version=1,
+    entity="domain_sessionid",
+    attributes=["page_view_count"],
     identifiers="abc-123",
 )
 ```
