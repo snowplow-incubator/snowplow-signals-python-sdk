@@ -14,7 +14,6 @@ from .models import (
     View,
     ViewResponse,
 )
-from .prompts.client import PromptsClient
 from .registry_client import RegistryClient
 from .testing_client import TestingClient
 
@@ -28,7 +27,6 @@ class Signals:
             api_url=api_url, api_key=api_key, api_key_id=api_key_id, org_id=org_id
         )
 
-        self.prompts = PromptsClient(api_client=self.api_client)
         self.interventions = InterventionsClient(api_client=self.api_client)
         self.registry = RegistryClient(api_client=self.api_client)
         self.feature_store = FeatureStoreClient(api_client=self.api_client)
