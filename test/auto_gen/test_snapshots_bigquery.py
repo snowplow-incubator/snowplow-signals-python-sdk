@@ -36,10 +36,10 @@ def test_dir(tmp_path):
     return tmp_path
 
 
-def test_generated_files(test_dir, signals_client, respx_mock, snapshot):
+def test_generated_files_bigquery(test_dir, signals_client, respx_mock, snapshot):
     """Test that the generated files are correct."""
     # Setup mock API response
-    mock_response = get_integration_test_view_response(warehouse="snowflake")
+    mock_response = get_integration_test_view_response(warehouse="bigquery")
     respx_mock.get(API_ENDPOINT).mock(
         return_value=httpx.Response(200, json=mock_response)
     )
