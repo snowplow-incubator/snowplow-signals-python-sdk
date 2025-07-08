@@ -49,7 +49,7 @@ class AttributesClient:
         response = self.api_client.make_request(
             method="POST",
             endpoint="get-online-attributes",
-            data=request.model_dump(mode="json"),
+            data=request.model_dump(mode="json", exclude_none=True),
         )
         return _format_get_attributes_response(GetAttributesResponse(data=response))
 
