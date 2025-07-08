@@ -1,12 +1,13 @@
-from typing import TYPE_CHECKING, Annotated
-
-from pydantic import BeforeValidator, EmailStr
-from pydantic import Field as PydanticField
+from typing import TYPE_CHECKING, Annotated, Literal
+from pydantic import Field as PydanticField, BeforeValidator, EmailStr, Field
 
 from .model import (
     Entity,
     LinkEntity,
     ViewInput,
+    AttributeInput,
+    FieldModel,
+    BatchSource,
 )
 
 if TYPE_CHECKING:
@@ -51,3 +52,72 @@ class View(ViewInput):
             identifier=identifier,
             attributes=[attribute.name for attribute in self.attributes],
         )
+
+
+class StreamOrBatchView(View):
+    fields: Literal[None] = Field(
+        default=None,
+        description="Not applicable.",
+    )
+    attributes: list[AttributeInput] = Field(
+        description="The list of attributes that will be calculated from events as part of this view.",
+        title="Attributes",
+        min_length=1,
+    )
+
+
+class StreamView(StreamOrBatchView):
+    """
+    A stream view is a view that is calculated from events in real-time using the Signals streaming engine.
+    """
+
+    online: Literal[True] = Field(
+        default=True,
+        description="A boolean indicating whether online retrieval is enabled for this view.",
+        title="Online",
+    )
+    offline: Literal[False] = Field(
+        default=False,
+        description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
+        title="Offline",
+    )
+    batch_source: Literal[None] = Field(
+        default=None,
+        description="Not applicable for stream views.",
+    )
+
+
+class BatchView(StreamOrBatchView):
+    """
+    A batch view is a view that is calculated from events in batch using the Signals batch engine.
+    """
+
+    offline: Literal[True] = Field(
+        default=True,
+        description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
+        title="Offline",
+    )
+
+
+class BatchDerivedView(View):
+    """
+    A batch derived view is a view that is derived from an existing warehouse table.
+    """
+
+    offline: Literal[True] = Field(
+        default=True,
+        description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
+        title="Offline",
+    )
+    fields: list[FieldModel] = Field(
+        description="The list of table columns that are part of this view during materialization.",
+        title="Fields",
+        min_length=1,
+    )
+    attributes: Literal[None] = Field(
+        default=None,
+        description="Not applicable for warehouse table views.",
+    )
+    batch_source: BatchSource = Field(
+        description="The batch source for materializing this view from the warehouse.",
+    )
