@@ -17,7 +17,7 @@ from snowplow_signals.batch_autogen.models.dbt_project_setup import (
 from snowplow_signals.batch_autogen.utils.utils import (
     batch_source_from_path,
 )
-from snowplow_signals.logging import get_logger, setup_logging
+from snowplow_signals.cli_logging import get_logger, setup_logging
 
 from ..api_client import ApiClient
 

@@ -10,7 +10,7 @@ import yaml  # type: ignore
 
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.batch_autogen import BatchAutogenClient
-from snowplow_signals.logging import get_logger, setup_logging
+from snowplow_signals.cli_logging import get_logger, setup_logging
 
 from .cli_params import (
     API_KEY,
