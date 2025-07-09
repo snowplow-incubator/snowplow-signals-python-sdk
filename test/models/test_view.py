@@ -8,7 +8,7 @@ from snowplow_signals.models import (
     Attribute,
     Event,
     Entity,
-    BatchDerivedView,
+    ExternalBatchView,
     Field,
     BatchSource,
 )
@@ -92,9 +92,9 @@ def test_batch_view_without_attributes_raises_validation_error():
         )
 
 
-def test_batch_derived_view_passes_validation():
-    """Test that a BatchDerivedView passes validation."""
-    batch_derived_view = BatchDerivedView(
+def test_external_batch_view_passes_validation():
+    """Test that a ExternalBatchView passes validation."""
+    external_batch_view = ExternalBatchView(
         name="test_view",
         entity=Entity(name="test_entity"),
         owner="test@example.com",
@@ -111,13 +111,13 @@ def test_batch_derived_view_passes_validation():
             table="test_table",
         ),
     )
-    assert batch_derived_view.offline
+    assert external_batch_view.offline
 
 
-def test_batch_derived_view_without_fields_raises_validation_error():
-    """Test that a BatchDerivedView without fields raises ValidationError."""
+def test_external_batch_view_without_fields_raises_validation_error():
+    """Test that a ExternalBatchView without fields raises ValidationError."""
     with pytest.raises(ValidationError):
-        BatchDerivedView(
+        ExternalBatchView(
             name="test_view",
             entity=Entity(name="test_entity"),
             owner="test@example.com",
@@ -131,10 +131,10 @@ def test_batch_derived_view_without_fields_raises_validation_error():
         )
 
 
-def test_batch_derived_view_without_batch_source_raises_validation_error():
-    """Test that a BatchDerivedView without batch_source raises ValidationError."""
+def test_external_batch_view_without_batch_source_raises_validation_error():
+    """Test that a ExternalBatchView without batch_source raises ValidationError."""
     with pytest.raises(ValidationError):
-        BatchDerivedView(
+        ExternalBatchView(
             name="test_view",
             entity=Entity(name="test_entity"),
             owner="test@example.com",

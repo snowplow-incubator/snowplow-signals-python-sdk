@@ -33,7 +33,7 @@ from .model import (
     ViewResponse,
 )
 from .service import Service
-from .view import View, StreamView, BatchView, BatchDerivedView
+from .view import View, StreamView, BatchView, ExternalBatchView
 
 AttributeOutput
 Criteria
@@ -41,7 +41,7 @@ Criterion
 View
 StreamView
 BatchView
-BatchDerivedView
+ExternalBatchView
 ViewResponse
 Service
 Entity

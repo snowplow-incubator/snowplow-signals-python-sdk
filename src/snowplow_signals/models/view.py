@@ -99,9 +99,9 @@ class BatchView(StreamOrBatchView):
     )
 
 
-class BatchDerivedView(View):
+class ExternalBatchView(View):
     """
-    A batch derived view is a view that is derived from an existing warehouse table.
+    An external batch view is a view that is derived from an existing warehouse table.
     """
 
     offline: Literal[True] = Field(

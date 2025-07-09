@@ -24,7 +24,7 @@ from snowplow_signals.models import (
     RuleIntervention,
     Service,
     View,
-    BatchDerivedView,
+    ExternalBatchView,
     StreamView,
     BatchView,
 )
@@ -41,7 +41,7 @@ from .definitions import (
 
 Signals
 View
-BatchDerivedView
+ExternalBatchView
 StreamView
 BatchView
 Service
