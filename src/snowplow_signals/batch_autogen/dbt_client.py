@@ -1,7 +1,11 @@
 import json
 import os
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Optional
+=======
+from typing import Literal, Optional
+>>>>>>> 8be7f8f (Add support for bigquery in the SDK)
 
 from snowplow_signals.batch_autogen.models.batch_source_config import (
     BatchSourceConfig,
@@ -27,8 +31,13 @@ logger = get_logger(__name__)
 class BatchAutogenClient:
     """Client for generating batch projects (dbt) for Snowplow data"""
 
-    def __init__(self, api_client: ApiClient):
+    def __init__(
+        self,
+        api_client: ApiClient,
+        target_type: Literal["snowflake", "bigquery"] = "snowflake",
+    ):
         self.api_client = api_client
+        self.target_type = target_type
 
     def init_project(
         self,
@@ -46,6 +55,7 @@ class BatchAutogenClient:
             view_version: Optional version of the attribute view to initialize.
                          If None, the latest version will be used.
                          Only used if view_name is not None.
+            target_type: Target database type.
         """
 
         # TODO - Throw if version with no name -> Add overloads
@@ -54,6 +64,7 @@ class BatchAutogenClient:
             repo_path=repo_path,
             view_name=view_name,
             view_version=view_version,
+            target_type=self.target_type,
         )
 
         return setup.setup_all_projects()
@@ -140,7 +151,9 @@ class BatchAutogenClient:
             data = json.load(f)
             base_config = DbtBaseConfig.model_validate(data)
 
-        generator = DbtConfigGenerator(base_config_data=base_config)
+        generator = DbtConfigGenerator(
+            base_config_data=base_config, target_type=self.target_type
+        )
         dbt_config = generator.create_dbt_config()
 
         # Ensure configs directory exists
@@ -155,6 +168,9 @@ class BatchAutogenClient:
         logger.info(f"Generating dbt project assets for {project_name}...")
 
         # Define the assets to generate
+        custom_context = dbt_config.filtered_events.model_dump(
+            exclude_none=True, by_alias=True
+        )
         assets = [
             DbtAssetGenerator(
                 project_path=project_path,
@@ -253,23 +269,27 @@ class BatchAutogenClient:
                     "entity_key": base_config.entity_key,
                 },
             ),
+            DbtAssetGenerator(
+                project_path=project_path,
+                asset_subpath="models/base",
+                filename="src_base",
+                asset_type="yml",
+            ),
         ]
 
-        try:
-            for asset in assets:
+        for asset in assets:
+            try:
                 context = (
                     asset.custom_context
                     if asset.custom_context is not None
                     else dbt_config.model_dump()
                 )
                 asset.generate_asset(update=update, context=context)
-
-            logger.success(f"✅ Finished generating models for {project_name}!")
-            return True
-
-        except ValueError as e:
-            logger.error(f"❌ Error generating models for {project_name}: {e}")
-            return False
+            except Exception as e:
+                logger.error(f"❌ Error generating models for {asset.filename}: {e}")
+                return False
+        logger.success(f"✅ Finished generating models for {project_name}!")
+        return True
 
     def materialize_model(
         self,

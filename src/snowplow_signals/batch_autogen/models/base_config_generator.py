@@ -3,6 +3,8 @@ from collections import OrderedDict
 from typing import Dict, FrozenSet, Literal, Set
 
 from pydantic import BaseModel
+from sqlglot.dialects.bigquery import BigQuery
+from sqlglot.dialects.snowflake import Snowflake
 
 from snowplow_signals.batch_autogen.models.modeling_step import (
     FilterCondition,
@@ -13,9 +15,6 @@ from snowplow_signals.batch_autogen.models.modeling_step import (
 from ...models import AttributeOutput, Criterion, Event, ViewResponse
 from ..utils.utils import timedelta_isoformat
 
-from sqlglot.dialects.snowflake import Snowflake
-
-
 # FIXME can we extract from auto generated model attributes ?
 AggregationLiteral = Literal[
     "counter", "sum", "min", "max", "mean", "first", "last", "unique_list"
@@ -23,8 +22,6 @@ AggregationLiteral = Literal[
 SQLAggregationLiteral = Literal[
     "count", "sum", "min", "max", "avg", "first", "last", "unique_list"
 ]
-reserwed_words_dict = Snowflake.Tokenizer.KEYWORDS
-SQL_RESERVED_WORDS = sorted(reserwed_words_dict.keys())
 
 
 class DbtBaseConfig(BaseModel):
@@ -40,12 +37,15 @@ class BaseConfigGenerator:
     properties: list[dict[str, str]]
     periods: Set[str]
     data: ViewResponse
+    target_type: Literal["snowflake", "bigquery"]
 
     def __init__(
         self,
         data: ViewResponse,
+        target_type: Literal["snowflake", "bigquery"],
     ):
         self.data = data
+        self.target_type = target_type
         self.events = []
         self.properties = []
         self.periods = set()
@@ -77,26 +77,31 @@ class BaseConfigGenerator:
         Output: "device_class"
         """
 
+        reserwed_words_dict = (
+            Snowflake.Tokenizer.KEYWORDS
+            if self.target_type == "snowflake"
+            else BigQuery.Tokenizer.KEYWORDS
+        )
+        sql_reserved_words = sorted(reserwed_words_dict.keys())
         if not isinstance(property, str):
             return None
-
         if ":" in property:
             suffix = property.split(":")[1]
             # Convert to snake_case
             cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
-            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
+            if cleaned in (kw.lower() for kw in sql_reserved_words):
                 cleaned += "_col"
             return cleaned
         elif "." in property:
             suffix = property.split(".")[-1]
             # Convert to snake_case
             cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
-            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
+            if cleaned in (kw.lower() for kw in sql_reserved_words):
                 cleaned += "_col"
             return cleaned
         else:
             cleaned = property.lower()
-            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
+            if cleaned in (kw.lower() for kw in sql_reserved_words):
                 cleaned += "_col"
                 return cleaned
             else:

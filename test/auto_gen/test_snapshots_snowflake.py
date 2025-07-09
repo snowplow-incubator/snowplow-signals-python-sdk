@@ -36,7 +36,7 @@ def test_dir(tmp_path):
     return tmp_path
 
 
-def test_generated_files(test_dir, signals_client, respx_mock, snapshot):
+def test_generated_files_snowflake(test_dir, signals_client, respx_mock, snapshot):
     """Test that the generated files are correct."""
     # Setup mock API response
     mock_response = get_integration_test_view_response(warehouse="snowflake")

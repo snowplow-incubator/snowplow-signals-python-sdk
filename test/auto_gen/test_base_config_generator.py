@@ -50,7 +50,7 @@ def test_view_response():
 
 @pytest.fixture
 def base_config_generator(test_view_response):
-    return BaseConfigGenerator(data=test_view_response)
+    return BaseConfigGenerator(data=test_view_response, target_type="snowflake")
 
 
 class TestBaseConfigGenerator:

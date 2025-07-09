@@ -1,9 +1,20 @@
-from typing import Literal
+import re
+from pathlib import Path
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
-from .dbt_project_setup import DbtBaseConfig
+from .base_config_generator import DbtBaseConfig
 from .modeling_step import FilterCondition
+
+ALLOWED_ATOMIC_PROPERTIES = {
+    line
+    for line in Path(__file__)
+    .with_name("allowed_atomic_properties.txt")
+    .read_text()
+    .split("\n")
+    if line
+}
 
 
 class ConfigEvents(BaseModel):
@@ -27,9 +38,16 @@ class DailyAggregations(BaseModel):
     daily_last_value_attributes: list
 
 
+class FilteredEventsProperty(BaseModel):
+    type: str
+    full_path: str
+    alias: str
+    column_prefix: Optional[str] = None
+
+
 class FilteredEvents(BaseModel):
     events: list[ConfigEvents]
-    properties: list[dict[str, str]]
+    properties: Optional[List[FilteredEventsProperty]] = None
 
 
 class DbtConfig(BaseModel):
@@ -42,8 +60,13 @@ SQLConditions = Literal["and", "or"]
 
 
 class DbtConfigGenerator:
-    def __init__(self, base_config_data: DbtBaseConfig):
+    def __init__(
+        self,
+        base_config_data: DbtBaseConfig,
+        target_type: Literal["snowflake", "bigquery"] = "snowflake",
+    ):
         self.base_config_data = base_config_data
+        self.target_type = target_type
 
     def get_events_dict(self) -> list[ConfigEvents]:
         parsed_events = self.base_config_data.events
@@ -207,6 +230,51 @@ class DbtConfigGenerator:
             condition_sql_list.append(condition_sql)
         return f" {condition_type} ".join(condition_sql_list)
 
+    def get_property_references(self):
+        """Prepares property references for the jinja template to consume. For non-atomic bigquery properties, it prepares input for combine_column_versions() snowplow-uitls dbt macro use"""
+        property_references = []
+        for property in self.base_config_data.properties:
+            for key, value in property.items():
+                if self.target_type == "snowflake":
+                    property_references.append(
+                        FilteredEventsProperty(
+                            type="direct",
+                            full_path=key,
+                            alias=value,
+                            column_prefix=None,
+                        )
+                    )
+                elif self.target_type == "bigquery":
+                    if key in ALLOWED_ATOMIC_PROPERTIES:
+                        property_references.append(
+                            FilteredEventsProperty(
+                                type="direct",
+                                full_path=key,
+                                alias=value,
+                                column_prefix=None,
+                            )
+                        )
+                    else:
+                        match = re.match(
+                            r"^(?P<prefix>(?:unstruct_event|contexts)_[a-z0-9_]+(?:_\d+(?:_\d+){0,2})?)"
+                            r"(?:\[safe_offset\(\d+\)\])?(?:\.(?P<field_path>.*))?$",
+                            key,
+                        )
+                        if not match:
+                            raise ValueError(f"Invalid property key: {key}")
+                        property_references.append(
+                            FilteredEventsProperty(
+                                type="coalesced",
+                                full_path=key,
+                                alias=value,
+                                column_prefix=match.group("prefix"),
+                            )
+                        )
+                else:
+                    raise ValueError(f"Unsupported target type: {self.target_type}")
+
+        return property_references
+
     def get_daily_aggs_by_type(self, attribute_type) -> list:
         """Returns a list of attributes base on type that is needed to create jinja context for the daily_aggregates table (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
@@ -343,7 +411,7 @@ class DbtConfigGenerator:
         return DbtConfig(
             filtered_events=FilteredEvents(
                 events=self.get_events_dict(),
-                properties=self.base_config_data.properties,
+                properties=self.get_property_references(),
             ),
             daily_agg=DailyAggregations(
                 daily_aggregate_attributes=self.get_daily_aggs_by_type(

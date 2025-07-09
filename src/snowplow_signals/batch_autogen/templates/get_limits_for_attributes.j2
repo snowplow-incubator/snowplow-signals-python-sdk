@@ -10,37 +10,19 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {# upper limit only applies to last n day aggregates in case the user does not want to include current date in the aggregations #}
 {# lower limit is only implemented for reducing unnecessary scans in case there are only last n day aggregate attributes #}
   
+  {% set current_day = var('snowplow__mock_current_day', snowplow_utils.current_timestamp_in_utc()) %}
   {% set limits_query %}
-  
-    with base as (
-      
-      select
-        '{{ var('snowplow__start_date', '2025-01-01') }}' as lower_limit,
-        coalesce(max(event_date), '{{ var('snowplow__start_date', '2025-01-01') }}') as upper_limit
+    SELECT
+      '{{ var("snowplow__start_date", "2025-01-01") }}' AS lower_limit,
+      {% if not var("snowplow__include_current_day_in_windows", false) %}
+       {{ snowplow_utils.timestamp_add('day', -1, "'"~current_day~"'") }}  AS upper_limit
+      {% else %}
+        {{ current_day }} AS upper_limit
+      {% endif %}
         
       from {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates') }}
       
       group by 1
-    )
-    
-    , upper_limit_changes as (
-      
-      select
-        lower_limit,
-        {% if not var('snowplow__include_current_day_in_windows', false) %} 
-          case when upper_limit = current_date then {{dbt.dateadd('day', -1, "'"~upper_limit~"'")}} else upper_limit end as upper_limit
-        {% else %}
-          upper_limit
-        {% endif %}
-        
-      from base
-    )
-    
-    select
-      lower_limit,
-      upper_limit
-
-    from upper_limit_changes
 
   {% endset %}
 
@@ -60,4 +42,5 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
   {% endif %}
 
 {% endmacro %}
+        
 {% endraw %}

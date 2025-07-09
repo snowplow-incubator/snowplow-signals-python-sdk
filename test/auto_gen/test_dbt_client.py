@@ -7,13 +7,17 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from snowplow_signals.api_client import ApiClient
+from snowplow_signals.batch_autogen.cli_params import (
+    TargetType,
+)
 from snowplow_signals.batch_autogen.dbt_client import BatchAutogenClient
 from snowplow_signals.batch_autogen.models.dbt_config_generator import (
-    DbtConfig,
-    FilteredEvents,
+    ConfigAttributes,
     ConfigEvents,
     DailyAggregations,
-    ConfigAttributes,
+    DbtConfig,
+    FilteredEvents,
+    FilteredEventsProperty,
 )
 
 
@@ -103,6 +107,7 @@ def test_init_project_with_view_name(dbt_client, temp_repo_path, mock_project_se
         repo_path=temp_repo_path,
         view_name="test_view",
         view_version=None,
+        target_type=TargetType.snowflake,
     )
 
 
@@ -117,6 +122,7 @@ def test_init_project_with_view_version(dbt_client, temp_repo_path, mock_project
         repo_path=temp_repo_path,
         view_name="test_view",
         view_version=1,
+        target_type=TargetType.snowflake,
     )
 
 

@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Literal
 
 import typer
 from typing_extensions import Annotated
@@ -31,11 +32,13 @@ class DbtProjectSetup:
         repo_path: Annotated[str, typer.Option()] = "customer_repo",
         view_name: str | None = None,
         view_version: int | None = None,
+        target_type: Literal["snowflake", "bigquery"] = "snowflake",
     ):
         self.api_client = api_client
         self.repo_path = repo_path
         self.view_name = view_name
         self.view_version = view_version
+        self.target_type = target_type
 
     def create_project_directories(
         self,
@@ -64,7 +67,9 @@ class DbtProjectSetup:
         self,
         attribute_view: ViewResponse,
     ) -> DbtBaseConfig:
-        generator = BaseConfigGenerator(data=attribute_view)
+        generator = BaseConfigGenerator(
+            data=attribute_view, target_type=self.target_type
+        )
         return generator.create_base_config()
 
     def _get_default_batch_source_config(

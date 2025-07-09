@@ -21,10 +21,12 @@ from .cli_params import (
     ORG_ID,
     PROJECT_NAME,
     REPO_PATH,
+    TARGET_TYPE,
     UPDATE,
     VERBOSE,
     VIEW_NAME,
     VIEW_VERSION,
+    TargetType,
 )
 
 # Create the main Typer app with metadata
@@ -113,6 +115,7 @@ def init(
     view_name: VIEW_NAME = None,
     view_version: VIEW_VERSION = None,
     verbose: VERBOSE = False,
+    target_type: TARGET_TYPE = TargetType.snowflake,
 ) -> None:
     """Initialize dbt project structure and base configuration."""
     try:
@@ -120,7 +123,7 @@ def init(
         validated_path = validate_repo_path(repo_path)
         logger.info(f"Initializing dbt project(s) in {validated_path}")
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = BatchAutogenClient(api_client=api_client)
+        client = BatchAutogenClient(api_client=api_client, target_type=target_type)
         success = client.init_project(
             repo_path=str(validated_path),
             view_name=view_name,
@@ -145,6 +148,7 @@ def generate(
     project_name: PROJECT_NAME = None,
     update: UPDATE = False,
     verbose: VERBOSE = False,
+    target_type: TARGET_TYPE = TargetType.snowflake,
 ) -> None:
     """Generate dbt project assets such as data models, macros and config files."""
     try:
@@ -152,7 +156,7 @@ def generate(
         validated_path = validate_repo_path(repo_path)
         logger.info(f"🛠️ Generating dbt models in {validated_path}")
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = BatchAutogenClient(api_client=api_client)
+        client = BatchAutogenClient(api_client=api_client, target_type=target_type)
         success = client.generate_models(
             repo_path=str(validated_path),
             project_name=project_name,

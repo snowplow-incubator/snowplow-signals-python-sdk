@@ -19,6 +19,7 @@ import pytest
 import typer
 
 from snowplow_signals.batch_autogen.cli import app, validate_repo_path
+from snowplow_signals.batch_autogen.cli_params import TargetType
 
 
 @pytest.fixture(scope="session")
@@ -93,10 +94,13 @@ def test_cli_init_project_succeeds(
 
     with pytest.raises(SystemExit) as exc_info:
         app(["init", "--repo-path", str(test_repo_dir)] + api_params)
-
+    print("heee")
+    print(mock_dbt_client.init_project.call_args_list)
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once_with(
-        repo_path=str(test_repo_dir), view_name=None, view_version=None
+        repo_path=str(test_repo_dir),
+        view_name=None,
+        view_version=None,
     )
 
 
@@ -121,7 +125,9 @@ def test_cli_init_project_with_view_name_succeeds(
 
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once_with(
-        repo_path=str(test_repo_dir), view_name=MOCK_VIEW_NAME, view_version=None
+        repo_path=str(test_repo_dir),
+        view_name=MOCK_VIEW_NAME,
+        view_version=None,
     )
 
 

@@ -1,30 +1,30 @@
-import pytest
-from snowplow_signals.batch_autogen.models.base_config_generator import DbtBaseConfig
-from snowplow_signals.batch_autogen.models.dbt_config_generator import (
-    DbtConfigGenerator,
-    ConfigEvents,
-    FilterCondition,
-    DailyAggregations,
-    ConfigAttributes,
-    FilteredEvents,
-    DbtConfig,
-)
-
-import snowplow_signals.batch_autogen.models.dbt_config_generator as dbg
-
-from snowplow_signals.batch_autogen.models.modeling_step import (
-    ModelingStep,
-    FilterCondition,
-    ModelingStep,
-)
+import inspect
 from test.auto_gen.test_base_config_attributes import (
     first_value_attr,
-    last_value_attr,
     last_n_day_aggregates_attr,
+    last_value_attr,
     lifetime_aggregates_attr,
     unique_list_attr,
 )
-import inspect
+
+import pytest
+
+import snowplow_signals.batch_autogen.models.dbt_config_generator as dbg
+from snowplow_signals.batch_autogen.models.base_config_generator import DbtBaseConfig
+from snowplow_signals.batch_autogen.models.dbt_config_generator import (
+    ConfigAttributes,
+    ConfigEvents,
+    DailyAggregations,
+    DbtConfig,
+    DbtConfigGenerator,
+    FilterCondition,
+    FilteredEvents,
+    FilteredEventsProperty,
+)
+from snowplow_signals.batch_autogen.models.modeling_step import (
+    FilterCondition,
+    ModelingStep,
+)
 
 """Tests for the DbtConfigGenerator class"""
 
@@ -266,7 +266,14 @@ def test_create_dbt_config_happy_path(instance):
                     event_version="2-1-3",
                 ),
             ],
-            properties=[{"geo_country": "geo_country"}],
+            properties=[
+                FilteredEventsProperty(
+                    type="direct",
+                    full_path="geo_country",
+                    alias="geo_country",
+                    column_prefix=None,
+                )
+            ],
         ),
         daily_agg=DailyAggregations(
             daily_aggregate_attributes=[
@@ -349,7 +356,6 @@ def test_create_dbt_config_happy_path(instance):
             ],
         ),
     )
-
     assert result == expectation
 
 

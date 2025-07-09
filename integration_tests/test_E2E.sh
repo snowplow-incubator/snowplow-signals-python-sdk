@@ -29,6 +29,15 @@ SCRIPTS_DIR=$(dirname "$(realpath "$0")")
 PROJECT_ROOT=$(dirname "$SCRIPTS_DIR")
 
 
+# Validate DATABASE variable
+if [ -z "$DATABASE" ]; then
+  echo "ERROR: DATABASE environment variable is not set."
+  exit 1
+fi
+
+NEW_TEST_DIR="${PROJECT_ROOT}/integration_tests/customer_repo_${DATABASE}/ecommerce_transaction_interactions_features_1/integration_test"
+
+
 print_header() {
     echo -e "\n${YELLOW}======================================================${NC}"
     echo -e "${YELLOW}$1${NC}"
@@ -45,46 +54,37 @@ echo "$(date)"
 
 # Run the test script with pytest to generate the dbt project
 print_header "Running replicate_files.py"
-poetry run python integration_tests/replicate_files.py test/auto_gen/__snapshots__/test_snapshots_$DATABASE.ambr local_testing/customer_repo_$DATABASE
+poetry run python integration_tests/replicate_files.py test/auto_gen/__snapshots__/test_snapshots_$DATABASE.ambr integration_tests/customer_repo_$DATABASE
 
 # Check if test_dir was created successfully
-if [ ! -d "local_testing/customer_repo_${DATABASE}" ]; then
-    echo -e "${RED}Failed to create local_testing/customer_repo_${DATABASE}${NC}"
+if [ ! -d "integration_tests/customer_repo_${DATABASE}" ]; then
+    echo -e "${RED}Failed to create integration_tests/customer_repo_${DATABASE}${NC}"
     exit 1
 fi
 
 echo -e "${GREEN}Successfully initialized and generated dbt project for ${DATABASE}${NC}"
 
-# Run dbt commands for each project
+
+# Create the destination directory
+mkdir -p "$(dirname "$NEW_TEST_DIR")"
+
+# Move the integration_test directory
+mv "${PROJECT_ROOT}/integration_tests/integration_test" "$NEW_TEST_DIR"
+
+# Move into the new test directory
+cd "$NEW_TEST_DIR"
+
+# Print header
 print_header "Running dbt commands"
 
-# Find all dbt projects (directories containing dbt_project.yml)
-cd local_testing/customer_repo_${DATABASE}
-for project_dir in */; do
-    if [ -f "${project_dir}dbt_project.yml" ]; then
-        print_header "Processing project: ${project_dir%/}"
-        cd "${project_dir}"
-        
-        # Clean up any previous dbt artifacts
-        echo -e "${BLUE}Cleaning dbt artifacts...${NC}"
-        dbt clean
-        
-        # Install dependencies
-        echo -e "${BLUE}Installing dbt dependencies...${NC}"
-        dbt deps
-        
-        # Run models with full refresh
-        echo -e "${BLUE}Running dbt models with full refresh...${NC}"
-        dbt run --target "$DATABASE" --full-refresh
-        
-        # Run models incrementally
-        echo -e "${BLUE}Running dbt models incrementally...${NC}"
-        dbt run --target "$DATABASE"
-        
-        cd ..
-    fi
-done
+# Run dbt dependencies
+echo -e "${BLUE}Installing dbt dependencies...${NC}"
+dbt deps
 
-print_header "TEST ENVIRONMENT INITIALIZATION COMPLETE"
+# Run integration test script
+bash .scripts/integration_test.sh -d "$DATABASE"
+
+
+print_header "E2E TEST COMPLETED"
 echo "$(date)"
-echo -e "\n${GREEN}All initialization steps completed.${NC}"
+echo -e "\n${GREEN}All E2E test steps completed.${NC}"
