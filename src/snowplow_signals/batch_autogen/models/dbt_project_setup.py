@@ -11,7 +11,7 @@ from snowplow_signals.batch_autogen.models.base_config_generator import (
 from snowplow_signals.batch_autogen.models.batch_source_config import (
     BatchSourceConfig,
 )
-from snowplow_signals.logging import get_logger
+from snowplow_signals.cli_logging import get_logger
 
 from ...api_client import ApiClient
 from ...models import ViewResponse
