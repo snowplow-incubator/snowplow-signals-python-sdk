@@ -1325,44 +1325,40 @@
       You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
       #}
       
-      {% macro get_limits_for_attributes() %}
+      {% macro get_limits_for_attributes() -%}
       
-      {# upper limit only applies to last n day aggregates in case the user does not want to include current date in the aggregations #}
-      {# lower limit is only implemented for reducing unnecessary scans in case there are only last n day aggregate attributes #}
+        {# upper limit only applies to last n day aggregates in case the user does not want to include current date in the aggregations #}
+        {# TODO: implement lower limit for reducing unnecessary scans in case there are only last n day aggregate attributes #}
+      
         
-        {% set current_day = var('snowplow__mock_current_day', snowplow_utils.current_timestamp_in_utc()) %}
-        {% set limits_query %}
-          SELECT
-            '{{ var("snowplow__start_date", "2025-01-01") }}' AS lower_limit,
-            {% if not var("snowplow__include_current_day_in_windows", false) %}
-             {{ snowplow_utils.timestamp_add('day', -1, "'"~current_day~"'") }}  AS upper_limit
-            {% else %}
-              {{ current_day }} AS upper_limit
-            {% endif %}
-              
-            from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }}
-            
-            group by 1
-      
-        {% endset %}
-      
-        {% set limit_results = run_query(limits_query)%}
-      
-        {% if execute %}
-          {% if limit_results|length == 0  %}
-            {{ exceptions.raise_compiler_error("Error: No limits returned") }}
-          {% else %}
-            {% set lower_limit = "'"~limit_results.columns[0].values()[0]~"'" %}
-            {% set upper_limit = "'"~limit_results.columns[1].values()[0]~"'" %}
-            {{ log(this.table ~ ": processing daily events between " ~ lower_limit ~ " and " ~ upper_limit, info=write_limits_to_stdout) }}
-            {{ return([lower_limit, upper_limit]) }}
+        {% if var('snowplow__mock_current_day', false) %}
+          {% set current_day = "DATE '" ~ var("snowplow__mock_current_day") ~ "'" %}
+        {% else %}
+          {% if target.type == "snowflake" %}
+            {% set current_day = "CAST(CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP()) AS DATE)" %}
+          {% elif target.type == "bigquery" %}
+            {% set current_day = "CURRENT_DATE" %}
           {% endif %}
-        {% else%}
-          {{ return(['','']) }}
         {% endif %}
       
+        {# Calculate upper limit depending on include_current_day #}
+        {% if var("snowplow__include_current_day_in_windows", false) %}
+          {% set upper_limit = snowplow_utils.add_days_to_date(1, current_day) %}
+        {% else %}
+          {% set upper_limit = current_day %}
+        {% endif %}
+      
+        {# Static lower limit from var #}
+        {% set lower_limit = "DATE '" ~ var("snowplow__start_date", "2025-01-01") ~ "'" %}
+      
+        {% if execute %}
+          {{ return([lower_limit, upper_limit]) }}
+        {% else %}
+          {{ return(["", ""]) }}
+        {% endif %}
+        
       {% endmacro %}
-              
+      
   
     ''',
     'ecommerce_transaction_interactions_features_1/models/attributes/ecommerce_transaction_interactions_features_1_attributes.sql': '''
@@ -1396,19 +1392,19 @@
       
           
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_view end) as page_view_events_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_page_view end) as page_view_events_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_ping end) as page_ping_events_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_page_ping end) as page_ping_events_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_view_page_url_like_pctpricingpct end) as pricing_pageview_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_page_view_page_url_like_pctpricingpct end) as pricing_pageview_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_view_page_url_like_pctdemopct end) as demo_pageview_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_page_view_page_url_like_pctdemopct end) as demo_pageview_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then media_video_event_count_last_7_days end) as media_video_event_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then media_video_event_count_last_7_days end) as media_video_event_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_focus_form_change_form end) as form_focus_change_event_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_focus_form_change_form end) as form_focus_change_event_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then sum_revenue_snowplow_ecommerce_action end) as total_revenue_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then sum_revenue_snowplow_ecommerce_action end) as total_revenue_last_7_days
           
       
       

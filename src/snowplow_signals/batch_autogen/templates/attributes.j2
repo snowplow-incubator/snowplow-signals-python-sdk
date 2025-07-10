@@ -30,7 +30,7 @@ with  aggregations as (
       , {{ attribute['aggregation_type'] }}({{ attribute["daily_agg_column_name"] }}) as {{ attribute["column_name"] }}
     {% endfor %}
     {% for attribute in last_n_day_aggregates %}
-      , {{ attribute['aggregation_type'] }}({% raw %}case when event_date >= {{dbt.dateadd('day', -{% endraw %}{{ attribute["period"] }}{% raw %}, upper_limit)}} then {% endraw %}{{ attribute["daily_agg_column_name"] }} end) as {{ attribute["column_name"] }}
+      , {{ attribute['aggregation_type'] }}({% raw %}case when event_date >= {{snowplow_utils.add_days_to_date(-{% endraw %}{{ attribute["period"] }}{% raw %}, upper_limit)}} and event_date < {{ upper_limit }} then {% endraw %}{{ attribute["daily_agg_column_name"] }} end) as {{ attribute["column_name"] }}
     {% endfor %}
 
 {% raw %}
