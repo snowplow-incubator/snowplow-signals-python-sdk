@@ -403,7 +403,7 @@ class SignalsApiModelsInterventionCriterionCriterion(BaseModel):
 
 
 class SignalsApiModelsViewCriterionCriterion(BaseModel):
-    property_syntax: Optional[Literal["blobl", "snowflake"]] = Field(
+    property_syntax: Optional[Literal["blobl", "snowflake", "bigquery"]] = Field(
         default="snowflake",
         description="The syntax used to reference the property.",
         title="Property Syntax",
@@ -595,7 +595,7 @@ class AttributeInput(BaseModel):
     ] = Field(
         ..., description="The aggregation type of the attribute.", title="Aggregation"
     )
-    property_syntax: Optional[Literal["blobl", "snowflake"]] = Field(
+    property_syntax: Optional[Literal["blobl", "snowflake", "bigquery"]] = Field(
         default="snowflake",
         description="The syntax used to reference the property.",
         title="Property Syntax",
@@ -665,7 +665,7 @@ class AttributeOutput(BaseModel):
     ] = Field(
         ..., description="The aggregation type of the attribute.", title="Aggregation"
     )
-    property_syntax: Optional[Literal["blobl", "snowflake"]] = Field(
+    property_syntax: Optional[Literal["blobl", "snowflake", "bigquery"]] = Field(
         default="snowflake",
         description="The syntax used to reference the property.",
         title="Property Syntax",

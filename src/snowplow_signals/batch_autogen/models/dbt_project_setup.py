@@ -117,7 +117,7 @@ class DbtProjectSetup:
         attribute_views = self.api_client.make_request(
             method="GET",
             endpoint="registry/views/",
-            params={"offline": True},
+            params={"offline": True, "property_syntax": self.target_type},
         )
         return [ViewResponse.model_validate(view) for view in attribute_views]
 
