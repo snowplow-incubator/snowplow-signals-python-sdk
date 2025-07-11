@@ -1454,42 +1454,42 @@
         
           , last_value(last_geo_country) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_geo_country
         
       
         
           , last_value(last_geo_timezone) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_timezone
         
       
         
           , last_value(last_operating_system_name) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_os
         
       
         
           , last_value(last_device_class) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_device_class
         
       
         
           , last_value(last_mkt_source) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_mkt_source
         
       
         
           , last_value(last_mkt_medium) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_mkt_medium
         
       
@@ -1802,20 +1802,20 @@
         
         select
           *,
-          last_value(derived_tstamp) over (partition by entity_key_date_id order by derived_tstamp) as last_event_tstamp
+          last_value(derived_tstamp) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_event_tstamp
               
           
-            , first_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp) as first_mkt_source
-            , first_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp) as first_mkt_medium
-            , first_value(refr_source) over (partition by entity_key_date_id order by derived_tstamp) as first_refr_source
-            , first_value(refr_medium) over (partition by entity_key_date_id order by derived_tstamp) as first_refr_medium
+            , first_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_mkt_source
+            , first_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_mkt_medium
+            , first_value(refr_source) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_refr_source
+            , first_value(refr_medium) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_refr_medium
           
-            , last_value(geo_country) over (partition by entity_key_date_id order by derived_tstamp) as last_geo_country
-            , last_value(geo_timezone) over (partition by entity_key_date_id order by derived_tstamp) as last_geo_timezone
-            , last_value(operating_system_name) over (partition by entity_key_date_id order by derived_tstamp) as last_operating_system_name
-            , last_value(device_class) over (partition by entity_key_date_id order by derived_tstamp) as last_device_class
-            , last_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp) as last_mkt_source
-            , last_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp) as last_mkt_medium
+            , last_value(geo_country) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_geo_country
+            , last_value(geo_timezone) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_geo_timezone
+            , last_value(operating_system_name) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_operating_system_name
+            , last_value(device_class) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_device_class
+            , last_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_mkt_source
+            , last_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_mkt_medium
         
         from events
         

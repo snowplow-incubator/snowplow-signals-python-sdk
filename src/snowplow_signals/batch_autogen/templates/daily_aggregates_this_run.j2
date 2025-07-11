@@ -46,13 +46,13 @@ with events as (
   
   select
     *,
-    last_value(derived_tstamp) over (partition by entity_key_date_id order by derived_tstamp) as last_event_tstamp
+    last_value(derived_tstamp) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_event_tstamp
     {% endraw %}    
     {% for attribute in daily_first_value_attributes %}
-      , first_value({{ attribute['condition_clause'] }}) over (partition by entity_key_date_id order by derived_tstamp) as {{ attribute['column_name'] }}
+      , first_value({{ attribute['condition_clause'] }}) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as {{ attribute['column_name'] }}
     {%- endfor %}
     {% for attribute in daily_last_value_attributes %}
-      , last_value({{ attribute['condition_clause'] }}) over (partition by entity_key_date_id order by derived_tstamp) as {{ attribute['column_name'] }}
+      , last_value({{ attribute['condition_clause'] }}) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as {{ attribute['column_name'] }}
     {%- endfor %}
   {% raw %}
   from events
