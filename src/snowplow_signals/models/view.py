@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from typing import TYPE_CHECKING, Annotated
+=======
+from typing import Annotated
+>>>>>>> d361be2 (Linting)
 
 from pydantic import BeforeValidator, EmailStr
 from pydantic import Field as PydanticField

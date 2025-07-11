@@ -1,5 +1,6 @@
-from snowplow_signals import Attribute, Event, Criteria, Criterion
 import pytest
+
+from snowplow_signals import Attribute, Criteria, Criterion, Event
 
 
 class TestValidAttributes:
