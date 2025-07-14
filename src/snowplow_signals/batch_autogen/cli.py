@@ -112,10 +112,10 @@ def init(
     api_key_id: API_KEY_ID,
     org_id: ORG_ID,
     repo_path: REPO_PATH,
+    target_type: TARGET_TYPE,
     view_name: VIEW_NAME = None,
     view_version: VIEW_VERSION = None,
     verbose: VERBOSE = False,
-    target_type: TARGET_TYPE = TargetType.snowflake,
 ) -> None:
     """Initialize dbt project structure and base configuration."""
     try:
@@ -145,10 +145,10 @@ def generate(
     api_key_id: API_KEY_ID,
     org_id: ORG_ID,
     repo_path: REPO_PATH,
+    target_type: TARGET_TYPE,
     project_name: PROJECT_NAME = None,
     update: UPDATE = False,
     verbose: VERBOSE = False,
-    target_type: TARGET_TYPE = TargetType.snowflake,
 ) -> None:
     """Generate dbt project assets such as data models, macros and config files."""
     try:

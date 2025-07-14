@@ -79,8 +79,16 @@ def api_params() -> List[str]:
     ]
 
 
+@pytest.fixture
+def target_type() -> str:
+    return "snowflake"
+
+
 def test_cli_init_project_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: MagicMock,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test successful initialization of dbt project.
@@ -93,7 +101,11 @@ def test_cli_init_project_succeeds(
     mock_dbt_client.init_project.return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", str(test_repo_dir)] + api_params)
+        app(
+            ["init", "--repo-path", str(test_repo_dir)]
+            + api_params
+            + ["--target-type", target_type]
+        )
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once_with(
         repo_path=str(test_repo_dir),
@@ -103,7 +115,10 @@ def test_cli_init_project_succeeds(
 
 
 def test_cli_init_project_with_view_name_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: MagicMock,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test initialization with specific view name.
@@ -119,6 +134,7 @@ def test_cli_init_project_with_view_name_succeeds(
         app(
             ["init", "--repo-path", str(test_repo_dir), "--view-name", MOCK_VIEW_NAME]
             + api_params
+            + ["--target-type", target_type]
         )
 
     assert exc_info.value.code == 0
@@ -130,7 +146,10 @@ def test_cli_init_project_with_view_name_succeeds(
 
 
 def test_cli_init_project_with_view_name_and_version_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: MagicMock,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test initialization with specific view name and version.
@@ -154,6 +173,7 @@ def test_cli_init_project_with_view_name_and_version_succeeds(
                 str(MOCK_VIEW_VERSION),
             ]
             + api_params
+            + ["--target-type", target_type]
         )
 
     assert exc_info.value.code == 0
@@ -165,7 +185,10 @@ def test_cli_init_project_with_view_name_and_version_succeeds(
 
 
 def test_cli_init_project_fails(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: MagicMock,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test initialization failure.
@@ -178,13 +201,20 @@ def test_cli_init_project_fails(
     mock_dbt_client.init_project.return_value = False
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", str(test_repo_dir)] + api_params)
+        app(
+            ["init", "--repo-path", str(test_repo_dir)]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 1
 
 
 def test_cli_generate_models_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: MagicMock,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test successful generation of dbt models.
@@ -197,7 +227,11 @@ def test_cli_generate_models_succeeds(
     mock_dbt_client.generate_models.return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["generate", "--repo-path", str(test_repo_dir)] + api_params)
+        app(
+            ["generate", "--repo-path", str(test_repo_dir)]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 0
     mock_dbt_client.generate_models.assert_called_once_with(
@@ -206,7 +240,10 @@ def test_cli_generate_models_succeeds(
 
 
 def test_cli_generate_models_with_update_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: MagicMock,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test generation with update flag.
@@ -219,7 +256,11 @@ def test_cli_generate_models_with_update_succeeds(
     mock_dbt_client.generate_models.return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["generate", "--repo-path", str(test_repo_dir), "--update"] + api_params)
+        app(
+            ["generate", "--repo-path", str(test_repo_dir), "--update"]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 0
     mock_dbt_client.generate_models.assert_called_once_with(
@@ -228,7 +269,10 @@ def test_cli_generate_models_with_update_succeeds(
 
 
 def test_cli_generate_models_fails(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: MagicMock,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test generation failure.
@@ -241,12 +285,18 @@ def test_cli_generate_models_fails(
     mock_dbt_client.generate_models.return_value = False
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["generate", "--repo-path", str(test_repo_dir)] + api_params)
+        app(
+            ["generate", "--repo-path", str(test_repo_dir)]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 1
 
 
-def test_cli_commands_with_invalid_repo_path_fail(api_params: List[str]) -> None:
+def test_cli_commands_with_invalid_repo_path_fail(
+    api_params: List[str], target_type: str
+) -> None:
     """
     Test commands with invalid repository path.
 
@@ -255,17 +305,28 @@ def test_cli_commands_with_invalid_repo_path_fail(api_params: List[str]) -> None
     """
     # Test init command with invalid path
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", "/nonexistent/path"] + api_params)
+        app(
+            ["init", "--repo-path", "/nonexistent/path"]
+            + api_params
+            + ["--target-type", target_type]
+        )
     assert exc_info.value.code == 1
 
     # Test generate command with invalid path
     with pytest.raises(SystemExit) as exc_info:
-        app(["generate", "--repo-path", "/nonexistent/path"] + api_params)
+        app(
+            ["generate", "--repo-path", "/nonexistent/path"]
+            + api_params
+            + ["--target-type", target_type]
+        )
     assert exc_info.value.code == 1
 
 
 def test_cli_commands_with_debug_logging_succeed(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: MagicMock,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test commands with verbose logging enabled.
@@ -278,14 +339,18 @@ def test_cli_commands_with_debug_logging_succeed(
     mock_dbt_client.init_project.return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", str(test_repo_dir), "--verbose"] + api_params)
+        app(
+            ["init", "--repo-path", str(test_repo_dir), "--verbose"]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once()
 
 
 def test_cli_commands_with_custom_api_url_succeed(
-    test_repo_dir: Path, mock_dbt_client: MagicMock
+    test_repo_dir: Path, mock_dbt_client: MagicMock, target_type: str
 ) -> None:
     """
     Test commands with custom API URL.
@@ -307,7 +372,11 @@ def test_cli_commands_with_custom_api_url_succeed(
     ]
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", str(test_repo_dir)] + custom_api_params)
+        app(
+            ["init", "--repo-path", str(test_repo_dir)]
+            + custom_api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 0
     mock_dbt_client.init_project.assert_called_once()
