@@ -19,7 +19,7 @@ There are different ways to test this implementation locally during a dev proces
 
 ### Feature JSON
 
-Currently, there is a test API server to simulate the connection between the API and the SDK. There are example batch attribute view definition (JSON) inside `test/autogen` called `integration_test_view.json` (Snowflake) and `integration_test_view.json` (BigQuery). Feel free to modify it or just leave it as is depending on your test purpose. It should not, however be committed otherwise the automated integration_test github actions will fail.
+Currently, there is a test API server to simulate the connection between the API and the SDK. There are example batch attribute view definition (JSON) inside `test/autogen` called `integration_test_view_snowflake.json` (Snowflake) and `integration_test_view_snowflake.json` (BigQuery). Feel free to modify it or just leave it as is depending on your test purpose. It should not, however be committed otherwise the automated integration_test github actions will fail.
 
 ### **Installing the SDK**
 
