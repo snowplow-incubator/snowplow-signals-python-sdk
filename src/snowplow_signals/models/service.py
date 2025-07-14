@@ -1,24 +1,13 @@
-<<<<<<< HEAD
 from typing import TYPE_CHECKING, Annotated
-=======
-from typing import Annotated
->>>>>>> d361be2 (Linting)
 
 from pydantic import BeforeValidator, EmailStr, Field
 
 from .model import Service as ServiceInput
-<<<<<<< HEAD
 from .model import VersionedLinkView
 from .view import View
 
 if TYPE_CHECKING:
     from snowplow_signals.signals import Signals
-=======
-from .model import (
-    VersionedLinkView,
-)
-from .view import View
->>>>>>> d361be2 (Linting)
 
 
 def view_to_link(

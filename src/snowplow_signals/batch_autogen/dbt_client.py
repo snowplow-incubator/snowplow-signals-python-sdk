@@ -1,11 +1,7 @@
 import json
 import os
 from pathlib import Path
-<<<<<<< HEAD
-from typing import Optional
-=======
 from typing import Literal, Optional
->>>>>>> 8be7f8f (Add support for bigquery in the SDK)
 
 from snowplow_signals.batch_autogen.models.batch_source_config import (
     BatchSourceConfig,
