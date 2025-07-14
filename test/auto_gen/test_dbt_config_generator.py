@@ -48,7 +48,7 @@ def mock_base_config():
 
 @pytest.fixture
 def instance(mock_base_config):
-    obj = DbtConfigGenerator(base_config_data=mock_base_config)
+    obj = DbtConfigGenerator(base_config_data=mock_base_config, target_type="snowflake")
     obj.base_config_data = mock_base_config
     return obj
 

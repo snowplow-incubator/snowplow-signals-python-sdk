@@ -30,7 +30,7 @@ def mock_api_client():
 @pytest.fixture
 def dbt_client(mock_api_client):
     """Create a BatchAutogenClient instance with mocked API client"""
-    return BatchAutogenClient(mock_api_client)
+    return BatchAutogenClient(mock_api_client, target_type="snowflake")
 
 
 @pytest.fixture

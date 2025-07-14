@@ -63,7 +63,7 @@ class DbtConfigGenerator:
     def __init__(
         self,
         base_config_data: DbtBaseConfig,
-        target_type: Literal["snowflake", "bigquery"] = "snowflake",
+        target_type: Literal["snowflake", "bigquery"],
     ):
         self.base_config_data = base_config_data
         self.target_type = target_type

@@ -29,10 +29,10 @@ class DbtProjectSetup:
     def __init__(
         self,
         api_client: ApiClient,
+        target_type: Literal["snowflake", "bigquery"],
         repo_path: Annotated[str, typer.Option()] = "customer_repo",
         view_name: str | None = None,
         view_version: int | None = None,
-        target_type: Literal["snowflake", "bigquery"] = "snowflake",
     ):
         self.api_client = api_client
         self.repo_path = repo_path

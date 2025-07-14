@@ -34,7 +34,7 @@ class BatchAutogenClient:
     def __init__(
         self,
         api_client: ApiClient,
-        target_type: Literal["snowflake", "bigquery"] = "snowflake",
+        target_type: Literal["snowflake", "bigquery"],
     ):
         self.api_client = api_client
         self.target_type = target_type

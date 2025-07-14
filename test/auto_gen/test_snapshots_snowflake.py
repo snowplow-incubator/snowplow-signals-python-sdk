@@ -45,7 +45,7 @@ def test_generated_files_snowflake(test_dir, signals_client, respx_mock, snapsho
     )
 
     # Generate the files
-    client = BatchAutogenClient(signals_client.api_client)
+    client = BatchAutogenClient(signals_client.api_client, target_type="snowflake")
     client.init_project(repo_path=str(test_dir), view_name=TEST_VIEW_NAME)
     client.generate_models(repo_path=str(test_dir), project_name=TEST_PROJECT_NAME)
 
