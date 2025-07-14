@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.3] - 2025-07-14
+
+### Changed
+
+- [AISP-566] Fix None attributes sent on API
+- [AISP-566] Fix None attributes sent on API
+- Remove prompts for now
+- Run formatting on batch autogen files
+- [AISP-396] Update function to retrieve attribute values
+
 ## [0.1.2] - 2025-06-26
 
 ### Changed

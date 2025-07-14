@@ -1,16 +1,17 @@
 """Command-line interface for dbt project generation functionality"""
 
+import os
 import sys
 from pathlib import Path
 from typing import Optional
-import os
-import yaml  # type: ignore
 
 import typer
+import yaml  # type: ignore
 
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.batch_autogen import BatchAutogenClient
-from snowplow_signals.logging import get_logger, setup_logging
+from snowplow_signals.cli_logging import get_logger, setup_logging
+
 from .cli_params import (
     API_KEY,
     API_KEY_ID,
@@ -38,7 +39,7 @@ logger = get_logger(__name__)
 
 def _load_env_from_default_snowplow_yml():
     yaml_path = Path.home() / ".config" / "snowplow" / "snowplow.yml"
-    
+
     if not yaml_path.exists():
         return
     with open(yaml_path, "r") as f:

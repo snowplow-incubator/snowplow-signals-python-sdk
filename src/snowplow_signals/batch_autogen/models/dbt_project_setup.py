@@ -11,7 +11,7 @@ from snowplow_signals.batch_autogen.models.base_config_generator import (
 from snowplow_signals.batch_autogen.models.batch_source_config import (
     BatchSourceConfig,
 )
-from snowplow_signals.logging import get_logger
+from snowplow_signals.cli_logging import get_logger
 
 from ...api_client import ApiClient
 from ...models import ViewResponse
@@ -93,7 +93,9 @@ class DbtProjectSetup:
         for attribute_view in attribute_views:
             # Skip views that have no attributes (i.e., only materialize existing tables)
             if (not attribute_view.attributes) and attribute_view.fields:
-                logger.info(f"Skipping batch view '{attribute_view.name}_{attribute_view.version}' as it has no attributes and only fields.")
+                logger.info(
+                    f"Skipping batch view '{attribute_view.name}_{attribute_view.version}' as it has no attributes and only fields."
+                )
                 continue
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
             project_config = self._get_attribute_view_project_config(attribute_view)

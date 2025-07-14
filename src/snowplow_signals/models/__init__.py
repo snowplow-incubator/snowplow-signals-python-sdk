@@ -1,3 +1,4 @@
+from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import AttributeInput as Attribute
 from .model import (
@@ -31,7 +32,6 @@ from .model import (
     TestViewRequest,
     ViewResponse,
 )
-from .online_attributes_response import OnlineAttributesResponse
 from .service import Service
 from .view import View
 
@@ -44,7 +44,7 @@ Service
 Entity
 TestViewRequest
 GetOnlineAttributesRequest
-OnlineAttributesResponse
+GetAttributesResponse
 BatchSource
 Attribute
 

@@ -1,12 +1,10 @@
+from typing import Any
+
 from .api_client import ApiClient
 from .models import (
+    GetAttributesResponse,
     GetOnlineAttributesRequest,
-    OnlineAttributesResponse,
-    Service,
-    View,
-    ViewResponse,
 )
-from .registry_client import RegistryClient
 
 
 class AttributesClient:
@@ -15,64 +13,60 @@ class AttributesClient:
 
     def get_view_attributes(
         self,
-        view: View | ViewResponse,
-        identifiers: list[str] | str,
-    ) -> OnlineAttributesResponse:
-        attributes = [
-            f"{view.name}_v{view.version}:{attribute.name}"
-            for attribute in (view.attributes or []) + (view.fields or [])
-        ]
+        name: str,
+        version: int,
+        attributes: list[str] | str,
+        entity: str,
+        identifier: str,
+    ) -> dict[str, Any]:
+
+        attributes = (
+            [f"{name}_v{version}:{attribute}" for attribute in attributes]
+            if isinstance(attributes, list)
+            else [attributes]
+        )
 
         request = GetOnlineAttributesRequest(
             attributes=attributes,
-            entities={
-                view.entity.name: (
-                    identifiers if isinstance(identifiers, list) else [identifiers]
-                )
-            },
+            entities={entity: [identifier]},
         )
         return self._make_request(request)
-
-    def _get_entity_name(self, service: Service) -> str:
-        unique_entity_names: set[str] = set()
-        for view in service.views:
-            fetched_view = RegistryClient(api_client=self.api_client).get_view(
-                name=view.name, version=view.version
-            )
-            unique_entity_names.add(fetched_view.entity.name)
-
-        if len(unique_entity_names) > 1:
-            raise ValueError(
-                "The service contains views with different entities which is not supported."
-            )
-
-        return unique_entity_names.pop()
 
     def get_service_attributes(
         self,
-        service: Service,
-        identifiers: list[str] | str,
-    ) -> OnlineAttributesResponse:
-        if not service.views:
-            raise ValueError("No views to fetch.")
+        name: str,
+        entity: str,
+        identifier: str,
+    ) -> dict[str, Any]:
 
-        entity_name = self._get_entity_name(service=service)
         request = GetOnlineAttributesRequest(
-            service=service.name,
-            entities={
-                entity_name: (
-                    identifiers if isinstance(identifiers, list) else [identifiers]
-                )
-            },
+            service=name,
+            entities={entity: [identifier]},
         )
         return self._make_request(request)
 
-    def _make_request(
-        self, request: GetOnlineAttributesRequest
-    ) -> OnlineAttributesResponse:
+    def _make_request(self, request: GetOnlineAttributesRequest) -> dict[str, Any]:
         response = self.api_client.make_request(
             method="POST",
             endpoint="get-online-attributes",
-            data=request.model_dump(mode="json"),
+            data=request.model_dump(mode="json", exclude_none=True),
         )
-        return OnlineAttributesResponse(data=response)
+        return _format_get_attributes_response(GetAttributesResponse(data=response))
+
+
+def _format_get_attributes_response(response: GetAttributesResponse) -> dict[str, Any]:
+    """
+    Formats the GetAttributesResponse into a dictionary.
+
+    Args:
+        response: The GetAttributesResponse to format.
+
+    Returns:
+        A dictionary with attribute names as keys and lists of values.
+    """
+    result: dict[str, Any] = {}
+    for key, value in response.data.items():
+        if isinstance(value, list):
+            result[key] = value[0] if value else None
+
+    return result

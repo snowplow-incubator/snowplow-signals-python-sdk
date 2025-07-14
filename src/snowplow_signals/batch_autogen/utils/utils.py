@@ -1,9 +1,10 @@
 import datetime
-from pathlib import Path
-from typing import Dict, Any, Protocol, TypeVar
 import json
-from snowplow_signals.logging import get_logger
+from pathlib import Path
+from typing import Any, Dict, Protocol, TypeVar
+
 from snowplow_signals.batch_autogen.models.batch_source_config import BatchSourceConfig
+from snowplow_signals.cli_logging import get_logger
 
 logger = get_logger(__name__)
 
