@@ -392,3 +392,61 @@ def test_create_dbt_config_missing_column_name(instance):
         ValueError, match="Column name is required for first/last value attributes"
     ):
         instance.create_dbt_config()
+
+
+def test_get_property_references(instance):
+    result = instance.get_property_references()
+    assert result == [
+        FilteredEventsProperty(
+            type="direct",
+            full_path="geo_country",
+            alias="geo_country",
+            column_prefix=None,
+        )
+    ]
+
+
+def test_get_property_references_bigquery():
+    instance = DbtConfigGenerator(
+        base_config_data=mock_base_config, target_type="bigquery"
+    )
+    instance.base_config_data.properties = [{"geo_country": "geo_country"}]
+    result = instance.get_property_references()
+    assert result == [
+        FilteredEventsProperty(
+            type="direct",
+            full_path="geo_country",
+            alias="geo_country",
+            column_prefix=None,
+        )
+    ]
+
+
+def test_get_property_references_coalesced_bigquery():
+    instance = DbtConfigGenerator(
+        base_config_data=mock_base_config, target_type="bigquery"
+    )
+    instance.base_config_data.properties = [
+        {
+            "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].operating_system_name": "operating_system_name"
+        }
+    ]
+    result = instance.get_property_references()
+    assert result == [
+        FilteredEventsProperty(
+            type="coalesced",
+            full_path="contexts_nl_basjes_yauaa_context_1[safe_offset(0)].operating_system_name",
+            alias="operating_system_name",
+            column_prefix="contexts_nl_basjes_yauaa_context_1",
+        )
+    ]
+
+
+def test_get_invalid_property_references_bigquery():
+    instance = DbtConfigGenerator(
+        base_config_data=mock_base_config, target_type="bigquery"
+    )
+    instance.base_config_data.properties = [{"foo": "foo"}]
+
+    with pytest.raises(ValueError, match="Invalid property key: foo"):
+        instance.get_property_references()
