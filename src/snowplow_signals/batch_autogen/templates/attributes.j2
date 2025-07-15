@@ -42,35 +42,34 @@ with  aggregations as (
 {% endraw %}
 
 {% for attribute in unique_list_attributes %}
-  {% if attribute['period'] is not none %}
-    , filtered_data_{{ attribute['column_name'] }} as (
+  {% set col = attribute['column_name'] %}
+  {% set agg_col = attribute['daily_agg_column_name'] %}
+  {% set period = attribute['period'] %}
+  {% set has_period = period is not none %}
+  {% set filtered_table = "filtered_data_" ~ col if has_period else "{{ ref('"~project_name~ "_daily_aggregates') }}" %}
+  
+  {% if has_period %}
+    , filtered_data_{{ col }} as (
       select
           entity_key,
-          {{ attribute['daily_agg_column_name'] }}{% raw %}
-      from {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates')}}
-      where event_date >= {{ dbt.dateadd('day', -{% endraw %}{{ attribute["period"] }}{% raw %}, upper_limit) }}
-    ),
-    {% endraw %}{{ attribute['column_name'] }}_flattened as (
-      select
-          d.entity_key,
-          array_agg(distinct f.value::string) as {{ attribute['column_name'] }}{% raw %}
-      from filtered_data_{% endraw %}{{ attribute['column_name'] }} d,
-      LATERAL FLATTEN(input => {{ attribute['daily_agg_column_name'] }}) f
-      group by d.entity_key
-      
-    )
-
-  {% else %}
-
-    , {{ attribute['column_name'] }}_flattened as (
-      select
-          d.entity_key,
-          array_agg(distinct f.value::string) as {{ attribute['column_name'] }}{% raw %}
-      from {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates')}} d,
-      LATERAL FLATTEN(input => {% endraw %}{{ attribute['daily_agg_column_name'] }}) f
-      group by d.entity_key
-    )
+          {{ agg_col }}
+      from {% raw %}{{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates') }}
+      where event_date >= {{ dbt.dateadd('day', -{% endraw %}{{ period }}, {% raw %}upper_limit) }}
+    ){% endraw %}
   {% endif %}
+
+  , {{ col }}_flattened as (
+    select
+        d.entity_key,
+        array_agg(distinct cast(f{%raw%}{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}){%endraw%} as {{ col }}
+    from {{ filtered_table }} d,
+         {%raw%}{% if target.type == 'snowflake' %}{% endraw %}
+           LATERAL FLATTEN(input => {{ agg_col }}) f
+         {%raw%}{% elif target.type == 'bigquery' %}{% endraw %}
+           UNNEST(d.{{ col }}) AS f
+         {%raw%}{% endif %}{% endraw %}
+    group by d.entity_key
+  )
 {% endfor %}
 
 {%- if first_value_attributes | length > 0 or last_value_attributes | length > 0 %}

@@ -62,7 +62,8 @@
               }
           ],
           "periods": [
-              "P7DT0H0M0.000000S"
+              "P7DT0H0M0.000000S",
+              "P1DT0H0M0.000000S"
           ],
           "transformed_attributes": [
               [
@@ -711,6 +712,92 @@
                           "any": []
                       }
                   }
+              ],
+              [
+                  {
+                      "step_type": "filtered_events",
+                      "enabled": false,
+                      "aggregation": null,
+                      "column_name": "operating_system_name",
+                      "modeling_criteria": null
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "enabled": true,
+                      "aggregation": "unique_list",
+                      "column_name": "op_systems",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "event_name",
+                                  "operator": "in",
+                                  "value": "'page_view','page_ping','snowplow_ecommerce_action'"
+                              },
+                              {
+                                  "property": "revenue",
+                                  "operator": "!=",
+                                  "value": 1
+                              }
+                          ],
+                          "any": []
+                      }
+                  },
+                  {
+                      "step_type": "attribute_aggregation",
+                      "enabled": true,
+                      "aggregation": "unique_list",
+                      "column_name": "op_systems",
+                      "modeling_criteria": {
+                          "all": [],
+                          "any": []
+                      }
+                  }
+              ],
+              [
+                  {
+                      "step_type": "filtered_events",
+                      "enabled": false,
+                      "aggregation": null,
+                      "column_name": "operating_system_name",
+                      "modeling_criteria": null
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "enabled": true,
+                      "aggregation": "unique_list",
+                      "column_name": "op_systems_2",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "event_name",
+                                  "operator": "in",
+                                  "value": "'page_view','page_ping','snowplow_ecommerce_action'"
+                              },
+                              {
+                                  "property": "revenue",
+                                  "operator": "!=",
+                                  "value": 1
+                              }
+                          ],
+                          "any": []
+                      }
+                  },
+                  {
+                      "step_type": "attribute_aggregation",
+                      "enabled": true,
+                      "aggregation": "unique_list",
+                      "column_name": "op_systems_2",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "period",
+                                  "operator": ">",
+                                  "value": 1
+                              }
+                          ],
+                          "any": []
+                      }
+                  }
               ]
           ],
           "entity_key": "domain_userid"
@@ -984,6 +1071,18 @@
                       "aggregation": "sum",
                       "column_name": "sum_revenue_snowplow_ecommerce_action",
                       "condition_clause": "case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else 0 end"
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "aggregation": "array_agg",
+                      "column_name": "op_systems",
+                      "condition_clause": "distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls"
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "aggregation": "array_agg",
+                      "column_name": "op_systems_2",
+                      "condition_clause": "distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls"
                   }
               ],
               "daily_first_value_attributes": [
@@ -1161,7 +1260,20 @@
                       "aggregation_type": "last"
                   }
               ],
-              "unique_list_attributes": []
+              "unique_list_attributes": [
+                  {
+                      "daily_agg_column_name": "op_systems",
+                      "column_name": "op_systems",
+                      "period": null,
+                      "aggregation_type": "array_agg"
+                  },
+                  {
+                      "daily_agg_column_name": "op_systems_2",
+                      "column_name": "op_systems_2",
+                      "period": 1,
+                      "aggregation_type": "array_agg"
+                  }
+              ]
           }
       }
     ''',
@@ -1416,6 +1528,56 @@
       
       
       
+        
+        
+        
+        
+        
+        
+        
+      
+        , op_systems_flattened as (
+          select
+              d.entity_key,
+              array_agg(distinct cast(f{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}) as op_systems
+          from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }} d,
+               {% if target.type == 'snowflake' %}
+                 LATERAL FLATTEN(input => op_systems) f
+               {% elif target.type == 'bigquery' %}
+                 UNNEST(d.op_systems) AS f
+               {% endif %}
+          group by d.entity_key
+        )
+      
+        
+        
+        
+        
+        
+        
+        
+          , filtered_data_op_systems_2 as (
+            select
+                entity_key,
+                op_systems_2
+            from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }}
+            where event_date >= {{ dbt.dateadd('day', -1, upper_limit) }}
+          )
+        
+      
+        , op_systems_2_flattened as (
+          select
+              d.entity_key,
+              array_agg(distinct cast(f{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}) as op_systems_2
+          from filtered_data_op_systems_2 d,
+               {% if target.type == 'snowflake' %}
+                 LATERAL FLATTEN(input => op_systems_2) f
+               {% elif target.type == 'bigquery' %}
+                 UNNEST(d.op_systems_2) AS f
+               {% endif %}
+          group by d.entity_key
+        )
+      
       
       , window_calculations as (
         
@@ -1543,11 +1705,19 @@
         
         -- unique_list_attributes
         
+        , op_systems
+        , op_systems_2
       from aggregations as a
       left join window_calculations as w
       on a.entity_key = w.entity_key
       
       
+      
+        left join op_systems_flattened as op_systems_flattened
+        on a.entity_key = op_systems_flattened.entity_key
+      
+        left join op_systems_2_flattened as op_systems_2_flattened
+        on a.entity_key = op_systems_2_flattened.entity_key
   
     ''',
     'ecommerce_transaction_interactions_features_1/models/base/manifest/ecommerce_transaction_interactions_features_1_incremental_manifest.sql': '''
@@ -1792,6 +1962,16 @@
             
               case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else 0 end) as sum_revenue_snowplow_ecommerce_action
           
+            
+              , array_agg(
+            
+              distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls) as op_systems
+          
+            
+              , array_agg(
+            
+              distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls) as op_systems_2
+          
           
         from events
         group by 1,2,3
@@ -1841,6 +2021,10 @@
           , a.count_focus_form_change_form
         
           , a.sum_revenue_snowplow_ecommerce_action
+        
+          , a.op_systems
+        
+          , a.op_systems_2
         
         
           

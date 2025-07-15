@@ -406,6 +406,84 @@
                     "property": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0]:revenue",
                     "criteria": null,
                     "period": "P7D"
+                },
+                {
+                    "name": "op_systems",
+                    "description": null,
+                    "type": "string_list",
+                    "tags": null,
+                    "events": [
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow",
+                            "name": "page_view",
+                            "version": "1-0-0"
+                        },
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow",
+                            "name": "page_ping",
+                            "version": "1-0-0"
+                        },
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow.ecommerce",
+                            "name": "snowplow_ecommerce_action",
+                            "version": "1-0-0"
+                        }
+                    ],
+                    "aggregation": "unique_list",
+                    "property_syntax": "snowflake",
+                    "property": "contexts_nl_basjes_yauaa_context_1[0]:operatingSystemName",
+                    "criteria": {
+                        "all": [
+                            {
+                                "property_syntax": "snowflake",
+                                "property": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0]:revenue",
+                                "operator": "!=",
+                                "value": 1
+                            }
+                        ],
+                        "any": null
+                    },
+                    "period": null,
+                    "default_value": null
+                },
+                {
+                    "name": "op_systems_2",
+                    "description": null,
+                    "type": "string_list",
+                    "tags": null,
+                    "events": [
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow",
+                            "name": "page_view",
+                            "version": "1-0-0"
+                        },
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow",
+                            "name": "page_ping",
+                            "version": "1-0-0"
+                        },
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow.ecommerce",
+                            "name": "snowplow_ecommerce_action",
+                            "version": "1-0-0"
+                        }
+                    ],
+                    "aggregation": "unique_list",
+                    "property_syntax": "snowflake",
+                    "property": "contexts_nl_basjes_yauaa_context_1[0]:operatingSystemName",
+                    "criteria": {
+                        "all": [
+                            {
+                                "property_syntax": "snowflake",
+                                "property": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0]:revenue",
+                                "operator": "!=",
+                                "value": 1
+                            }
+                        ],
+                        "any": null
+                    },
+                    "period": "P1D",
+                    "default_value": null
                 }
             ],
             "fields": [

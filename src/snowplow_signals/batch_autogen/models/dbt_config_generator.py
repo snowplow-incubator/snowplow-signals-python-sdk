@@ -218,7 +218,10 @@ class DbtConfigGenerator:
                 )
             if operator in ["=", "!=", "<", ">", "<=", ">="]:
                 value_formatted = f"'{value}'" if isinstance(value, str) else value
-                condition_sql = f" {property_name} {operator} {value_formatted}"
+                if operator == "!=":
+                    condition_sql = f" ({property_name} {operator} {value_formatted} or {property_name} is null)"
+                else:
+                    condition_sql = f" {property_name} {operator} {value_formatted}"
             elif operator == "like":
                 condition_sql = f" {property_name} LIKE '%{value}%'"
             elif operator == "in":
@@ -347,7 +350,14 @@ class DbtConfigGenerator:
 
                             if step.aggregation == "unique_list":
                                 property_name = attribute[0].column_name
-                                condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
+                                if self.target_type == "snowflake":
+                                    condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
+                                elif self.target_type == "bigquery":
+                                    condition_clause = f"distinct case when {condition_statement} then {property_name} else null end ignore nulls"
+                                else:
+                                    raise ValueError(
+                                        f"Unsupported target type: {self.target_type}"
+                                    )
                                 # FIXME we need to confirm this logic with a unit test
                                 aggregate_attributes.append(
                                     {

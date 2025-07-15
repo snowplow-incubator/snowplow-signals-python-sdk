@@ -102,7 +102,7 @@ def test_event_invalid_split(instance):
         (
             [FilterCondition(operator="!=", property="country", value="USA")],
             "AND",
-            " country != 'USA'",
+            " (country != 'USA' or country is null)",
         ),
         (
             [FilterCondition(operator="like", property="name", value="John")],
