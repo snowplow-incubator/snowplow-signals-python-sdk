@@ -26,7 +26,6 @@ from .cli_params import (
     VERBOSE,
     VIEW_NAME,
     VIEW_VERSION,
-    TargetType,
 )
 
 # Create the main Typer app with metadata
@@ -123,7 +122,9 @@ def init(
         validated_path = validate_repo_path(repo_path)
         logger.info(f"Initializing dbt project(s) in {validated_path}")
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = BatchAutogenClient(api_client=api_client, target_type=target_type)
+        client = BatchAutogenClient(
+            api_client=api_client, target_type=target_type.value
+        )
         success = client.init_project(
             repo_path=str(validated_path),
             view_name=view_name,
@@ -156,7 +157,9 @@ def generate(
         validated_path = validate_repo_path(repo_path)
         logger.info(f"🛠️ Generating dbt models in {validated_path}")
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = BatchAutogenClient(api_client=api_client, target_type=target_type)
+        client = BatchAutogenClient(
+            api_client=api_client, target_type=target_type.value
+        )
         success = client.generate_models(
             repo_path=str(validated_path),
             project_name=project_name,
