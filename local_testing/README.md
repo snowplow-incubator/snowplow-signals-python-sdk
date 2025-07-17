@@ -89,10 +89,10 @@ api_client = ApiClient(
 batch_autogen_client = BatchAutogenClient(api_client=api_client)
 
 # Initialize a dbt project
-batch_autogen_client.init_project(repo_path="./customer_repo")
+batch_autogen_client.init_project(repo_path="./customer_repo", target_type="snowflake")
 
 # Generate dbt models
-batch_autogen_client.generate_models(repo_path="./customer_repo", update=True)
+batch_autogen_client.generate_models(repo_path="./customer_repo", target_type="snowflake", update=True)
 ```
 
 You can also use the CLI interface (after installing the SDK):
@@ -105,6 +105,7 @@ poetry run snowplow-batch-autogen init \
     --api-key-id=YOUR_API_KEY_ID \
     --org-id=YOUR_ORG_ID \
     --repo-path=./customer_repo \
+    --target-type="snowflake" \
     [--project-name=PROJECT_NAME] \
     [--debug]
 
@@ -115,6 +116,7 @@ poetry run snowplow-batch-autogen generate \
     --api-key-id=YOUR_API_KEY_ID \
     --org-id=YOUR_ORG_ID \
     --repo-path=./customer_repo \
+    --target-type="snowflake" \
     [--project-name=PROJECT_NAME] \
     [--update] \
     [--debug]
@@ -144,9 +146,9 @@ You can use the -f flag to specify a different file you have e.g .env.dev:
 # test connection
 poetry run dotenv -f .env.dev run snowplow-batch-autogen test-connection --verbose
 # initialize dbt project
-poetry run dotenv -f .env.dev run snowplow-batch-autogen init --repo-path local_testing --view-name test_batch_view --view-version 1 --verbose
+poetry run dotenv -f .env.dev run snowplow-batch-autogen init --repo-path local_testing --view-name test_batch_view --view-version 1 --target-type snowflake --verbose
 # generate dbt project
-poetry run dotenv -f .env.dev run snowplow-batch-autogen generate --repo-path local_testing --project-name test_batch_view_1 --verbose 
+poetry run dotenv -f .env.dev run snowplow-batch-autogen generate --repo-path local_testing --project-name test_batch_view_1 --target-type snowflake --verbose 
 # materialize table
 poetry run dotenv -f .env.dev run snowplow-batch-autogen materialize --view-name test_batch_view --view-version 1 --repo-path ./local_testing/ --verbose
 ```
