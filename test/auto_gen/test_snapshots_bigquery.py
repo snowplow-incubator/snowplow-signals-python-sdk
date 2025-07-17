@@ -47,8 +47,10 @@ def test_generated_files_bigquery(test_dir, signals_client, respx_mock, snapshot
     # Generate the files
     client = BatchAutogenClient(signals_client.api_client, target_type="bigquery")
     client.init_project(repo_path=str(test_dir), view_name=TEST_VIEW_NAME)
-    client.generate_models(repo_path=str(test_dir), project_name=TEST_PROJECT_NAME)
-
+    success = client.generate_models(
+        repo_path=str(test_dir), project_name=TEST_PROJECT_NAME
+    )
+    assert success, "Model generation failed, see logs with `-s`"
     # Compare generated files with snapshot
     actual_files = get_file_contents(test_dir)
     assert actual_files == snapshot
