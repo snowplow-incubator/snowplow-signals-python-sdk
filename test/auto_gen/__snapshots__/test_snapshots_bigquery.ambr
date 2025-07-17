@@ -1351,16 +1351,16 @@
           
           # aggregates
           snowplow__include_current_day_in_windows: false # If set to true, the current_day with incomplete data is also taken into account for last_x_day type windows
+          
           snowplow__allow_refresh: false #  If set to true, the incremental manifest will be dropped when running with a `--full-refresh` flag
-      
+          snowplow__dev_target_name: dev # If the target matches the dev target, there is no need to set the snowplow__allow_refresh to true to drop the manifest table as well
+          
           # WAREHOUSE & TRACKER
           
-          snowplow__dev_target_name: dev 
           # snowplow__atomic_schema: 'atomic' # Only set if not using 'atomic' schema for Snowplow events data
           # snowplow__database: # Only set if not using target.database for Snowplow events data -- WILL BE IGNORED FOR DATABRICKS
           # snowplow__events_table: "events" # Only set if not using 'events' table for Snowplow events data
-          snowplow__custom_filter: '1=1' # Additional filter to be applied on the base_events_this_run table
-          
+      
           # PRIVATE VARS - DO NOT MODIFY
           snowplow__databricks_catalog: "hive_metastore"
           snowplow__events: "{{ source('atomic', 'events') }}"
