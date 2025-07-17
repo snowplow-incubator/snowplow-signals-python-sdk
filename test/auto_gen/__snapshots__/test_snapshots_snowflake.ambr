@@ -62,8 +62,8 @@
               }
           ],
           "periods": [
-              "P7DT0H0M0.000000S",
-              "P1DT0H0M0.000000S"
+              "P1DT0H0M0.000000S",
+              "P7DT0H0M0.000000S"
           ],
           "transformed_attributes": [
               [

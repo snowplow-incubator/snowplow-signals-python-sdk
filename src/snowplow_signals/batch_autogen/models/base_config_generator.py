@@ -402,7 +402,7 @@ class BaseConfigGenerator:
         return DbtBaseConfig(
             events=[item for item in self.events if item not in {None, ""}],
             properties=self.properties,
-            periods=[item for item in self.periods if item not in {None, ""}],
+            periods=sorted([item for item in self.periods if item not in {None, ""}]),
             transformed_attributes=transformed_attributes,
             entity_key=self.data.entity_key,
         )
