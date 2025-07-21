@@ -183,12 +183,15 @@ def materialize(
     view_name: VIEW_NAME,
     view_version: VIEW_VERSION,
     repo_path: REPO_PATH,
+    target_type: TARGET_TYPE,
     verbose: VERBOSE = False,
 ) -> None:
     """Registers the attribute table as a data source so that the materialization process can start."""
     try:
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = BatchAutogenClient(api_client=api_client)
+        client = BatchAutogenClient(
+            api_client=api_client, target_type=target_type.value
+        )
         project_path = Path(repo_path) / f"{view_name}_{view_version}"
         client.materialize_model(
             project_path=project_path,
