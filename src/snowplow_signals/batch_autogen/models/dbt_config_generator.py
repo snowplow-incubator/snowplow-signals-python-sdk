@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -46,12 +46,12 @@ class FilteredEventsProperty(BaseModel):
     type: str
     full_path: str
     alias: str
-    column_prefix: Optional[str] = None
+    column_prefix: str | None = None
 
 
 class FilteredEvents(BaseModel):
     events: list[ConfigEvents]
-    properties: Optional[List[FilteredEventsProperty]] = None
+    properties: list[FilteredEventsProperty] | None = None
 
 
 class DbtConfig(BaseModel):
