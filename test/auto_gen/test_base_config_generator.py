@@ -688,3 +688,13 @@ class TestBaseConfigGenerator:
         assert len(config.periods) == 1
         assert len(config.transformed_attributes) == 2
         assert config.entity_key == base_config_generator.data.entity_key
+
+    def test_sorted_periods_filters_and_sorts(self, base_config_generator):
+        base_config_generator.periods = {
+            "P5D",
+            "P1D",
+            "",
+            None,
+        }
+        result = base_config_generator.sorted_periods
+        assert result == ["P1D", "P5D"]

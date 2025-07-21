@@ -53,6 +53,11 @@ class BaseConfigGenerator:
         self.properties = []
         self.periods = set()
 
+    @property
+    def sorted_periods(self) -> list:
+        """Returns a sorted list of non-empty period strings."""
+        return sorted(p for p in self.periods if p not in {None, ""})
+
     def get_agg_short_name(
         self, aggregation: AggregationLiteral
     ) -> SQLAggregationLiteral | None:
@@ -395,7 +400,7 @@ class BaseConfigGenerator:
         return DbtBaseConfig(
             events=[item for item in self.events if item not in {None, ""}],
             properties=self.properties,
-            periods=sorted([item for item in self.periods if item not in {None, ""}]),
+            periods=self.sorted_periods,
             transformed_attributes=transformed_attributes,
             entity_key=self.data.entity_key,
         )
