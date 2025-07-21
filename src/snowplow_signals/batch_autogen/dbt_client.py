@@ -165,9 +165,6 @@ class BatchAutogenClient:
         logger.info(f"Generating dbt project assets for {project_name}...")
 
         # Define the assets to generate
-        custom_context = dbt_config.filtered_events.model_dump(
-            exclude_none=True, by_alias=True
-        )
         assets = [
             DbtAssetGenerator(
                 project_path=project_path,
