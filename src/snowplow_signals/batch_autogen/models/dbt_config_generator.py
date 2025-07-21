@@ -277,8 +277,6 @@ class DbtConfigGenerator:
                                 column_prefix=match.group("prefix"),
                             )
                         )
-                else:
-                    raise ValueError(f"Unsupported target type: {self.target_type}")
 
         return property_references
 
