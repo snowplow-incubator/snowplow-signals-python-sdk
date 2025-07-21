@@ -1,4 +1,3 @@
-import inspect
 from test.auto_gen.test_base_config_attributes import (
     first_value_attr,
     last_n_day_aggregates_attr,
@@ -17,7 +16,6 @@ from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     DailyAggregations,
     DbtConfig,
     DbtConfigGenerator,
-    FilterCondition,
     FilteredEvents,
     FilteredEventsProperty,
 )
@@ -89,54 +87,6 @@ def test_event_invalid_split(instance):
 
     with pytest.raises(ValueError, match="does not have 4 parts separated by '/'"):
         instance.get_events_dict()
-
-
-@pytest.mark.parametrize(
-    "conditions, condition_type, expected_sql",
-    [
-        (
-            [FilterCondition(operator="=", property="age", value=30)],
-            "AND",
-            " age = 30",
-        ),
-        (
-            [FilterCondition(operator="!=", property="country", value="USA")],
-            "AND",
-            " (country != 'USA' or country is null)",
-        ),
-        (
-            [FilterCondition(operator="like", property="name", value="John")],
-            "AND",
-            " name LIKE '%John%'",
-        ),
-        (
-            [FilterCondition(operator="in", property="id", value="1,2,3")],
-            "OR",
-            " id IN(1,2,3)",
-        ),
-    ],
-)
-def test_get_condition_sql(instance, conditions, condition_type, expected_sql):
-    sql = instance._get_condition_sql(conditions, condition_type)
-    assert sql == expected_sql
-
-
-# TODO: highlight in PR this is not needed due to pydantic validation
-# def test_get_condition_sql_unsupported_operator(instance):
-#     conditions = [FilterCondition(operator="^", property="age", value=30)]
-
-#     with pytest.raises(ValueError, match="Unsupported operator: ^"):
-#         instance._get_condition_sql(conditions, "AND")
-
-
-def test_invalid_comparison_with_string(instance):
-    conditions = [FilterCondition(operator=">", property="name", value="banana")]
-
-    with pytest.raises(
-        ValueError,
-        match="Cannot apply comparison operator '>' on a string value: 'banana'",
-    ):
-        instance._get_condition_sql(conditions, "AND")
 
 
 def test_first_value_attributes(instance):

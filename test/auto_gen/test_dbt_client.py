@@ -17,7 +17,6 @@ from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     DailyAggregations,
     DbtConfig,
     FilteredEvents,
-    FilteredEventsProperty,
 )
 
 

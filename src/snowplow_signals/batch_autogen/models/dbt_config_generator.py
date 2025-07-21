@@ -1,15 +1,11 @@
 import re
 from pathlib import Path
-from typing import Literal
-
-from pydantic import BaseModel
 
 from snowplow_signals.batch_autogen.utils.utils import (
     WarehouseType,
 )
 
 from .base_config_generator import DbtBaseConfig
-from .modeling_step import FilterCondition
 
 ALLOWED_ATOMIC_PROPERTIES = {
     line
@@ -20,47 +16,18 @@ ALLOWED_ATOMIC_PROPERTIES = {
     if line
 }
 
+from snowplow_signals.batch_autogen.utils.utils import (
+    get_condition_sql,
+)
 
-class ConfigEvents(BaseModel):
-    event_vendor: str
-    event_name: str
-    event_format: str
-    event_version: str
-
-
-class ConfigAttributes(BaseModel):
-    lifetime_aggregates: list
-    last_n_day_aggregates: list
-    first_value_attributes: list
-    last_value_attributes: list
-    unique_list_attributes: list
-
-
-class DailyAggregations(BaseModel):
-    daily_aggregate_attributes: list
-    daily_first_value_attributes: list
-    daily_last_value_attributes: list
-
-
-class FilteredEventsProperty(BaseModel):
-    type: str
-    full_path: str
-    alias: str
-    column_prefix: str | None = None
-
-
-class FilteredEvents(BaseModel):
-    events: list[ConfigEvents]
-    properties: list[FilteredEventsProperty] | None = None
-
-
-class DbtConfig(BaseModel):
-    filtered_events: FilteredEvents
-    daily_agg: DailyAggregations
-    attributes: ConfigAttributes
-
-
-SQLConditions = Literal["and", "or"]
+from .model import (
+    ConfigAttributes,
+    ConfigEvents,
+    DailyAggregations,
+    DbtConfig,
+    FilteredEvents,
+    FilteredEventsProperty,
+)
 
 
 class DbtConfigGenerator:
@@ -208,35 +175,6 @@ class DbtConfigGenerator:
 
         return deduped_list
 
-    def _get_condition_sql(
-        self, conditions: list[FilterCondition], condition_type: SQLConditions
-    ) -> str:
-        condition_sql_list = []
-        for condition in conditions:
-            operator = condition.operator
-            property_name = condition.property
-            value = condition.value
-            if operator in ["<", ">", "<=", ">="] and isinstance(value, str):
-                raise ValueError(
-                    f"Cannot apply comparison operator '{operator}' on a string value: '{value}'."
-                )
-            if operator in ["=", "!=", "<", ">", "<=", ">="]:
-                value_formatted = f"'{value}'" if isinstance(value, str) else value
-                if operator == "!=":
-                    condition_sql = f" ({property_name} {operator} {value_formatted} or {property_name} is null)"
-                else:
-                    condition_sql = f" {property_name} {operator} {value_formatted}"
-            elif operator == "like":
-                condition_sql = f" {property_name} LIKE '%{value}%'"
-            elif operator == "in":
-                condition_sql = f" {property_name} IN({value})"
-            else:
-                raise ValueError(f"Unsupported operator: {operator}")
-            if condition_sql == "":
-                raise ValueError(f"Filter condition missing for condition: {condition}")
-            condition_sql_list.append(condition_sql)
-        return f" {condition_type} ".join(condition_sql_list)
-
     def get_property_references(self):
         """Prepares property references for the jinja template to consume. For non-atomic bigquery properties, it prepares input for combine_column_versions() snowplow-uitls dbt macro use"""
         property_references = []
@@ -327,12 +265,12 @@ class DbtConfigGenerator:
                             or_sql_conditions = ""
                             if modeling_criteria.all:
                                 and_conditions = modeling_criteria.all
-                                and_sql_conditions = self._get_condition_sql(
+                                and_sql_conditions = get_condition_sql(
                                     and_conditions, "and"
                                 )
                             if modeling_criteria.any:
                                 or_conditions = modeling_criteria.any
-                                or_sql_conditions = self._get_condition_sql(
+                                or_sql_conditions = get_condition_sql(
                                     or_conditions, "or"
                                 )
                             # If both "all" and "any" conditions are present, it means they have OR conditions and also a list of events to filter on using a logical AND, the safest is to wrap the OR conditions in brackets
