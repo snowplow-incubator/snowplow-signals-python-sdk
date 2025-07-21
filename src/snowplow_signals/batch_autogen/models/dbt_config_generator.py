@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+from typing import Literal
 
 from snowplow_signals.batch_autogen.utils.utils import (
     WarehouseType,
@@ -28,6 +29,18 @@ from .model import (
     FilteredEvents,
     FilteredEventsProperty,
 )
+
+AttribAttributeTypes = Literal[
+    "first_value_attributes",
+    "last_value_attributes",
+    "last_n_day_aggregates",
+    "lifetime_aggregates",
+    "unique_list_attributes",
+]
+
+DailyAggAttributeTypes = Literal[
+    "aggregate_attributes", "first_value_attributes", "last_value_attributes"
+]
 
 
 class DbtConfigGenerator:
@@ -66,7 +79,7 @@ class DbtConfigGenerator:
 
         return event_dict_list
 
-    def get_attributes_by_type(self, attribute_type) -> list:
+    def get_attributes_by_type(self, attribute_type: AttribAttributeTypes) -> list:
         """Returns a list of attributes base on type that is needed to create jinja context for the attributes table (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
         first_value_attributes = []
@@ -218,7 +231,7 @@ class DbtConfigGenerator:
 
         return property_references
 
-    def get_daily_aggs_by_type(self, attribute_type) -> list:
+    def get_daily_aggs_by_type(self, attribute_type: DailyAggAttributeTypes) -> list:
         """Returns a list of attributes base on type that is needed to create jinja context for the daily_aggregates table (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
         aggregate_attributes = []
