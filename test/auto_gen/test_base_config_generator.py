@@ -341,12 +341,6 @@ class TestBaseConfigGenerator:
             == "just_a_field"
         )
 
-    #
-    def test_get_cleaned_property_name_invalid_input(self, base_config_generator):
-        """Test get_cleaned_property_name with invalid input"""
-        assert base_config_generator.get_cleaned_property_name(None) is None
-        assert base_config_generator.get_cleaned_property_name(123) is None
-
     def test_get_cleaned_property_name_multiple_separators(self, base_config_generator):
         """Test get_cleaned_property_name with multiple separators"""
         # The implementation takes the last part after the last separator
@@ -426,9 +420,7 @@ class TestBaseConfigGenerator:
         result = base_config_generator._get_filter_condition_name_component(
             filter_condition
         )
-        assert (
-            result == "FooBar_neq_a_b_pct_c"
-        )  # Property name is not converted to snake_case
+        assert result == "foo_bar_neq_a_b_pct_c"
 
     def test_generate_modeling_steps_basic_counter(self, base_config_generator):
         attribute = AttributeOutput(

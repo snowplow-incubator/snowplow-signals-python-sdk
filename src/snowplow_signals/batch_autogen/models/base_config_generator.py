@@ -80,35 +80,25 @@ class BaseConfigGenerator:
         Output: "device_class"
         """
 
-        reserwed_words_dict = (
+        reserved_words_dict = (
             Snowflake.Tokenizer.KEYWORDS
             if self.target_type == "snowflake"
             else BigQuery.Tokenizer.KEYWORDS
         )
-        sql_reserved_words = sorted(reserwed_words_dict.keys())
-        if not isinstance(property, str):
-            return None
+        sql_reserved_words = reserved_words_dict.keys()
         if ":" in property:
             suffix = property.split(":")[1]
-            # Convert to snake_case
-            cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
-            if cleaned in (kw.lower() for kw in sql_reserved_words):
-                cleaned += "_col"
-            return cleaned
         elif "." in property:
             suffix = property.split(".")[-1]
-            # Convert to snake_case
-            cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
-            if cleaned in (kw.lower() for kw in sql_reserved_words):
-                cleaned += "_col"
-            return cleaned
         else:
-            cleaned = property.lower()
-            if cleaned in (kw.lower() for kw in sql_reserved_words):
-                cleaned += "_col"
-                return cleaned
-            else:
-                return property
+            suffix = property
+
+        cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
+
+        if cleaned in (kw.lower() for kw in sql_reserved_words):
+            cleaned += "_col"
+
+        return cleaned
 
     def add_to_properties(self, new_entry: Dict[str, str]):
         """Dynamically add a new property while ensuring deduplication to create a unique list of cleaned properties."""
