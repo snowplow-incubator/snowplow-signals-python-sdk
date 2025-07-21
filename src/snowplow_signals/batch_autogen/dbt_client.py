@@ -15,6 +15,7 @@ from snowplow_signals.batch_autogen.models.dbt_project_setup import (
     DbtProjectSetup,
 )
 from snowplow_signals.batch_autogen.utils.utils import (
+    WarehouseType,
     batch_source_from_path,
 )
 from snowplow_signals.cli_logging import get_logger, setup_logging
@@ -30,7 +31,7 @@ class BatchAutogenClient:
     def __init__(
         self,
         api_client: ApiClient,
-        target_type: Literal["snowflake", "bigquery"],
+        target_type: WarehouseType,
     ):
         self.api_client = api_client
         self.target_type = target_type

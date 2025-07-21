@@ -11,6 +11,9 @@ from snowplow_signals.batch_autogen.models.modeling_step import (
     ModelingCriteria,
     ModelingStep,
 )
+from snowplow_signals.batch_autogen.utils.utils import (
+    WarehouseType,
+)
 
 from ...models import AttributeOutput, Criterion, Event, ViewResponse
 from ..utils.utils import timedelta_isoformat
@@ -37,12 +40,12 @@ class BaseConfigGenerator:
     properties: list[dict[str, str]]
     periods: Set[str]
     data: ViewResponse
-    target_type: Literal["snowflake", "bigquery"]
+    target_type: WarehouseType
 
     def __init__(
         self,
         data: ViewResponse,
-        target_type: Literal["snowflake", "bigquery"],
+        target_type: WarehouseType,
     ):
         self.data = data
         self.target_type = target_type

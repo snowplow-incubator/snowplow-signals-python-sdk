@@ -1,12 +1,14 @@
 import datetime
 import json
 from pathlib import Path
-from typing import Any, Dict, Protocol, TypeVar
+from typing import Any, Dict, Literal, Protocol, TypeVar
 
 from snowplow_signals.batch_autogen.models.batch_source_config import BatchSourceConfig
 from snowplow_signals.cli_logging import get_logger
 
 logger = get_logger(__name__)
+
+WarehouseType = Literal["snowflake", "bigquery"]
 
 
 def write_file(file_path: Path, content: str) -> None:

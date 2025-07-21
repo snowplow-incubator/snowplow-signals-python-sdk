@@ -4,6 +4,10 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
+from snowplow_signals.batch_autogen.utils.utils import (
+    WarehouseType,
+)
+
 from .base_config_generator import DbtBaseConfig
 from .modeling_step import FilterCondition
 
@@ -63,7 +67,7 @@ class DbtConfigGenerator:
     def __init__(
         self,
         base_config_data: DbtBaseConfig,
-        target_type: Literal["snowflake", "bigquery"],
+        target_type: WarehouseType,
     ):
         self.base_config_data = base_config_data
         self.target_type = target_type

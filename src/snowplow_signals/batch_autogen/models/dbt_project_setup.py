@@ -16,7 +16,7 @@ from snowplow_signals.cli_logging import get_logger
 
 from ...api_client import ApiClient
 from ...models import ViewResponse
-from ..utils.utils import filter_latest_model_version_by_name
+from ..utils.utils import WarehouseType, filter_latest_model_version_by_name
 
 logger = get_logger(__name__)
 
@@ -29,7 +29,7 @@ class DbtProjectSetup:
     def __init__(
         self,
         api_client: ApiClient,
-        target_type: Literal["snowflake", "bigquery"],
+        target_type: WarehouseType,
         repo_path: Annotated[str, typer.Option()] = "customer_repo",
         view_name: str | None = None,
         view_version: int | None = None,
