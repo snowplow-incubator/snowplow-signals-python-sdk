@@ -26,6 +26,8 @@ class DbtProjectSetup:
     Base class for setting up the base dbt project(s) including the base config.
     """
 
+    target_type: WarehouseType
+
     def __init__(
         self,
         api_client: ApiClient,

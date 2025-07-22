@@ -44,6 +44,9 @@ DailyAggAttributeTypes = Literal[
 
 
 class DbtConfigGenerator:
+
+    target_type: WarehouseType
+
     def __init__(
         self,
         base_config_data: DbtBaseConfig,

@@ -28,6 +28,8 @@ logger = get_logger(__name__)
 class BatchAutogenClient:
     """Client for generating batch projects (dbt) for Snowplow data"""
 
+    target_type: WarehouseType
+
     def __init__(
         self,
         api_client: ApiClient,
