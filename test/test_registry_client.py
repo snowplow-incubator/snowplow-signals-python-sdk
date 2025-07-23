@@ -2,6 +2,7 @@ import json
 from datetime import timedelta
 
 import httpx
+from respx import MockRouter
 
 from snowplow_signals import (
     Attribute,
@@ -19,7 +20,9 @@ from .utils import MOCK_ORG_ID
 
 
 class TestRegistryClient:
-    def test_serializes_period_correctly_using_iso_format(self, respx_mock, api_client):
+    def test_serializes_period_correctly_using_iso_format(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
         view = View(
             name="my_view",
             entity=domain_userid,
@@ -61,7 +64,9 @@ class TestRegistryClient:
         assert view_mock.called
         assert "P1D" in str(view_mock.calls[0].request.content)
 
-    def test_serializes_batch_source_correctly(self, respx_mock, api_client):
+    def test_serializes_batch_source_correctly(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
         view = View(
             name="my_view",
             entity=domain_userid,
@@ -111,7 +116,7 @@ class TestRegistryClient:
         assert request_content["batch_source"]["table"] == "my_table"
         assert request_content["batch_source"]["schema"] == "my_schema"
 
-    def test_api_url_with_trailing_slash(self, respx_mock):
+    def test_api_url_with_trailing_slash(self, respx_mock: MockRouter):
         """Test that ApiClient works with a trailing slash in api_url."""
         api_client = ApiClient(
             api_url="http://localhost:8000/",
