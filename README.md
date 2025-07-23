@@ -36,7 +36,7 @@ page_view_count = Attribute(
 )
 
 # Create and deploy a view
-view = View(
+view = StreamView(
     name="my_view",
     version=1,
     entity=domain_sessionid,

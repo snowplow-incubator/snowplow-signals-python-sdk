@@ -33,12 +33,15 @@ from .model import (
     ViewResponse,
 )
 from .service import Service
-from .view import View
+from .view import View, StreamView, BatchView, ExternalBatchView
 
 AttributeOutput
 Criteria
 Criterion
 View
+StreamView
+BatchView
+ExternalBatchView
 ViewResponse
 Service
 Entity
