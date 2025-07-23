@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from snowplow_signals.batch_autogen.models.batch_source_config import BatchSourceConfig
 from snowplow_signals.cli_logging import get_logger
+from pydantic import ValidationError
 
 logger = get_logger(__name__)
 

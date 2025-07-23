@@ -44,10 +44,12 @@ def _load_env_from_default_snowplow_yml():
         return
     with open(yaml_path, "r") as f:
         config = yaml.safe_load(f)
+
     console = config.get("console")
 
     if not console:
         return
+
     env_map = {
         "SNOWPLOW_CONSOLE_ORG_ID": console.get("org-id"),
         "SNOWPLOW_CONSOLE_API_KEY_ID": console.get("api-key-id"),
