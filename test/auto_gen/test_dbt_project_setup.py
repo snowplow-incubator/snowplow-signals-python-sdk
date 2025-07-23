@@ -2,13 +2,17 @@ from unittest.mock import patch
 
 import httpx
 import pytest
+from respx import MockRouter
 
+from snowplow_signals import Signals
 from snowplow_signals.batch_autogen.models.dbt_project_setup import DbtProjectSetup
 
 from .utils import get_attribute_view_response
 
 
-def test_batch_setup_get_attribute_views_uses_all_views(signals_client, respx_mock):
+def test_batch_setup_get_attribute_views_uses_all_views(
+    signals_client: Signals, respx_mock: MockRouter
+):
     mock_attribute_views_response = get_attribute_view_response()
     attribute_views_mock = respx_mock.get(
         "http://localhost:8000/api/v1/registry/views/"
@@ -21,7 +25,7 @@ def test_batch_setup_get_attribute_views_uses_all_views(signals_client, respx_mo
 
 
 def test_batch_setup_get_attribute_views_uses_specified_view_name(
-    signals_client, respx_mock
+    signals_client: Signals, respx_mock: MockRouter
 ):
     mock_attribute_views_response = get_attribute_view_response()
     attribute_views_mock = respx_mock.get(
@@ -40,7 +44,7 @@ def test_batch_setup_get_attribute_views_uses_specified_view_name(
 
 
 def test_batch_setup_get_attribute_views_throws_on_empty_views(
-    signals_client, respx_mock
+    signals_client: Signals, respx_mock: MockRouter
 ):
     mock_attribute_views_response = get_attribute_view_response()
     respx_mock.get("http://localhost:8000/api/v1/registry/views/").mock(
@@ -57,7 +61,7 @@ def test_batch_setup_get_attribute_views_throws_on_empty_views(
 
 
 def test_setup_all_projects_skips_views_with_no_attributes_and_fields(
-    signals_client, respx_mock
+    signals_client: Signals, respx_mock: MockRouter
 ):
     """
     Test that setup_all_projects skips batch views that have no attributes (attributes is None or empty) AND have fields (not None or empty).

@@ -1,37 +1,35 @@
-import pytest
-from snowplow_signals.batch_autogen.models.base_config_generator import DbtBaseConfig
-from snowplow_signals.batch_autogen.models.dbt_config_generator import (
-    DbtConfigGenerator,
-    ConfigEvents,
-    FilterCondition,
-    DailyAggregations,
-    ConfigAttributes,
-    FilteredEvents,
-    DbtConfig,
-)
-
-import snowplow_signals.batch_autogen.models.dbt_config_generator as dbg
-
-from snowplow_signals.batch_autogen.models.modeling_step import (
-    ModelingStep,
-    FilterCondition,
-    ModelingStep,
-)
 from test.auto_gen.test_base_config_attributes import (
     first_value_attr,
-    last_value_attr,
     last_n_day_aggregates_attr,
+    last_value_attr,
     lifetime_aggregates_attr,
     unique_list_attr,
 )
-import inspect
+
+import pytest
+
+import snowplow_signals.batch_autogen.models.dbt_config_generator as dbg
+from snowplow_signals.batch_autogen.models.base_config_generator import DbtBaseConfig
+from snowplow_signals.batch_autogen.models.dbt_config_generator import (
+    ConfigAttributes,
+    ConfigEvents,
+    DailyAggregations,
+    DbtConfig,
+    DbtConfigGenerator,
+    FilterCondition,
+    FilteredEvents,
+    SQLConditions,
+)
+from snowplow_signals.batch_autogen.models.modeling_step import (
+    FilterCondition,
+    ModelingStep,
+)
 
 """Tests for the DbtConfigGenerator class"""
 
 
 @pytest.fixture
-def mock_base_config():
-
+def mock_base_config() -> DbtBaseConfig:
     mock_base_config = DbtBaseConfig(
         events=[
             "iglu:com.acme/Login/jsonschema/1-0-0",
@@ -47,14 +45,13 @@ def mock_base_config():
 
 
 @pytest.fixture
-def instance(mock_base_config):
+def instance(mock_base_config) -> DbtConfigGenerator:
     obj = DbtConfigGenerator(base_config_data=mock_base_config)
     obj.base_config_data = mock_base_config
     return obj
 
 
-def test_get_events_dict_returns_expectation(instance):
-
+def test_get_events_dict_returns_expectation(instance: DbtConfigGenerator):
     result = instance.get_events_dict()
 
     assert isinstance(result, list)
@@ -75,7 +72,7 @@ def test_get_events_dict_returns_expectation(instance):
     )
 
 
-def test_get_events_dict_with_missing_prefix(instance):
+def test_get_events_dict_with_missing_prefix(instance: DbtConfigGenerator):
 
     instance.base_config_data.events = ["com.vendor/event_name/jsonschema/1-0-0"]
 
@@ -83,7 +80,7 @@ def test_get_events_dict_with_missing_prefix(instance):
         instance.get_events_dict()
 
 
-def test_event_invalid_split(instance):
+def test_event_invalid_split(instance: DbtConfigGenerator):
 
     instance.base_config_data.events = ["iglu:com.vendor/event_name_only"]
 
@@ -116,7 +113,12 @@ def test_event_invalid_split(instance):
         ),
     ],
 )
-def test_get_condition_sql(instance, conditions, condition_type, expected_sql):
+def test_get_condition_sql(
+    instance: DbtConfigGenerator,
+    conditions: list[FilterCondition],
+    condition_type: SQLConditions,
+    expected_sql: str,
+):
     sql = instance._get_condition_sql(conditions, condition_type)
     assert sql == expected_sql
 
@@ -129,17 +131,17 @@ def test_get_condition_sql(instance, conditions, condition_type, expected_sql):
 #         instance._get_condition_sql(conditions, "AND")
 
 
-def test_invalid_comparison_with_string(instance):
+def test_invalid_comparison_with_string(instance: DbtConfigGenerator):
     conditions = [FilterCondition(operator=">", property="name", value="banana")]
 
     with pytest.raises(
         ValueError,
         match="Cannot apply comparison operator '>' on a string value: 'banana'",
     ):
-        instance._get_condition_sql(conditions, "AND")
+        instance._get_condition_sql(conditions, "AND")  # type: ignore
 
 
-def test_first_value_attributes(instance):
+def test_first_value_attributes(instance: DbtConfigGenerator):
     instance.base_config_data.transformed_attributes = [first_value_attr]
     expectation = [
         {
@@ -153,7 +155,7 @@ def test_first_value_attributes(instance):
     assert result == expectation
 
 
-def test_last_value_attributes(instance):
+def test_last_value_attributes(instance: DbtConfigGenerator):
     instance.base_config_data.transformed_attributes = [last_value_attr]
     expectation = [
         {
@@ -167,7 +169,7 @@ def test_last_value_attributes(instance):
     assert result == expectation
 
 
-def test_lifetime_aggregate_attributes(instance):
+def test_lifetime_aggregate_attributes(instance: DbtConfigGenerator):
     instance.base_config_data.transformed_attributes = [lifetime_aggregates_attr]
     expectation = [
         {
@@ -181,7 +183,7 @@ def test_lifetime_aggregate_attributes(instance):
     assert result == expectation
 
 
-def test_get_attributes_by_type_last_n_day_aggregates(instance):
+def test_get_attributes_by_type_last_n_day_aggregates(instance: DbtConfigGenerator):
     instance.base_config_data.transformed_attributes = [last_n_day_aggregates_attr]
 
     result = instance.get_attributes_by_type("last_n_day_aggregates")
@@ -198,7 +200,7 @@ def test_get_attributes_by_type_last_n_day_aggregates(instance):
     assert result == expectation
 
 
-def test_get_attributes_by_type_unique_list_attributes(instance):
+def test_get_attributes_by_type_unique_list_attributes(instance: DbtConfigGenerator):
     instance.base_config_data.transformed_attributes = [unique_list_attr]
 
     result = instance.get_attributes_by_type("unique_list_attributes")
@@ -215,7 +217,7 @@ def test_get_attributes_by_type_unique_list_attributes(instance):
     assert result == expectation
 
 
-def test_get_attributes_by_type_duplicates(instance):
+def test_get_attributes_by_type_duplicates(instance: DbtConfigGenerator):
     instance.base_config_data.transformed_attributes = [
         first_value_attr,
         first_value_attr,
@@ -232,7 +234,7 @@ def test_get_attributes_by_type_duplicates(instance):
     assert result == expectation
 
 
-def test_get_attributes_by_type_invalid_type(instance):
+def test_get_attributes_by_type_invalid_type(instance: DbtConfigGenerator):
     instance.base_config_data.transformed_attributes = [first_value_attr]
 
     # Expect ValueError to be raised for invalid attribute_type
@@ -240,7 +242,7 @@ def test_get_attributes_by_type_invalid_type(instance):
         instance.get_attributes_by_type("foobar")
 
 
-def test_create_dbt_config_happy_path(instance):
+def test_create_dbt_config_happy_path(instance: DbtConfigGenerator):
     instance.base_config_data.transformed_attributes = [
         first_value_attr,
         last_value_attr,
@@ -353,7 +355,7 @@ def test_create_dbt_config_happy_path(instance):
     assert result == expectation
 
 
-def test_create_dbt_config_missing_column_name(instance):
+def test_create_dbt_config_missing_column_name(instance: DbtConfigGenerator):
 
     first_value_attr_with_missing_column_name = [
         ModelingStep(
