@@ -71,11 +71,6 @@ class StreamView(StreamOrBatchView):
     A stream view is a view that is calculated from events in real-time using the Signals streaming engine.
     """
 
-    online: Literal[True] = Field(
-        default=True,
-        description="A boolean indicating whether online retrieval is enabled for this view.",
-        title="Online",
-    )
     offline: Literal[False] = Field(
         default=False,
         description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
