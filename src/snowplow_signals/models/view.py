@@ -79,6 +79,7 @@ class StreamView(StreamOrBatchView):
     batch_source: Literal[None] = Field(
         default=None,
         description="Not applicable for stream views.",
+        title="Batch Source",
     )
 
 
@@ -112,7 +113,9 @@ class ExternalBatchView(View):
     attributes: Literal[None] = Field(
         default=None,
         description="Not applicable for warehouse table views.",
+        title="Attributes",
     )
     batch_source: BatchSource = Field(
         description="The batch source for materializing this view from the warehouse.",
+        title="Batch Source",
     )
