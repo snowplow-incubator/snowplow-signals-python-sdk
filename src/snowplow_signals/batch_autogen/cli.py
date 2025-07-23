@@ -3,8 +3,8 @@
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
+import httpx
 import typer
 import yaml  # type: ignore
 
@@ -182,9 +182,15 @@ def materialize(
 ) -> None:
     """Registers the attribute table as a data source so that the materialization process can start."""
     try:
+        if view_name is None or view_version is None:
+            logger.error(
+                "view_name and view_version must be provided for materialization."
+            )
+            raise typer.Exit(code=1)
+
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
         client = BatchAutogenClient(api_client=api_client)
-        project_path = Path(repo_path) / f"{view_name}_{view_version}"
+        project_path = str(Path(repo_path) / f"{view_name}_{view_version}")
         client.materialize_model(
             project_path=project_path,
             view_name=view_name,
@@ -235,8 +241,8 @@ def test_connection(
         # Check API service if requested
         if check_api:
             logger.info("🌐 Testing API service...")
+
             try:
-                import httpx
 
                 response = httpx.get(f"{api_url}/health-all")
                 response.raise_for_status()
