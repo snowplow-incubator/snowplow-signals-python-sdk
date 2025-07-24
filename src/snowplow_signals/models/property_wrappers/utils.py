@@ -1,0 +1,35 @@
+from abc import ABC, abstractmethod
+from re import sub
+
+from pydantic import BaseModel, Field
+
+
+def _clean_vendor(vendor: str) -> str:
+    # see https://github.com/snowplow/snowplow-python-analytics-sdk/blob/0ddca91e3f6d8bed88627fa557790aa4868bdace/snowplow_analytics_sdk/json_shredder.py#L64
+    return vendor.replace(".", "_").lower()
+
+
+def _clean_name(name: str) -> str:
+    # see https://github.com/snowplow/snowplow-python-analytics-sdk/blob/0ddca91e3f6d8bed88627fa557790aa4868bdace/snowplow_analytics_sdk/json_shredder.py#L65
+    return sub(r"([^A-Z_])([A-Z])", r"\g<1>_\g<2>", name).lower()
+
+
+def _clean_version(version: str | int) -> str:
+    # see https://github.com/snowplow/snowplow-python-analytics-sdk/blob/0ddca91e3f6d8bed88627fa557790aa4868bdace/snowplow_analytics_sdk/json_shredder.py#L66
+    return str(version)
+
+
+class BaseProperty(BaseModel, ABC):
+    @abstractmethod
+    def _to_api_property(self) -> str:
+        """
+        Converts the property to a format suitable for API requests.
+        """
+        pass
+
+
+class BaseSDJProperty(BaseProperty, ABC):
+    vendor: str = Field(description="The vendor of the property.", min_length=1)
+    name: str = Field(description="The name of the property.", min_length=1)
+    major_version: str | int = Field(description="The major version of the property.")
+    path: str = Field(default="", description="The path to the attribute targeted.")
