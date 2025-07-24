@@ -32,4 +32,7 @@ class BaseSDJProperty(BaseProperty, ABC):
     vendor: str = Field(description="The vendor of the property.", min_length=1)
     name: str = Field(description="The name of the property.", min_length=1)
     major_version: str | int = Field(description="The major version of the property.")
-    path: str = Field(default="", description="The path to the attribute targeted.")
+    path: str = Field(
+        default="",
+        description="The path to the attribute targeted. Allows for direct dot (.) notation and index ([n]) access. Uses a subset of JSONPath syntax without requiring the leading '$.' root access.",
+    )

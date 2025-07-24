@@ -16,6 +16,7 @@ pyjwt = "^2.10.1"
 jinja2 = { version = "^3.1.6", optional = true }
 typer = { version = "^0.15.2", optional = true }
 sqlglot = { version = "^26.16.4", optional = true }
+jsonpath-ng = "^1.7.0"
 
 [tool.poetry.extras]
 batch-engine = ["jinja2", "typer", "sqlglot"]
