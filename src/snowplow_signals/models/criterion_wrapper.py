@@ -114,7 +114,7 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
         return cls(property=property._to_api_property(), operator="like", value=value)
 
     @classmethod
-    def contains(
+    def in_list(
         cls, property: AtomicProperty | EventProperty | EntityProperty, values: list
     ) -> "Criterion":
         """

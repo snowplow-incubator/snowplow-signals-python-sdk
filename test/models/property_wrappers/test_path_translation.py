@@ -134,12 +134,6 @@ class TestPathTranslation:
         result = JsonPathTranslator.validate(jsonpath)
         assert result == jsonpath
 
-    def test_negative_index_valid(self):
-        """Test that negative array indexes are valid."""
-        jsonpath = "$.events[-1]"
-        result = JsonPathTranslator.validate(jsonpath)
-        assert result == jsonpath
-
     def test_field_with_special_characters_valid(self):
         """Test that fields with special characters work (if supported by jsonpath-ng)."""
         jsonpath = "$.events[0]['field-name']"

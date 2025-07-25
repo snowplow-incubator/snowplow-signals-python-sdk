@@ -1,5 +1,3 @@
-import pytest
-
 from snowplow_signals.models.criterion_wrapper import Criterion
 from snowplow_signals.models.property_wrappers.atomic import AtomicProperty
 from snowplow_signals.models.property_wrappers.entity import EntityProperty
@@ -27,11 +25,11 @@ class TestCriterionWrapper:
         assert criterion.operator == "like"
         assert criterion.value == "%test%"
 
-    def test_contains_creates_correct_criterion(self):
-        """Test that contains method creates a criterion with 'in' operator and list value."""
+    def test_in_list_creates_correct_criterion(self):
+        """Test that in_list method creates a criterion with 'in' operator and list value."""
         atomic_prop = AtomicProperty(name="platform")
         values = ["web", "mobile", "tablet"]
-        criterion = Criterion.contains(atomic_prop, values)
+        criterion = Criterion.in_list(atomic_prop, values)
 
         assert criterion.property == "platform"
         assert criterion.operator == "in"
@@ -40,7 +38,7 @@ class TestCriterionWrapper:
     def test_eq_with_event_property(self):
         """Test that eq method works with EventProperty and generates correct property string."""
         event_prop = EventProperty(
-            vendor="com.example", name="test_event", major_version="1", path="action"
+            vendor="com.example", name="test_event", major_version=1, path="action"
         )
         criterion = Criterion.eq(event_prop, "click")
 
@@ -51,7 +49,7 @@ class TestCriterionWrapper:
     def test_gte_with_entity_property(self):
         """Test that gte method works with EntityProperty and generates correct property string."""
         entity_prop = EntityProperty(
-            vendor="com.example", name="user_context", major_version="1", path="age"
+            vendor="com.example", name="user_context", major_version=1, path="age"
         )
         criterion = Criterion.gte(entity_prop, 18)
 
