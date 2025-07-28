@@ -139,3 +139,12 @@ class TestPathTranslation:
         jsonpath = "$.events[0]['field-name']"
         result = JsonPathTranslator.validate(jsonpath)
         assert result == jsonpath
+
+    def test_nested_negative_index_invalid(self):
+        """Test that negative indices for nested properties throw."""
+        jsonpath = "$.events[0].nested[-1].attr"
+        with pytest.raises(
+            ValueError,
+            match=re.escape("Negative indices are not supported: -1"),
+        ):
+            JsonPathTranslator.validate(jsonpath)

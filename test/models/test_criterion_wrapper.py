@@ -1,3 +1,7 @@
+import re
+
+import pytest
+
 from snowplow_signals.models.criterion_wrapper import Criterion
 from snowplow_signals.models.property_wrappers.atomic import AtomicProperty
 from snowplow_signals.models.property_wrappers.entity import EntityProperty
@@ -49,10 +53,27 @@ class TestCriterionWrapper:
     def test_gte_with_entity_property(self):
         """Test that gte method works with EntityProperty and generates correct property string."""
         entity_prop = EntityProperty(
-            vendor="com.example", name="user_context", major_version=1, path="age"
+            vendor="com.example",
+            name="user_context",
+            major_version=1,
+            path="age",
         )
         criterion = Criterion.gte(entity_prop, 18)
 
         assert criterion.property == "contexts_com_example_user_context_1[0].age"
         assert criterion.operator == ">="
         assert criterion.value == 18
+
+    def test_negative_nested_index(self):
+        """Test that negative indices for nested properties throw."""
+        with pytest.raises(
+            ValueError,
+            match=re.escape("Negative indices are not supported: -1"),
+        ):
+            entity_prop = EntityProperty(
+                vendor="com.example",
+                name="user_context",
+                major_version=1,
+                path="array_attribute[-1].attr",
+            )
+            Criterion.gte(entity_prop, 18)

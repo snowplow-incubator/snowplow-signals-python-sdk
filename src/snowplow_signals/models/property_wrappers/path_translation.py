@@ -17,6 +17,10 @@ class JsonPathTranslator:
 
         def walk(node):
             if isinstance(node, (Root, Fields, Index)):
+                if isinstance(node, Index) and node.index < 0:
+                    raise ValueError(
+                        f"Negative indices are not supported: {node.index}"
+                    )
                 return
             elif isinstance(node, Descendants):
                 raise ValueError(
