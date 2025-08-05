@@ -1,6 +1,8 @@
 import httpx
 import pytest
+from respx import MockRouter
 
+from snowplow_signals.api_client import ApiClient
 from snowplow_signals.interventions_client import InterventionsClient
 
 from .utils import (
@@ -12,10 +14,12 @@ from .utils import (
 
 class TestInterventionsClient:
     @pytest.fixture
-    def interventions_client(self, api_client):
+    def interventions_client(self, api_client: ApiClient) -> InterventionsClient:
         return InterventionsClient(api_client=api_client)
 
-    def test_get_intervention(self, respx_mock, interventions_client):
+    def test_get_intervention(
+        self, respx_mock: MockRouter, interventions_client: InterventionsClient
+    ):
         mock_intervention_response = get_intervention_response()
         respx_mock.get(
             f"http://localhost:8000/api/v1/registry/interventions/{mock_intervention_response['name']}"
@@ -28,7 +32,9 @@ class TestInterventionsClient:
         assert intervention.name == mock_intervention_response["name"]
         assert intervention.version == mock_intervention_response["version"]
 
-    def test_get_interventions(self, respx_mock, interventions_client):
+    def test_get_interventions(
+        self, respx_mock: MockRouter, interventions_client: InterventionsClient
+    ):
         mock_interventions_response = get_interventions_response()
         respx_mock.get(f"http://localhost:8000/api/v1/registry/interventions/").mock(
             return_value=httpx.Response(200, json=mock_interventions_response)
@@ -39,7 +45,9 @@ class TestInterventionsClient:
         assert intervention[0].name == mock_interventions_response[0]["name"]
         assert intervention[1].name == mock_interventions_response[1]["name"]
 
-    def test_create_intervention(self, respx_mock, interventions_client):
+    def test_create_intervention(
+        self, respx_mock: MockRouter, interventions_client: InterventionsClient
+    ):
         intervention_instance = get_example_intervention()
         respx_mock.post(f"http://localhost:8000/api/v1/registry/interventions/").mock(
             return_value=httpx.Response(200, json=intervention_instance.model_dump())

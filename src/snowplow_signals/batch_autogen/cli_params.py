@@ -1,6 +1,7 @@
-from typing_extensions import Annotated
-import typer
 from typing import Optional
+
+import typer
+from typing_extensions import Annotated
 
 API_KEY = Annotated[
     str,

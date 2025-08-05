@@ -2,41 +2,43 @@
 
 import json
 import os
+from typing import Any, Generator, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.batch_autogen.dbt_client import BatchAutogenClient
+from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
 from snowplow_signals.batch_autogen.models.dbt_config_generator import (
-    DbtConfig,
-    FilteredEvents,
+    ConfigAttributes,
     ConfigEvents,
     DailyAggregations,
-    ConfigAttributes,
+    DbtConfig,
+    FilteredEvents,
 )
 
 
 @pytest.fixture
-def mock_api_client():
+def mock_api_client() -> MagicMock:
     """Create a mock API client"""
     return MagicMock(spec=ApiClient)
 
 
 @pytest.fixture
-def dbt_client(mock_api_client):
+def dbt_client(mock_api_client) -> BatchAutogenClient:
     """Create a BatchAutogenClient instance with mocked API client"""
     return BatchAutogenClient(mock_api_client)
 
 
 @pytest.fixture
-def temp_repo_path(tmp_path):
+def temp_repo_path(tmp_path) -> str:
     """Create a temporary repository path"""
     return str(tmp_path)
 
 
 @pytest.fixture
-def mock_project_setup():
+def mock_project_setup() -> Generator[MagicMock, None, None]:
     """Mock the DbtProjectSetup class"""
     with patch("snowplow_signals.batch_autogen.dbt_client.DbtProjectSetup") as mock:
         instance = mock.return_value
@@ -45,7 +47,7 @@ def mock_project_setup():
 
 
 @pytest.fixture
-def mock_dbt_config_generator():
+def mock_dbt_config_generator() -> Generator[MagicMock, None, None]:
     """Mock the DbtConfigGenerator class"""
     with patch("snowplow_signals.batch_autogen.dbt_client.DbtConfigGenerator") as mock:
         instance = mock.return_value
@@ -79,7 +81,7 @@ def mock_dbt_config_generator():
 
 
 @pytest.fixture
-def mock_dbt_asset_generator():
+def mock_dbt_asset_generator() -> Generator[MagicMock, None, None]:
     """Mock the DbtAssetGenerator class"""
     with patch("snowplow_signals.batch_autogen.dbt_client.DbtAssetGenerator") as mock:
         instance = mock.return_value
@@ -87,14 +89,18 @@ def mock_dbt_asset_generator():
         yield mock
 
 
-def test_init_project_success(dbt_client, temp_repo_path, mock_project_setup):
+def test_init_project_success(
+    dbt_client: BatchAutogenClient, temp_repo_path: str, mock_project_setup: MagicMock
+):
     """Test successful project initialization"""
     result = dbt_client.init_project(temp_repo_path)
     assert result is True
     mock_project_setup.assert_called_once()
 
 
-def test_init_project_with_view_name(dbt_client, temp_repo_path, mock_project_setup):
+def test_init_project_with_view_name(
+    dbt_client: BatchAutogenClient, temp_repo_path: str, mock_project_setup: MagicMock
+):
     """Test project initialization with specific view name"""
     result = dbt_client.init_project(temp_repo_path, view_name="test_view")
     assert result is True
@@ -106,7 +112,9 @@ def test_init_project_with_view_name(dbt_client, temp_repo_path, mock_project_se
     )
 
 
-def test_init_project_with_view_version(dbt_client, temp_repo_path, mock_project_setup):
+def test_init_project_with_view_version(
+    dbt_client: BatchAutogenClient, temp_repo_path: str, mock_project_setup: MagicMock
+):
     """Test project initialization with specific view version"""
     result = dbt_client.init_project(
         temp_repo_path, view_name="test_view", view_version=1
@@ -120,8 +128,9 @@ def test_init_project_with_view_version(dbt_client, temp_repo_path, mock_project
     )
 
 
+@pytest.mark.usefixtures("mock_dbt_config_generator", "mock_dbt_asset_generator")
 def test_generate_models_single_project_success(
-    dbt_client, temp_repo_path, mock_dbt_config_generator, mock_dbt_asset_generator
+    dbt_client: BatchAutogenClient, temp_repo_path: str
 ):
     """Test successful model generation for a single project"""
     # Create project structure
@@ -146,14 +155,17 @@ def test_generate_models_single_project_success(
     assert result is True
 
 
-def test_generate_models_single_project_not_found(dbt_client, temp_repo_path):
+def test_generate_models_single_project_not_found(
+    dbt_client: BatchAutogenClient, temp_repo_path: str
+):
     """Test model generation for non-existent project"""
     result = dbt_client.generate_models(temp_repo_path, project_name="non_existent")
     assert result is False
 
 
+@pytest.mark.usefixtures("mock_dbt_config_generator", "mock_dbt_asset_generator")
 def test_generate_models_all_projects_success(
-    dbt_client, temp_repo_path, mock_dbt_config_generator, mock_dbt_asset_generator
+    dbt_client: BatchAutogenClient, temp_repo_path: str
 ):
     """Test successful model generation for all projects"""
     # Create multiple project structures
@@ -177,14 +189,19 @@ def test_generate_models_all_projects_success(
     assert result is True
 
 
-def test_generate_models_no_projects_found(dbt_client, temp_repo_path):
+def test_generate_models_no_projects_found(
+    dbt_client: BatchAutogenClient, temp_repo_path: str
+):
     """Test model generation when no projects are found"""
     result = dbt_client.generate_models(temp_repo_path)
     assert result is False
 
 
+@pytest.mark.usefixtures("mock_dbt_config_generator")
 def test_generate_models_with_update_flag(
-    dbt_client, temp_repo_path, mock_dbt_config_generator, mock_dbt_asset_generator
+    dbt_client: BatchAutogenClient,
+    temp_repo_path: str,
+    mock_dbt_asset_generator: MagicMock,
 ):
     """Test model generation with update flag"""
     project_name = "test_project"
@@ -208,6 +225,12 @@ def test_generate_models_with_update_flag(
     )
     assert result is True
     # Verify that generate_asset was called with update=True
-    mock_dbt_asset_generator.return_value.generate_asset.assert_called_with(
-        update=True, context=mock_dbt_asset_generator.return_value.custom_context
+    cast(
+        MagicMock,
+        cast(DbtAssetGenerator, mock_dbt_asset_generator.return_value).generate_asset,
+    ).assert_called_with(
+        update=True,
+        context=cast(
+            DbtAssetGenerator, mock_dbt_asset_generator.return_value
+        ).custom_context,
     )

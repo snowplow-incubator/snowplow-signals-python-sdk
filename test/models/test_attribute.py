@@ -1,5 +1,6 @@
-from snowplow_signals import Attribute, Event, Criteria, Criterion
 import pytest
+
+from snowplow_signals import Attribute, Criteria, Criterion, Event
 
 
 class TestValidAttributes:
@@ -75,6 +76,8 @@ class TestValidAttributes:
                 ],
             ),
         )
+        assert expensive_products_count.criteria is not None
+        assert expensive_products_count.criteria.all is not None
         assert len(expensive_products_count.criteria.all) == 2
 
 
@@ -107,7 +110,7 @@ class TestInvalidAttributes:
         with pytest.raises(ValueError):
             Attribute(
                 name="max_cart_value",
-                type="float39",
+                type="float39",  # type: ignore
                 events=[
                     Event(
                         vendor="com.snowplowanalytics.snowplow.ecommerce",
@@ -124,7 +127,7 @@ class TestInvalidAttributes:
             Attribute(
                 name="products_count",
                 type="int32",
-                aggregation="count",
+                aggregation="count",  # type: ignore
                 events=[
                     Event(
                         vendor="com.snowplowanalytics.snowplow.ecommerce",
@@ -139,7 +142,7 @@ class TestInvalidAttributes:
             Attribute(
                 name="products_count",
                 type="int32",
-                aggregation="count",
+                aggregation="count",  # type: ignore
                 events=[
                     Event(
                         vendor="com.snowplowanalytics.snowplow.ecommerce",
@@ -151,7 +154,7 @@ class TestInvalidAttributes:
                     all=[
                         Criterion(
                             property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
-                            operator="equals",
+                            operator="equals",  # type: ignore
                             value="add_to_cart",
                         )
                     ],

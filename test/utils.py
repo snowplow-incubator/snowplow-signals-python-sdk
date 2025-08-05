@@ -8,5 +8,5 @@ MOCK_VIEW_NAME = "test_view"
 MOCK_VIEW_VERSION = 1
 
 
-def utc_timestamp():
+def utc_timestamp() -> int:
     return int(datetime.now(tz=UTC).timestamp())

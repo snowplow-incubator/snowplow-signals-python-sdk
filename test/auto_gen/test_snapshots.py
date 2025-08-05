@@ -2,12 +2,14 @@
 Tests for verifying the output of generated files.
 """
 
-import shutil
 from pathlib import Path
 
 import httpx
 import pytest
+from respx import MockRouter
+from syrupy.assertion import SnapshotAssertion
 
+from snowplow_signals import Signals
 from snowplow_signals.batch_autogen.dbt_client import BatchAutogenClient
 
 from .utils import get_integration_test_view_response
@@ -31,12 +33,17 @@ def get_file_contents(directory: Path) -> dict:
 
 
 @pytest.fixture
-def test_dir(tmp_path):
+def test_dir(tmp_path) -> Path:
     """Create a temporary directory for the test."""
     return tmp_path
 
 
-def test_generated_files(test_dir, signals_client, respx_mock, snapshot):
+def test_generated_files(
+    test_dir: Path,
+    signals_client: Signals,
+    respx_mock: MockRouter,
+    snapshot: SnapshotAssertion,
+):
     """Test that the generated files are correct."""
     # Setup mock API response
     mock_response = get_integration_test_view_response()

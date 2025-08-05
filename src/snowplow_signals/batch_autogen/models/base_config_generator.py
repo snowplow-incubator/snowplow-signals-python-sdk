@@ -1,8 +1,8 @@
 import re
-from collections import OrderedDict
 from typing import Dict, FrozenSet, Literal, Set
 
 from pydantic import BaseModel
+from sqlglot.dialects.snowflake import Snowflake
 
 from snowplow_signals.batch_autogen.models.modeling_step import (
     FilterCondition,
@@ -12,9 +12,6 @@ from snowplow_signals.batch_autogen.models.modeling_step import (
 
 from ...models import AttributeOutput, Criterion, Event, ViewResponse
 from ..utils.utils import timedelta_isoformat
-
-from sqlglot.dialects.snowflake import Snowflake
-
 
 # FIXME can we extract from auto generated model attributes ?
 AggregationLiteral = Literal[

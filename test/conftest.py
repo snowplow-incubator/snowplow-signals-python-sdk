@@ -1,6 +1,8 @@
 import httpx
 import jwt
 import pytest
+from pytest import FixtureRequest
+from respx import MockRouter
 
 from snowplow_signals import Signals
 from snowplow_signals.api_client import ApiClient
@@ -30,7 +32,7 @@ def api_params() -> list[str]:
 
 
 @pytest.fixture
-def signals_client():
+def signals_client() -> Signals:
     return Signals(
         api_url="http://localhost:8000",
         api_key="foo",
@@ -40,7 +42,7 @@ def signals_client():
 
 
 @pytest.fixture
-def access_jwt():
+def access_jwt() -> str:
     """Creates a sample JWT claimset for use as a payload during tests"""
     return jwt.encode(
         {"iss": "peter", "exp": utc_timestamp() + 100, "claim": "foo"}, "secret"
@@ -48,7 +50,7 @@ def access_jwt():
 
 
 @pytest.fixture(autouse=True)
-def mock_auth(respx_mock, request, access_jwt):
+def mock_auth(respx_mock: MockRouter, request: FixtureRequest, access_jwt: str):
     if "noauthmock" in request.keywords:
         return
     respx_mock.get(
@@ -57,7 +59,7 @@ def mock_auth(respx_mock, request, access_jwt):
 
 
 @pytest.fixture
-def api_client():
+def api_client() -> ApiClient:
     return ApiClient(
         api_url="http://localhost:8000",
         api_key="foo",
@@ -67,7 +69,7 @@ def api_client():
 
 
 @pytest.fixture
-def mock_successful_api_health(respx_mock):
+def mock_successful_api_health(respx_mock: MockRouter):
     """Mock successful API health check response."""
     respx_mock.get(f"{MOCK_API_URL}/health-all").mock(
         return_value=httpx.Response(
@@ -81,7 +83,7 @@ def mock_successful_api_health(respx_mock):
 
 
 @pytest.fixture
-def mock_successful_registry_views(respx_mock):
+def mock_successful_registry_views(respx_mock: MockRouter):
     """Mock successful registry views response."""
     respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/views/").mock(
         return_value=httpx.Response(

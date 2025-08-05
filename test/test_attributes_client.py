@@ -1,12 +1,14 @@
 import httpx
+from respx import MockRouter
 
+from snowplow_signals.api_client import ApiClient
 from snowplow_signals.attributes_client import AttributesClient
 from snowplow_signals.models import GetAttributesResponse
 
 
 class TestAttributesClient:
 
-    def test_get_view_attributes(self, respx_mock, api_client):
+    def test_get_view_attributes(self, respx_mock: MockRouter, api_client: ApiClient):
         attributes_client = AttributesClient(api_client=api_client)
         identifier = "user-123"
 
@@ -35,9 +37,11 @@ class TestAttributesClient:
 
         assert response == sdk_expected_response
 
-    def test_get_service_attributes(self, respx_mock, api_client):
+    def test_get_service_attributes(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
         attributes_client = AttributesClient(api_client=api_client)
-        identifier = ["user-123"]
+        identifier = "user-123"
 
         api_request_response = GetAttributesResponse(
             data={
