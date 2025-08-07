@@ -1,5 +1,5 @@
 # serializer version: 1
-# name: test_generated_files
+# name: test_generated_files_bigquery
   dict({
     'ecommerce_transaction_interactions_features_1/configs/base_config.json': '''
       {
@@ -37,10 +37,10 @@
                   "geo_timezone": "geo_timezone"
               },
               {
-                  "contexts_nl_basjes_yauaa_context_1[0]:operatingSystemName": "operating_system_name"
+                  "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].operating_system_name": "operating_system_name"
               },
               {
-                  "contexts_nl_basjes_yauaa_context_1[0]:deviceClass": "device_class"
+                  "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].device_class": "device_class"
               },
               {
                   "mkt_source": "mkt_source"
@@ -58,10 +58,11 @@
                   "page_url": "page_url"
               },
               {
-                  "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0]:revenue": "revenue"
+                  "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[safe_offset(0)].revenue": "revenue"
               }
           ],
           "periods": [
+              "P1DT0H0M0.000000S",
               "P7DT0H0M0.000000S"
           ],
           "transformed_attributes": [
@@ -711,6 +712,92 @@
                           "any": []
                       }
                   }
+              ],
+              [
+                  {
+                      "step_type": "filtered_events",
+                      "enabled": false,
+                      "aggregation": null,
+                      "column_name": "operating_system_name",
+                      "modeling_criteria": null
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "enabled": true,
+                      "aggregation": "unique_list",
+                      "column_name": "op_systems",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "event_name",
+                                  "operator": "in",
+                                  "value": "'page_view','page_ping','snowplow_ecommerce_action'"
+                              },
+                              {
+                                  "property": "revenue",
+                                  "operator": "!=",
+                                  "value": 1
+                              }
+                          ],
+                          "any": []
+                      }
+                  },
+                  {
+                      "step_type": "attribute_aggregation",
+                      "enabled": true,
+                      "aggregation": "unique_list",
+                      "column_name": "op_systems",
+                      "modeling_criteria": {
+                          "all": [],
+                          "any": []
+                      }
+                  }
+              ],
+              [
+                  {
+                      "step_type": "filtered_events",
+                      "enabled": false,
+                      "aggregation": null,
+                      "column_name": "operating_system_name",
+                      "modeling_criteria": null
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "enabled": true,
+                      "aggregation": "unique_list",
+                      "column_name": "op_systems_2",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "event_name",
+                                  "operator": "in",
+                                  "value": "'page_view','page_ping','snowplow_ecommerce_action'"
+                              },
+                              {
+                                  "property": "revenue",
+                                  "operator": "!=",
+                                  "value": 1
+                              }
+                          ],
+                          "any": []
+                      }
+                  },
+                  {
+                      "step_type": "attribute_aggregation",
+                      "enabled": true,
+                      "aggregation": "unique_list",
+                      "column_name": "op_systems_2",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "period",
+                                  "operator": ">",
+                                  "value": 1
+                              }
+                          ],
+                          "any": []
+                      }
+                  }
               ]
           ],
           "entity_key": "domain_userid"
@@ -880,34 +967,64 @@
               ],
               "properties": [
                   {
-                      "geo_country": "geo_country"
+                      "type": "direct",
+                      "full_path": "geo_country",
+                      "alias": "geo_country",
+                      "column_prefix": null
                   },
                   {
-                      "geo_timezone": "geo_timezone"
+                      "type": "direct",
+                      "full_path": "geo_timezone",
+                      "alias": "geo_timezone",
+                      "column_prefix": null
                   },
                   {
-                      "contexts_nl_basjes_yauaa_context_1[0]:operatingSystemName": "operating_system_name"
+                      "type": "coalesced",
+                      "full_path": "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].operating_system_name",
+                      "alias": "operating_system_name",
+                      "column_prefix": "contexts_nl_basjes_yauaa_context_1"
                   },
                   {
-                      "contexts_nl_basjes_yauaa_context_1[0]:deviceClass": "device_class"
+                      "type": "coalesced",
+                      "full_path": "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].device_class",
+                      "alias": "device_class",
+                      "column_prefix": "contexts_nl_basjes_yauaa_context_1"
                   },
                   {
-                      "mkt_source": "mkt_source"
+                      "type": "direct",
+                      "full_path": "mkt_source",
+                      "alias": "mkt_source",
+                      "column_prefix": null
                   },
                   {
-                      "mkt_medium": "mkt_medium"
+                      "type": "direct",
+                      "full_path": "mkt_medium",
+                      "alias": "mkt_medium",
+                      "column_prefix": null
                   },
                   {
-                      "refr_source": "refr_source"
+                      "type": "direct",
+                      "full_path": "refr_source",
+                      "alias": "refr_source",
+                      "column_prefix": null
                   },
                   {
-                      "refr_medium": "refr_medium"
+                      "type": "direct",
+                      "full_path": "refr_medium",
+                      "alias": "refr_medium",
+                      "column_prefix": null
                   },
                   {
-                      "page_url": "page_url"
+                      "type": "direct",
+                      "full_path": "page_url",
+                      "alias": "page_url",
+                      "column_prefix": null
                   },
                   {
-                      "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0]:revenue": "revenue"
+                      "type": "coalesced",
+                      "full_path": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[safe_offset(0)].revenue",
+                      "alias": "revenue",
+                      "column_prefix": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1"
                   }
               ]
           },
@@ -954,6 +1071,18 @@
                       "aggregation": "sum",
                       "column_name": "sum_revenue_snowplow_ecommerce_action",
                       "condition_clause": "case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else 0 end"
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "aggregation": "array_agg",
+                      "column_name": "op_systems",
+                      "condition_clause": "distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls"
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "aggregation": "array_agg",
+                      "column_name": "op_systems_2",
+                      "condition_clause": "distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls"
                   }
               ],
               "daily_first_value_attributes": [
@@ -1131,7 +1260,20 @@
                       "aggregation_type": "last"
                   }
               ],
-              "unique_list_attributes": []
+              "unique_list_attributes": [
+                  {
+                      "daily_agg_column_name": "op_systems",
+                      "column_name": "op_systems",
+                      "period": null,
+                      "aggregation_type": "array_agg"
+                  },
+                  {
+                      "daily_agg_column_name": "op_systems_2",
+                      "column_name": "op_systems_2",
+                      "period": 1,
+                      "aggregation_type": "array_agg"
+                  }
+              ]
           }
       }
     ''',
@@ -1199,27 +1341,30 @@
           # OPERATION & LOGIC
           
           # filtered_events
-          snowplow__start_date: '2025-01-01' # date from where it starts looking for events based on both load and derived_tstamp
-          snowplow__app_id: [] # already gets applied in base_events_this_run
-          snowplow__backfill_limit_days: 1 # limit backfill increments for the filtered_events_table
+          snowplow__start_date: '2025-01-01' # Date from which this module starts processing events (based on both load_tstamp and derived_tstamp)
+          snowplow__app_id: [] # Filter the data on specific app_ids
+          snowplow__backfill_limit_days: 1 # Limit backfill increments for the filtered_events_table
           
           # daily_aggregates
-          snowplow__late_event_lookback_days: 5 # the number of days to allow for late arriving data to be reprocessed fully in the daily aggregate table
-          snowplow__min_late_events_to_process: 1 # the number of total daily events that have been skipped in previous runs, if it falls within the late_event_lookback_days, if the treshold is reached, those events will be processed in the daily aggregate model
+          snowplow__late_event_lookback_days: 5 # The number of days to allow for late arriving data to be reprocessed during daily aggregation 
+          snowplow__min_late_events_to_process: 1 # The threshold number of skipped daily events to process (when reached) during daily aggregation
           
-          snowplow__allow_refresh: false # if true, the snowplow_incremental_manifest will be dropped when running with a --full-refresh flag
-      
+          # aggregates
+          snowplow__include_current_day_in_windows: false # If set to true, the current_day with incomplete data is also taken into account for last_x_day type windows
+          
+          snowplow__allow_refresh: false #  If set to true, the incremental manifest will be dropped when running with a `--full-refresh` flag
+          snowplow__dev_target_name: dev # If the target matches the dev target, there is no need to set the snowplow__allow_refresh to true to drop the manifest table as well
+          
           # WAREHOUSE & TRACKER
           
-          snowplow__dev_target_name: dev
-          snowplow__databricks_catalog: "hive_metastore"
           # snowplow__atomic_schema: 'atomic' # Only set if not using 'atomic' schema for Snowplow events data
           # snowplow__database: # Only set if not using target.database for Snowplow events data -- WILL BE IGNORED FOR DATABRICKS
           # snowplow__events_table: "events" # Only set if not using 'events' table for Snowplow events data
-          snowplow__events: "{{ source('atomic', 'events') }}" # for dev use only
       
-          # Entity configuration
-          snowplow__entity_key: 'domain_userid' # The entity key to use for aggregations
+          # PRIVATE VARS - DO NOT MODIFY
+          snowplow__databricks_catalog: "hive_metastore"
+          snowplow__events: "{{ source('atomic', 'events') }}"
+          snowplow__entity_key: 'domain_userid' # The entity key to use as grain for aggregations (e.g. domain_userid)
       
       on-run-start:
         - "{{ snowplow_utils.snowplow_delete_from_manifest(var('models_to_remove',[])) }}"
@@ -1292,61 +1437,40 @@
       You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
       #}
       
-      {% macro get_limits_for_attributes() %}
+      {% macro get_limits_for_attributes() -%}
       
-      {# upper limit only applies to last n day aggregates in case the user does not want to include current date in the aggregations #}
-      {# lower limit is only implemented for reducing unnecessary scans in case there are only last n day aggregate attributes #}
+        {# upper limit only applies to last n day aggregates in case the user does not want to include current date in the aggregations #}
+        {# TODO: implement lower limit for reducing unnecessary scans in case there are only last n day aggregate attributes #}
+      
         
-        {% set limits_query %}
-        
-          with base as (
-            
-            select
-              '{{ var('snowplow__start_date', '2025-01-01') }}' as lower_limit,
-              coalesce(max(event_date), '{{ var('snowplow__start_date', '2025-01-01') }}') as upper_limit
-              
-            from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }}
-            
-            group by 1
-          )
-          
-          , upper_limit_changes as (
-            
-            select
-              lower_limit,
-              {% if not var('snowplow__include_current_day_in_windows', false) %} 
-                case when upper_limit = current_date then {{dbt.dateadd('day', -1, "'"~upper_limit~"'")}} else upper_limit end as upper_limit
-              {% else %}
-                upper_limit
-              {% endif %}
-              
-            from base
-          )
-          
-          select
-            lower_limit,
-            upper_limit
-      
-          from upper_limit_changes
-      
-        {% endset %}
-      
-        {% set limit_results = run_query(limits_query)%}
-      
-        {% if execute %}
-          {% if limit_results|length == 0  %}
-            {{ exceptions.raise_compiler_error("Error: No limits returned") }}
-          {% else %}
-            {% set lower_limit = "'"~limit_results.columns[0].values()[0]~"'" %}
-            {% set upper_limit = "'"~limit_results.columns[1].values()[0]~"'" %}
-            {{ log(this.table ~ ": processing daily events between " ~ lower_limit ~ " and " ~ upper_limit, info=write_limits_to_stdout) }}
-            {{ return([lower_limit, upper_limit]) }}
+        {% if var('snowplow__mock_current_day', false) %}
+          {% set current_day = "DATE '" ~ var("snowplow__mock_current_day") ~ "'" %}
+        {% else %}
+          {% if target.type == "snowflake" %}
+            {% set current_day = "CAST(CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP()) AS DATE)" %}
+          {% elif target.type == "bigquery" %}
+            {% set current_day = "CURRENT_DATE" %}
           {% endif %}
-        {% else%}
-          {{ return(['','']) }}
         {% endif %}
       
+        {# Calculate upper limit depending on include_current_day #}
+        {% if var("snowplow__include_current_day_in_windows", false) %}
+          {% set upper_limit = snowplow_utils.add_days_to_date(1, current_day) %}
+        {% else %}
+          {% set upper_limit = current_day %}
+        {% endif %}
+      
+        {# Static lower limit from var #}
+        {% set lower_limit = "DATE '" ~ var("snowplow__start_date", "2025-01-01") ~ "'" %}
+      
+        {% if execute %}
+          {{ return([lower_limit, upper_limit]) }}
+        {% else %}
+          {{ return(["", ""]) }}
+        {% endif %}
+        
       {% endmacro %}
+      
   
     ''',
     'ecommerce_transaction_interactions_features_1/models/attributes/ecommerce_transaction_interactions_features_1_attributes.sql': '''
@@ -1363,7 +1487,7 @@
           materialized='table',
           dist=var('snowplow__entity_key', 'domain_userid'),
           partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
-            "field": "last_event_tstamp",
+            "field": "valid_at_tstamp",
             "data_type": "timestamp"
           }, databricks_val='last_event_date'),
           sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
@@ -1380,19 +1504,19 @@
       
           
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_view end) as page_view_events_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_page_view end) as page_view_events_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_ping end) as page_ping_events_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_page_ping end) as page_ping_events_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_view_page_url_like_pctpricingpct end) as pricing_pageview_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_page_view_page_url_like_pctpricingpct end) as pricing_pageview_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_page_view_page_url_like_pctdemopct end) as demo_pageview_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_page_view_page_url_like_pctdemopct end) as demo_pageview_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then media_video_event_count_last_7_days end) as media_video_event_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then media_video_event_count_last_7_days end) as media_video_event_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then count_focus_form_change_form end) as form_focus_change_event_count_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then count_focus_form_change_form end) as form_focus_change_event_count_last_7_days
           
-            , sum(case when event_date >= {{dbt.dateadd('day', -7, upper_limit)}} then sum_revenue_snowplow_ecommerce_action end) as total_revenue_last_7_days
+            , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then sum_revenue_snowplow_ecommerce_action end) as total_revenue_last_7_days
           
       
       
@@ -1403,6 +1527,56 @@
       )
       
       
+      
+        
+        
+        
+        
+        
+        
+        
+      
+        , op_systems_flattened as (
+          select
+              d.entity_key,
+              array_agg(distinct cast(f{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}) as op_systems
+          from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }} d,
+               {% if target.type == 'snowflake' %}
+                 LATERAL FLATTEN(input => op_systems) f
+               {% elif target.type == 'bigquery' %}
+                 UNNEST(d.op_systems) AS f
+               {% endif %}
+          group by d.entity_key
+        )
+      
+        
+        
+        
+        
+        
+        
+        
+          , filtered_data_op_systems_2 as (
+            select
+                entity_key,
+                op_systems_2
+            from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }}
+            where event_date >= {{ dbt.dateadd('day', -1, upper_limit) }}
+          )
+        
+      
+        , op_systems_2_flattened as (
+          select
+              d.entity_key,
+              array_agg(distinct cast(f{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}) as op_systems_2
+          from filtered_data_op_systems_2 d,
+               {% if target.type == 'snowflake' %}
+                 LATERAL FLATTEN(input => op_systems_2) f
+               {% elif target.type == 'bigquery' %}
+                 UNNEST(d.op_systems_2) AS f
+               {% endif %}
+          group by d.entity_key
+        )
       
       
       , window_calculations as (
@@ -1442,42 +1616,42 @@
         
           , last_value(last_geo_country) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_geo_country
         
       
         
           , last_value(last_geo_timezone) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_timezone
         
       
         
           , last_value(last_operating_system_name) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_os
         
       
         
           , last_value(last_device_class) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_device_class
         
       
         
           , last_value(last_mkt_source) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_mkt_source
         
       
         
           , last_value(last_mkt_medium) over (
                       partition by entity_key
-                      order by last_event_tstamp ASC
+                      order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_mkt_medium
         
       
@@ -1492,8 +1666,8 @@
           
         a.entity_key as domain_userid,
         {{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
-        cast({{ lower_limit }} as date) as lower_limit,
-        cast({{ upper_limit }} as date) as upper_limit
+        date({{ lower_limit }}) as lower_limit,
+        date({{ upper_limit }}) as upper_limit
         
           , w.first_mkt_source
           , w.first_mkt_medium
@@ -1531,11 +1705,19 @@
         
         -- unique_list_attributes
         
+        , op_systems
+        , op_systems_2
       from aggregations as a
       left join window_calculations as w
       on a.entity_key = w.entity_key
       
       
+      
+        left join op_systems_flattened as op_systems_flattened
+        on a.entity_key = op_systems_flattened.entity_key
+      
+        left join op_systems_2_flattened as op_systems_2_flattened
+        on a.entity_key = op_systems_2_flattened.entity_key
   
     ''',
     'ecommerce_transaction_interactions_features_1/models/base/manifest/ecommerce_transaction_interactions_features_1_incremental_manifest.sql': '''
@@ -1586,7 +1768,8 @@
                                     snowplow_events_database=var('snowplow__database', target.database) if target.type not in ['databricks', 'spark'] else var('snowplow__databricks_catalog', 'hive_metastore') if target.type in ['databricks'] else var('snowplow__atomic_schema', 'atomic'),
                                     snowplow_events_schema=var('snowplow__atomic_schema', 'atomic'),
                                     snowplow_events_table=var('snowplow__events_table', 'events'),
-                                    event_names=var('snowplow__events_to_include', [])
+                                    event_names=var('snowplow__events_to_include', []),
+                                    custom_filter=var('snowplow__custom_filter', none)
                                     ) %}
       
       {{ base_events_query }}
@@ -1631,6 +1814,18 @@
       {{ run_limits_query }}
   
     ''',
+    'ecommerce_transaction_interactions_features_1/models/base/src_base.yml': '''
+      version: 2
+      
+      sources:
+        - name: atomic
+          schema: "{{ var('snowplow__atomic_schema', 'atomic') }}"
+          database: "{{ var('snowplow__database', target.database) if target.type not in ['databricks', 'spark'] else var('snowplow__databricks_catalog', 'hive_metastore') if target.type in ['databricks'] else var('snowplow__atomic_schema', 'atomic') }}"
+          tables:
+            - name: events
+              identifier: "{{ var('snowplow__events_table', 'events') }}"
+  
+    ''',
     'ecommerce_transaction_interactions_features_1/models/daily_aggregates/ecommerce_transaction_interactions_features_1_daily_aggregates.sql': '''
       
       {#
@@ -1644,7 +1839,7 @@
         config(
           materialized='incremental',
           sort='event_date',
-          dist='domain_userid',
+          dist='entity_key',
           partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
             "field": "event_date",
             "data_type": "date"
@@ -1653,7 +1848,7 @@
           upsert_date_key='event_date',
           tags=["derived"],
           on_schema_change='append_new_columns',
-          cluster_by=snowplow_utils.get_value_by_target_type(bigquery_val=["event_date","domain_userid"], snowflake_val=["event_date"]),
+          cluster_by=snowplow_utils.get_value_by_target_type(bigquery_val=["event_date","entity_key"], snowflake_val=["event_date"]),
           sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
           tblproperties={
             'delta.autoOptimize.optimizeWrite' : 'true',
@@ -1767,6 +1962,16 @@
             
               case when  event_name IN('snowplow_ecommerce_action') then cast(revenue as {{ dbt.type_float()}}) else 0 end) as sum_revenue_snowplow_ecommerce_action
           
+            
+              , array_agg(
+            
+              distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls) as op_systems
+          
+            
+              , array_agg(
+            
+              distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls) as op_systems_2
+          
           
         from events
         group by 1,2,3
@@ -1777,20 +1982,20 @@
         
         select
           *,
-          last_value(derived_tstamp) over (partition by entity_key_date_id order by derived_tstamp) as last_event_tstamp
+          last_value(derived_tstamp) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_event_tstamp
               
           
-            , first_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp) as first_mkt_source
-            , first_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp) as first_mkt_medium
-            , first_value(refr_source) over (partition by entity_key_date_id order by derived_tstamp) as first_refr_source
-            , first_value(refr_medium) over (partition by entity_key_date_id order by derived_tstamp) as first_refr_medium
+            , first_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_mkt_source
+            , first_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_mkt_medium
+            , first_value(refr_source) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_refr_source
+            , first_value(refr_medium) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_refr_medium
           
-            , last_value(geo_country) over (partition by entity_key_date_id order by derived_tstamp) as last_geo_country
-            , last_value(geo_timezone) over (partition by entity_key_date_id order by derived_tstamp) as last_geo_timezone
-            , last_value(operating_system_name) over (partition by entity_key_date_id order by derived_tstamp) as last_operating_system_name
-            , last_value(device_class) over (partition by entity_key_date_id order by derived_tstamp) as last_device_class
-            , last_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp) as last_mkt_source
-            , last_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp) as last_mkt_medium
+            , last_value(geo_country) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_geo_country
+            , last_value(geo_timezone) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_geo_timezone
+            , last_value(operating_system_name) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_operating_system_name
+            , last_value(device_class) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_device_class
+            , last_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_mkt_source
+            , last_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_mkt_medium
         
         from events
         
@@ -1816,6 +2021,10 @@
           , a.count_focus_form_change_form
         
           , a.sum_revenue_snowplow_ecommerce_action
+        
+          , a.op_systems
+        
+          , a.op_systems_2
         
         
           
@@ -1919,187 +2128,243 @@
           )
       }}
       
+      with prep as (
+      
+          select
+              event_id,
+              {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key,
+              derived_tstamp,
+              date(derived_tstamp) as event_date,
+              load_tstamp,
+              event_name,
+              
+                  
+                      geo_country AS geo_country,
+              
+                  
+                      geo_timezone AS geo_timezone,
+              
+                  
+                      
+                      
+                      {{ snowplow_utils.combine_column_versions(
+                          relation=ref('snowplow_batch_autogen_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
+                          column_prefix="contexts_nl_basjes_yauaa_context_1",
+                          required_fields=[("operating_system_name","operating_system_name")],
+                          include_field_alias=True
+                      ) | join(', ')}}
+                      
+                  ,
+              
+                  
+                      
+                      
+                      {{ snowplow_utils.combine_column_versions(
+                          relation=ref('snowplow_batch_autogen_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
+                          column_prefix="contexts_nl_basjes_yauaa_context_1",
+                          required_fields=[("device_class","device_class")],
+                          include_field_alias=True
+                      ) | join(', ')}}
+                      
+                  ,
+              
+                  
+                      mkt_source AS mkt_source,
+              
+                  
+                      mkt_medium AS mkt_medium,
+              
+                  
+                      refr_source AS refr_source,
+              
+                  
+                      refr_medium AS refr_medium,
+              
+                  
+                      page_url AS page_url,
+              
+                  
+                      
+                      
+                      {{ snowplow_utils.combine_column_versions(
+                          relation=ref('snowplow_batch_autogen_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
+                          column_prefix="contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1",
+                          required_fields=[("revenue","revenue")],
+                          include_field_alias=True
+                      ) | join(', ')}}
+                      
+                  
+              
+      
+          from
+              {{ ref('ecommerce_transaction_interactions_features_1_base_events_this_run') }}
+          where 
+              (event_name = 'page_view'
+                  and event_vendor = 'com.snowplowanalytics.snowplow'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'page_ping'
+                  and event_vendor = 'com.snowplowanalytics.snowplow'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'ad_break_end_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'ad_break_start_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'ad_complete_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'ad_quartile_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'ad_skip_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'ad_start_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'buffer_end_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'buffer_start_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'end_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'pause_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'percent_progress_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'ping_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'play_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'playback_rate_change_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'quality_change_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'ready_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'seek_end_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'seek_start_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'volume_change_event'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.media'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'change_form'
+                  and event_vendor = 'com.snowplowanalytics.snowplow'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'focus_form'
+                  and event_vendor = 'com.snowplowanalytics.snowplow'
+                  and event_version = '1-0-0'
+              ) or 
+      
+          
+              (event_name = 'snowplow_ecommerce_action'
+                  and event_vendor = 'com.snowplowanalytics.snowplow.ecommerce'
+                  and event_version = '1-0-0'
+              )
+      
+          
+              
+              and {{ snowplow_utils.is_run_with_new_events("ecommerce_transaction_interactions_features_1"
+                  , new_event_limits_table="ecommerce_transaction_interactions_features_1_base_new_event_limits"
+                  , incremental_manifest_table="ecommerce_transaction_interactions_features_1_incremental_manifest"
+                  , base_sessions_lifecycle_table="ecommerce_transaction_interactions_features_1_base_sessions_lifecycle"
+                  ) }}
+      
+      )
+      
       select
-          event_id,
-          {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key,
-          derived_tstamp,
-          date(derived_tstamp) as event_date,
-          load_tstamp,
-          {{ dbt_utils.generate_surrogate_key([var('snowplow__entity_key', 'domain_userid'), 'event_date']) }} AS entity_key_date_id,
-          event_name,
-          geo_country AS geo_country,
-          geo_timezone AS geo_timezone,
-          contexts_nl_basjes_yauaa_context_1[0]:operatingSystemName AS operating_system_name,
-          contexts_nl_basjes_yauaa_context_1[0]:deviceClass AS device_class,
-          mkt_source AS mkt_source,
-          mkt_medium AS mkt_medium,
-          refr_source AS refr_source,
-          refr_medium AS refr_medium,
-          page_url AS page_url,
-          contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0]:revenue AS revenue
-          
-      
-      from
-          {{ ref('ecommerce_transaction_interactions_features_1_base_events_this_run') }}
-      where 
-          (event_name = 'page_view'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'page_ping'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'ad_break_end_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'ad_break_start_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'ad_complete_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'ad_quartile_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'ad_skip_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'ad_start_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'buffer_end_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'buffer_start_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'end_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'pause_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'percent_progress_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'ping_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'play_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'playback_rate_change_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'quality_change_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'ready_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'seek_end_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'seek_start_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'volume_change_event'
-              and event_vendor = 'com.snowplowanalytics.snowplow.media'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'change_form'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'focus_form'
-              and event_vendor = 'com.snowplowanalytics.snowplow'
-              and event_version = '1-0-0'
-          ) or 
-      
-      
-          (event_name = 'snowplow_ecommerce_action'
-              and event_vendor = 'com.snowplowanalytics.snowplow.ecommerce'
-              and event_version = '1-0-0'
-          )
-      
+          *,
+          {{ dbt_utils.generate_surrogate_key(['entity_key', 'event_date']) }} AS entity_key_date_id
+      from prep
       
           
-          and {{ snowplow_utils.is_run_with_new_events("ecommerce_transaction_interactions_features_1"
-              , new_event_limits_table="ecommerce_transaction_interactions_features_1_base_new_event_limits"
-              , incremental_manifest_table="ecommerce_transaction_interactions_features_1_incremental_manifest"
-              , base_sessions_lifecycle_table="ecommerce_transaction_interactions_features_1_base_sessions_lifecycle"
-              ) }}
-      
   
     ''',
     'ecommerce_transaction_interactions_features_1/packages.yml': '''
       
       packages:
-        - git: "https://github.com/snowplow/dbt-snowplow-utils.git"
-          revision: "release/snowplow-utils/0.18.0"
+        - package: snowplow/snowplow_utils
+          version: [">=0.17.4", "<0.18.0"]
   
     ''',
   })

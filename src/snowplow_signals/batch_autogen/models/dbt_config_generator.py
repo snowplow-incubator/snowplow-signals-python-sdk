@@ -1,49 +1,59 @@
+import re
+from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel
+from snowplow_signals.batch_autogen.utils.utils import (
+    WarehouseType,
+)
 
-from .dbt_project_setup import DbtBaseConfig
-from .modeling_step import FilterCondition
+from .base_config_generator import DbtBaseConfig
 
+ALLOWED_ATOMIC_PROPERTIES = {
+    line
+    for line in Path(__file__)
+    .with_name("allowed_atomic_properties.txt")
+    .read_text()
+    .split("\n")
+    if line
+}
 
-class ConfigEvents(BaseModel):
-    event_vendor: str
-    event_name: str
-    event_format: str
-    event_version: str
+from snowplow_signals.batch_autogen.utils.utils import (
+    get_condition_sql,
+)
 
+from .model import (
+    ConfigAttributes,
+    ConfigEvents,
+    DailyAggregations,
+    DbtConfig,
+    FilteredEvents,
+    FilteredEventsProperty,
+)
 
-class ConfigAttributes(BaseModel):
-    lifetime_aggregates: list
-    last_n_day_aggregates: list
-    first_value_attributes: list
-    last_value_attributes: list
-    unique_list_attributes: list
+AttribAttributeTypes = Literal[
+    "first_value_attributes",
+    "last_value_attributes",
+    "last_n_day_aggregates",
+    "lifetime_aggregates",
+    "unique_list_attributes",
+]
 
-
-class DailyAggregations(BaseModel):
-    daily_aggregate_attributes: list
-    daily_first_value_attributes: list
-    daily_last_value_attributes: list
-
-
-class FilteredEvents(BaseModel):
-    events: list[ConfigEvents]
-    properties: list[dict[str, str]]
-
-
-class DbtConfig(BaseModel):
-    filtered_events: FilteredEvents
-    daily_agg: DailyAggregations
-    attributes: ConfigAttributes
-
-
-SQLConditions = Literal["and", "or"]
+DailyAggAttributeTypes = Literal[
+    "aggregate_attributes", "first_value_attributes", "last_value_attributes"
+]
 
 
 class DbtConfigGenerator:
-    def __init__(self, base_config_data: DbtBaseConfig):
+
+    target_type: WarehouseType
+
+    def __init__(
+        self,
+        base_config_data: DbtBaseConfig,
+        target_type: WarehouseType,
+    ):
         self.base_config_data = base_config_data
+        self.target_type = target_type
 
     def get_events_dict(self) -> list[ConfigEvents]:
         parsed_events = self.base_config_data.events
@@ -72,7 +82,7 @@ class DbtConfigGenerator:
 
         return event_dict_list
 
-    def get_attributes_by_type(self, attribute_type) -> list:
+    def get_attributes_by_type(self, attribute_type: AttribAttributeTypes) -> list:
         """Returns a list of attributes base on type that is needed to create jinja context for the attributes table (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
         first_value_attributes = []
@@ -181,33 +191,50 @@ class DbtConfigGenerator:
 
         return deduped_list
 
-    def _get_condition_sql(
-        self, conditions: list[FilterCondition], condition_type: SQLConditions
-    ) -> str:
-        condition_sql_list = []
-        for condition in conditions:
-            operator = condition.operator
-            property_name = condition.property
-            value = condition.value
-            if operator in ["<", ">", "<=", ">="] and isinstance(value, str):
-                raise ValueError(
-                    f"Cannot apply comparison operator '{operator}' on a string value: '{value}'."
-                )
-            if operator in ["=", "!=", "<", ">", "<=", ">="]:
-                value_formatted = f"'{value}'" if isinstance(value, str) else value
-                condition_sql = f" {property_name} {operator} {value_formatted}"
-            elif operator == "like":
-                condition_sql = f" {property_name} LIKE '%{value}%'"
-            elif operator == "in":
-                condition_sql = f" {property_name} IN({value})"
-            else:
-                raise ValueError(f"Unsupported operator: {operator}")
-            if condition_sql == "":
-                raise ValueError(f"Filter condition missing for condition: {condition}")
-            condition_sql_list.append(condition_sql)
-        return f" {condition_type} ".join(condition_sql_list)
+    def get_property_references(self):
+        """Prepares property references for the jinja template to consume. For non-atomic bigquery properties, it prepares input for combine_column_versions() snowplow-uitls dbt macro use"""
+        property_references = []
+        for property in self.base_config_data.properties:
+            for key, value in property.items():
+                if self.target_type == "snowflake":
+                    property_references.append(
+                        FilteredEventsProperty(
+                            type="direct",
+                            full_path=key,
+                            alias=value,
+                            column_prefix=None,
+                        )
+                    )
+                elif self.target_type == "bigquery":
+                    if key in ALLOWED_ATOMIC_PROPERTIES:
+                        property_references.append(
+                            FilteredEventsProperty(
+                                type="direct",
+                                full_path=key,
+                                alias=value,
+                                column_prefix=None,
+                            )
+                        )
+                    else:
+                        match = re.match(
+                            r"^(?P<prefix>(?:unstruct_event|contexts)_[a-z0-9_]+(?:_\d+(?:_\d+){0,2})?)"
+                            r"(?:\[safe_offset\(\d+\)\])?(?:\.(?P<field_path>.*))?$",
+                            key,
+                        )
+                        if not match:
+                            raise ValueError(f"Invalid property key: {key}")
+                        property_references.append(
+                            FilteredEventsProperty(
+                                type="coalesced",
+                                full_path=key,
+                                alias=value,
+                                column_prefix=match.group("prefix"),
+                            )
+                        )
 
-    def get_daily_aggs_by_type(self, attribute_type) -> list:
+        return property_references
+
+    def get_daily_aggs_by_type(self, attribute_type: DailyAggAttributeTypes) -> list:
         """Returns a list of attributes base on type that is needed to create jinja context for the daily_aggregates table (e.g. first_value_attributes, last_value_attributes, last_n_day_aggregates, lifetime_aggregates)"""
 
         aggregate_attributes = []
@@ -254,12 +281,12 @@ class DbtConfigGenerator:
                             or_sql_conditions = ""
                             if modeling_criteria.all:
                                 and_conditions = modeling_criteria.all
-                                and_sql_conditions = self._get_condition_sql(
+                                and_sql_conditions = get_condition_sql(
                                     and_conditions, "and"
                                 )
                             if modeling_criteria.any:
                                 or_conditions = modeling_criteria.any
-                                or_sql_conditions = self._get_condition_sql(
+                                or_sql_conditions = get_condition_sql(
                                     or_conditions, "or"
                                 )
                             # If both "all" and "any" conditions are present, it means they have OR conditions and also a list of events to filter on using a logical AND, the safest is to wrap the OR conditions in brackets
@@ -279,7 +306,14 @@ class DbtConfigGenerator:
 
                             if step.aggregation == "unique_list":
                                 property_name = attribute[0].column_name
-                                condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
+                                if self.target_type == "snowflake":
+                                    condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
+                                elif self.target_type == "bigquery":
+                                    condition_clause = f"distinct case when {condition_statement} then {property_name} else null end ignore nulls"
+                                else:
+                                    raise ValueError(
+                                        f"Unsupported target type: {self.target_type}"
+                                    )
                                 # FIXME we need to confirm this logic with a unit test
                                 aggregate_attributes.append(
                                     {
@@ -343,7 +377,7 @@ class DbtConfigGenerator:
         return DbtConfig(
             filtered_events=FilteredEvents(
                 events=self.get_events_dict(),
-                properties=self.base_config_data.properties,
+                properties=self.get_property_references(),
             ),
             daily_agg=DailyAggregations(
                 daily_aggregate_attributes=self.get_daily_aggs_by_type(

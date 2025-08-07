@@ -16,9 +16,8 @@ from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     DailyAggregations,
     DbtConfig,
     DbtConfigGenerator,
-    FilterCondition,
     FilteredEvents,
-    SQLConditions,
+    FilteredEventsProperty,
 )
 from snowplow_signals.batch_autogen.models.modeling_step import (
     FilterCondition,
@@ -46,7 +45,7 @@ def mock_base_config() -> DbtBaseConfig:
 
 @pytest.fixture
 def instance(mock_base_config) -> DbtConfigGenerator:
-    obj = DbtConfigGenerator(base_config_data=mock_base_config)
+    obj = DbtConfigGenerator(base_config_data=mock_base_config, target_type="snowflake")
     obj.base_config_data = mock_base_config
     return obj
 
@@ -86,59 +85,6 @@ def test_event_invalid_split(instance: DbtConfigGenerator):
 
     with pytest.raises(ValueError, match="does not have 4 parts separated by '/'"):
         instance.get_events_dict()
-
-
-@pytest.mark.parametrize(
-    "conditions, condition_type, expected_sql",
-    [
-        (
-            [FilterCondition(operator="=", property="age", value=30)],
-            "AND",
-            " age = 30",
-        ),
-        (
-            [FilterCondition(operator="!=", property="country", value="USA")],
-            "AND",
-            " country != 'USA'",
-        ),
-        (
-            [FilterCondition(operator="like", property="name", value="John")],
-            "AND",
-            " name LIKE '%John%'",
-        ),
-        (
-            [FilterCondition(operator="in", property="id", value="1,2,3")],
-            "OR",
-            " id IN(1,2,3)",
-        ),
-    ],
-)
-def test_get_condition_sql(
-    instance: DbtConfigGenerator,
-    conditions: list[FilterCondition],
-    condition_type: SQLConditions,
-    expected_sql: str,
-):
-    sql = instance._get_condition_sql(conditions, condition_type)
-    assert sql == expected_sql
-
-
-# TODO: highlight in PR this is not needed due to pydantic validation
-# def test_get_condition_sql_unsupported_operator(instance):
-#     conditions = [FilterCondition(operator="^", property="age", value=30)]
-
-#     with pytest.raises(ValueError, match="Unsupported operator: ^"):
-#         instance._get_condition_sql(conditions, "AND")
-
-
-def test_invalid_comparison_with_string(instance: DbtConfigGenerator):
-    conditions = [FilterCondition(operator=">", property="name", value="banana")]
-
-    with pytest.raises(
-        ValueError,
-        match="Cannot apply comparison operator '>' on a string value: 'banana'",
-    ):
-        instance._get_condition_sql(conditions, "AND")  # type: ignore
 
 
 def test_first_value_attributes(instance: DbtConfigGenerator):
@@ -268,7 +214,14 @@ def test_create_dbt_config_happy_path(instance: DbtConfigGenerator):
                     event_version="2-1-3",
                 ),
             ],
-            properties=[{"geo_country": "geo_country"}],
+            properties=[
+                FilteredEventsProperty(
+                    type="direct",
+                    full_path="geo_country",
+                    alias="geo_country",
+                    column_prefix=None,
+                )
+            ],
         ),
         daily_agg=DailyAggregations(
             daily_aggregate_attributes=[
@@ -351,7 +304,6 @@ def test_create_dbt_config_happy_path(instance: DbtConfigGenerator):
             ],
         ),
     )
-
     assert result == expectation
 
 
@@ -388,3 +340,61 @@ def test_create_dbt_config_missing_column_name(instance: DbtConfigGenerator):
         ValueError, match="Column name is required for first/last value attributes"
     ):
         instance.create_dbt_config()
+
+
+def test_get_property_references(instance):
+    result = instance.get_property_references()
+    assert result == [
+        FilteredEventsProperty(
+            type="direct",
+            full_path="geo_country",
+            alias="geo_country",
+            column_prefix=None,
+        )
+    ]
+
+
+def test_get_property_references_bigquery():
+    instance = DbtConfigGenerator(
+        base_config_data=mock_base_config, target_type="bigquery"
+    )
+    instance.base_config_data.properties = [{"geo_country": "geo_country"}]
+    result = instance.get_property_references()
+    assert result == [
+        FilteredEventsProperty(
+            type="direct",
+            full_path="geo_country",
+            alias="geo_country",
+            column_prefix=None,
+        )
+    ]
+
+
+def test_get_property_references_coalesced_bigquery():
+    instance = DbtConfigGenerator(
+        base_config_data=mock_base_config, target_type="bigquery"
+    )
+    instance.base_config_data.properties = [
+        {
+            "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].operating_system_name": "operating_system_name"
+        }
+    ]
+    result = instance.get_property_references()
+    assert result == [
+        FilteredEventsProperty(
+            type="coalesced",
+            full_path="contexts_nl_basjes_yauaa_context_1[safe_offset(0)].operating_system_name",
+            alias="operating_system_name",
+            column_prefix="contexts_nl_basjes_yauaa_context_1",
+        )
+    ]
+
+
+def test_get_invalid_property_references_bigquery():
+    instance = DbtConfigGenerator(
+        base_config_data=mock_base_config, target_type="bigquery"
+    )
+    instance.base_config_data.properties = [{"foo": "foo"}]
+
+    with pytest.raises(ValueError, match="Invalid property key: foo"):
+        instance.get_property_references()

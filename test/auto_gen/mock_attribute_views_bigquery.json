@@ -100,7 +100,7 @@
                         }
                     ],
                     "aggregation": "last",
-                    "property": "contexts_nl_basjes_yauaa_context_1[0]:operatingSystemName",
+                    "property": "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].operating_system_name",
                     "criteria": null,
                     "period": null
                 },
@@ -116,7 +116,7 @@
                         }
                     ],
                     "aggregation": "last",
-                    "property": "contexts_nl_basjes_yauaa_context_1[0]:deviceClass",
+                    "property": "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].device_class",
                     "criteria": null,
                     "period": null
                 },
@@ -403,7 +403,7 @@
                         }
                     ],
                     "aggregation": "sum",
-                    "property": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0]:revenue",
+                    "property": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[safe_offset(0)].revenue",
                     "criteria": null,
                     "period": "P7D"
                 }

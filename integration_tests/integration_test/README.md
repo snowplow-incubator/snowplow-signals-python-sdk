@@ -4,7 +4,7 @@ Integration test suite for batch autogen dbt models.
 
 To test locally, run this script from the root to create the repo:
 ```bash
-poetry run python integration_tests/replicate_files.py test/auto_gen/__snapshots__/test_snapshots.ambr integration_tests
+poetry run python integration_tests/replicate_files.py test/auto_gen/__snapshots__/test_snapshots_snowflake.ambr integration_tests
 ```
 
 Then copy the integration_test folder over to this repo and cd into it and install the package:
@@ -23,6 +23,7 @@ bash .scripts/integration_test.sh -d {warehouse}
 Supported warehouses (should be the same as your target in your profile.yml):
 
 - snowflake
+- bigquery
 - all (iterates through all supported warehouses)
 
 Good to know:

@@ -7,8 +7,6 @@ from respx import MockRouter
 
 from snowplow_signals import Signals
 
-from snowplow_signals import Signals
-
 from ..utils import MOCK_ORG_ID, utc_timestamp
 
 

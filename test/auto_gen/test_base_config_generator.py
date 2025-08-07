@@ -51,7 +51,7 @@ def test_view_response():
 
 @pytest.fixture
 def base_config_generator(test_view_response: ViewResponse) -> BaseConfigGenerator:
-    return BaseConfigGenerator(data=test_view_response)
+    return BaseConfigGenerator(data=test_view_response, target_type="snowflake")
 
 
 class TestBaseConfigGenerator:
@@ -375,13 +375,6 @@ class TestBaseConfigGenerator:
         )
 
     #
-    def test_get_cleaned_property_name_invalid_input(
-        self, base_config_generator: BaseConfigGenerator
-    ):
-        """Test get_cleaned_property_name with invalid input"""
-        assert base_config_generator.get_cleaned_property_name(None) is None  # type: ignore
-        assert base_config_generator.get_cleaned_property_name(123) is None  # type: ignore
-
     def test_get_cleaned_property_name_multiple_separators(self, base_config_generator):
         """Test get_cleaned_property_name with multiple separators"""
         # The implementation takes the last part after the last separator
@@ -469,9 +462,7 @@ class TestBaseConfigGenerator:
         result = base_config_generator._get_filter_condition_name_component(
             filter_condition
         )
-        assert (
-            result == "FooBar_neq_a_b_pct_c"
-        )  # Property name is not converted to snake_case
+        assert result == "foo_bar_neq_a_b_pct_c"
 
     def test_generate_modeling_steps_basic_counter(
         self, base_config_generator: BaseConfigGenerator
@@ -762,3 +753,13 @@ class TestBaseConfigGenerator:
         assert len(config.periods) == 1
         assert len(config.transformed_attributes) == 2
         assert config.entity_key == base_config_generator.data.entity_key
+
+    def test_sorted_periods_filters_and_sorts(self, base_config_generator):
+        base_config_generator.periods = {
+            "P5D",
+            "P1D",
+            "",
+            None,
+        }
+        result = base_config_generator.sorted_periods
+        assert result == ["P1D", "P5D"]

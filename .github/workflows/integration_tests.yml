@@ -5,6 +5,7 @@ on: [workflow_call, push]
 env:
   # Set profiles.yml directory
   DBT_PROFILES_DIR: ./ci
+  PYTHON_VERSION: "3.12"
 
   # Snowflake Connection
   SNOWFLAKE_TEST_ACCOUNT: ${{ secrets.SNOWFLAKE_TEST_ACCOUNT }}
@@ -13,7 +14,20 @@ env:
   SNOWFLAKE_TEST_ROLE: ${{ secrets.SNOWFLAKE_TEST_ROLE }}
   SNOWFLAKE_TEST_DATABASE: ${{ secrets.SNOWFLAKE_TEST_DATABASE }}
   SNOWFLAKE_TEST_WAREHOUSE: ${{ secrets.SNOWFLAKE_TEST_WAREHOUSE }}
-  PYTHON_VERSION: "3.12"
+  
+  # BigQuery Connection
+  BIGQUERY_TEST_DATABASE: ${{ secrets.BIGQUERY_TEST_DATABASE }}
+  BIGQUERY_LOCATION: ${{ secrets.BIGQUERY_LOCATION }}
+  BIGQUERY_SERVICE_TYPE: ${{ secrets.BIGQUERY_SERVICE_TYPE }}
+  BIGQUERY_SERVICE_PROJECT_ID: ${{ secrets.BIGQUERY_SERVICE_PROJECT_ID }}
+  BIGQUERY_SERVICE_PRIVATE_KEY_ID: ${{ secrets.BIGQUERY_SERVICE_PRIVATE_KEY_ID }}
+  BIGQUERY_SERVICE_PRIVATE_KEY: ${{ secrets.BIGQUERY_SERVICE_PRIVATE_KEY }}
+  BIGQUERY_SERVICE_CLIENT_EMAIL: ${{ secrets.BIGQUERY_SERVICE_CLIENT_EMAIL }}
+  BIGQUERY_SERVICE_CLIENT_ID: ${{ secrets.BIGQUERY_SERVICE_CLIENT_ID }}
+  BIGQUERY_SERVICE_AUTH_URI: ${{ secrets.BIGQUERY_SERVICE_AUTH_URI }}
+  BIGQUERY_SERVICE_TOKEN_URI: ${{ secrets.BIGQUERY_SERVICE_TOKEN_URI }}
+  BIGQUERY_SERVICE_AUTH_PROVIDER_X509_CERT_URL: ${{ secrets.BIGQUERY_SERVICE_AUTH_PROVIDER_X509_CERT_URL }}
+  BIGQUERY_SERVICE_CLIENT_X509_CERT_URL: ${{ secrets.BIGQUERY_SERVICE_CLIENT_X509_CERT_URL }}
 
 jobs:
   integration-tests:
@@ -23,7 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         dbt_version: ["1.*"]
-        warehouse: ["snowflake"] # TODO: Add RS self-hosted runner
+        warehouse: ["snowflake", "bigquery"]
 
     steps:
       - name: Checkout repository
@@ -53,9 +67,9 @@ jobs:
           echo "DEFAULT_TARGET=${{matrix.warehouse}}" >> $GITHUB_ENV
         env:
           DBT_VERSION: ${{ matrix.dbt_version }}
-
+        
       - name: Generate test dbt project
-        run: python integration_tests/replicate_files.py test/auto_gen/__snapshots__/test_snapshots.ambr integration_tests
+        run: python integration_tests/replicate_files.py test/auto_gen/__snapshots__/test_snapshots_${{ matrix.warehouse }}.ambr integration_tests
 
       - name: Move integration_test in ecommerce_transaction_interactions_features_1
         run: mv integration_test ecommerce_transaction_interactions_features_1/integration_test
