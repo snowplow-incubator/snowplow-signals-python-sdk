@@ -2363,8 +2363,8 @@
     'ecommerce_transaction_interactions_features_1/packages.yml': '''
       
       packages:
-        - git: "https://github.com/snowplow/dbt-snowplow-utils.git"
-          revision: "feature/aisp-489-bigquery-support"
+        - package: snowplow/snowplow_utils
+          version: [">=0.17.4", "<0.18.0"]
   
     ''',
   })
