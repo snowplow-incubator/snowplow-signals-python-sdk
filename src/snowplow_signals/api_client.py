@@ -1,11 +1,14 @@
 import json
 import os
+from importlib.metadata import version
 from typing import Literal, Optional
 
 import httpx
 import jwt
 
 HTTP_METHODS = Literal["GET", "POST", "PUT", "DELETE"]
+
+X_SIGNALS_SDK_NAME = f"signals-py {version('snowplow-signals')}"
 
 
 class ApiClient:
@@ -19,7 +22,7 @@ class ApiClient:
     def _get_headers(self, token: str):
         return {
             "Content-Type": "application/json; charset=utf-8",
-            "X-Signals-Sdk-Name": "signals-py",
+            "X-Signals-Sdk-Name": X_SIGNALS_SDK_NAME,
             "Authorization": f"Bearer {token}",
         }
 
@@ -36,7 +39,7 @@ class ApiClient:
                 headers={
                     "X-API-Key-Id": self.api_key_id,
                     "X-API-Key": self.api_key,
-                    "X-Signals-Sdk-Name": "signals-py",
+                    "X-Signals-Sdk-Name": X_SIGNALS_SDK_NAME,
                 },
             )
             .raise_for_status()
