@@ -3,8 +3,8 @@
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
+import httpx
 import typer
 import yaml  # type: ignore
 
@@ -21,6 +21,7 @@ from .cli_params import (
     ORG_ID,
     PROJECT_NAME,
     REPO_PATH,
+    TARGET_TYPE,
     UPDATE,
     VERBOSE,
     VIEW_NAME,
@@ -44,10 +45,12 @@ def _load_env_from_default_snowplow_yml():
         return
     with open(yaml_path, "r") as f:
         config = yaml.safe_load(f)
+
     console = config.get("console")
 
     if not console:
         return
+
     env_map = {
         "SNOWPLOW_CONSOLE_ORG_ID": console.get("org-id"),
         "SNOWPLOW_CONSOLE_API_KEY_ID": console.get("api-key-id"),
@@ -110,6 +113,7 @@ def init(
     api_key_id: API_KEY_ID,
     org_id: ORG_ID,
     repo_path: REPO_PATH,
+    target_type: TARGET_TYPE,
     view_name: VIEW_NAME = None,
     view_version: VIEW_VERSION = None,
     verbose: VERBOSE = False,
@@ -120,7 +124,9 @@ def init(
         validated_path = validate_repo_path(repo_path)
         logger.info(f"Initializing dbt project(s) in {validated_path}")
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = BatchAutogenClient(api_client=api_client)
+        client = BatchAutogenClient(
+            api_client=api_client, target_type=target_type.value
+        )
         success = client.init_project(
             repo_path=str(validated_path),
             view_name=view_name,
@@ -142,6 +148,7 @@ def generate(
     api_key_id: API_KEY_ID,
     org_id: ORG_ID,
     repo_path: REPO_PATH,
+    target_type: TARGET_TYPE,
     project_name: PROJECT_NAME = None,
     update: UPDATE = False,
     verbose: VERBOSE = False,
@@ -152,7 +159,9 @@ def generate(
         validated_path = validate_repo_path(repo_path)
         logger.info(f"🛠️ Generating dbt models in {validated_path}")
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = BatchAutogenClient(api_client=api_client)
+        client = BatchAutogenClient(
+            api_client=api_client, target_type=target_type.value
+        )
         success = client.generate_models(
             repo_path=str(validated_path),
             project_name=project_name,
@@ -176,13 +185,22 @@ def materialize(
     view_name: VIEW_NAME,
     view_version: VIEW_VERSION,
     repo_path: REPO_PATH,
+    target_type: TARGET_TYPE,
     verbose: VERBOSE = False,
 ) -> None:
     """Registers the attribute table as a data source so that the materialization process can start."""
     try:
+        if view_name is None or view_version is None:
+            logger.error(
+                "view_name and view_version must be provided for materialization."
+            )
+            raise typer.Exit(code=1)
+
         api_client = create_api_client(api_url, api_key, api_key_id, org_id)
-        client = BatchAutogenClient(api_client=api_client)
-        project_path = Path(repo_path) / f"{view_name}_{view_version}"
+        client = BatchAutogenClient(
+            api_client=api_client, target_type=target_type.value
+        )
+        project_path = str(Path(repo_path) / f"{view_name}_{view_version}")
         client.materialize_model(
             project_path=project_path,
             view_name=view_name,
@@ -233,8 +251,8 @@ def test_connection(
         # Check API service if requested
         if check_api:
             logger.info("🌐 Testing API service...")
+
             try:
-                import httpx
 
                 response = httpx.get(f"{api_url}/health-all")
                 response.raise_for_status()

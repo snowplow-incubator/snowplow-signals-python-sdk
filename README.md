@@ -36,7 +36,7 @@ page_view_count = Attribute(
 )
 
 # Create and deploy a view
-view = View(
+view = StreamView(
     name="my_view",
     version=1,
     entity=domain_sessionid,
@@ -76,12 +76,14 @@ signals = Signals(api_url="https://your-api-url.com")
 # Initialize a DBT project
 signals.batch_autogen.init_project(
     repo_path="path/to/your/repo",
+    target_type="snowflake" # or bigquery
     project_name="your_project_name"  # Optional
 )
 
 # Generate DBT models
 signals.batch_autogen.generate_models(
     repo_path="path/to/your/repo",
+    target_type="snowflake" # or bigquery
     project_name="your_project_name",  # Optional
     update=True  # Whether to update existing files
 )
@@ -89,13 +91,21 @@ signals.batch_autogen.generate_models(
 
 #### Using the Command Line
 
-The SDK also includes a command-line interface for DBT project generation:
+The SDK also includes a command-line interface for DBT project generation. To make your workflow smoother, you can set up your API credentials as environment variables. This way, you won't need to type them in every command:
+
+```bash
+export SNOWPLOW_API_URL="YOUR_API_URL"
+export SNOWPLOW_API_KEY="YOUR_API_KEY"
+export SNOWPLOW_API_KEY_ID="YOUR_API_KEY_ID"
+export SNOWPLOW_ORG_ID="YOUR_ORG_ID"
+export SNOWPLOW_REPO_PATH="./my_snowplow_repo"
+```
 
 ```bash
 # Initialize a DBT project
-snowplow-dbt init --repo-path=path/to/your/repo [--project-name=your_project_name] [--api-url=https://your-api-url.com]
+snowplow-batch-autogen init --repo-path=path/to/your/repo --target-type=snowflake [--project-name=your_project_name]
 
 # Generate DBT models
-snowplow-dbt generate --repo-path=path/to/your/repo [--project-name=your_project_name] [--update]
+snowplow-batch-autogen generate --repo-path=path/to/your/repo --target-type=bigquery [--project-name=your_project_name] [--update]
 ```
 

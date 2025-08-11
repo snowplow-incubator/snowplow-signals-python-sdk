@@ -8,6 +8,7 @@ from .attributes_client import AttributesClient
 from .feature_store_client import FeatureStoreClient
 from .interventions_client import InterventionsClient
 from .models import (
+    Entity,
     RuleIntervention,
     Service,
     TestViewRequest,
@@ -34,8 +35,8 @@ class Signals:
         self.testing = TestingClient(api_client=self.api_client)
 
     def apply(
-        self, objects: list[View | Service | RuleIntervention]
-    ) -> list[View | Service | RuleIntervention]:
+        self, objects: list[View | Service | Entity | RuleIntervention]
+    ) -> list[View | Service | Entity | RuleIntervention]:
         """
         Registers the provided objects to the Signals registry.
 
@@ -44,9 +45,9 @@ class Signals:
         Returns:
             The list of updated objects
         """
-        updated_objets = self.registry.apply(objects=objects)
+        updated_objects = self.registry.apply(objects=objects)
         self.feature_store.apply()
-        return updated_objets
+        return updated_objects
 
     def get_view(self, name: str, version: int | None = None) -> ViewResponse:
         """

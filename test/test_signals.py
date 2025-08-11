@@ -1,11 +1,14 @@
 import httpx
+from respx import MockRouter
 
-from snowplow_signals import Entity, LinkEntity, Service, View, domain_userid
+from snowplow_signals import Entity, LinkEntity, Service, Signals, View, domain_userid
 from snowplow_signals.models import ViewResponse
 
 
 class TestSignalsApply:
-    def test_apply_view_and_service(self, signals_client, respx_mock):
+    def test_apply_view_and_service(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
         view = View(
             name="my_view",
             entity=domain_userid,
@@ -49,7 +52,9 @@ class TestSignalsApply:
         assert applied_objects[0].name == "my_view"
         assert applied_objects[1].name == "my_service"
 
-    def test_apply_entity_view_and_service(self, signals_client, respx_mock):
+    def test_apply_entity_view_and_service(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
         custom_entity = Entity(
             name="custom_entity",
         )
@@ -102,7 +107,9 @@ class TestSignalsApply:
         assert applied_objects[1].name == "my_view"
         assert applied_objects[2].name == "my_service"
 
-    def test_already_existing_view(self, signals_client, respx_mock):
+    def test_already_existing_view(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
         view = View(
             name="my_view",
             entity=domain_userid,
@@ -139,7 +146,9 @@ class TestSignalsApply:
 
 
 class TestSignalsGetAttributes:
-    def test_get_service_attributes(self, respx_mock, signals_client):
+    def test_get_service_attributes(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
         api_response = {
             "domain_userid": ["user-123"],
             "page_views_count": [10],
@@ -157,7 +166,7 @@ class TestSignalsGetAttributes:
         assert response["domain_userid"] == "user-123"
         assert response["page_views_count"] == 10
 
-    def test_get_view_attributes(self, respx_mock, signals_client):
+    def test_get_view_attributes(self, respx_mock: MockRouter, signals_client: Signals):
         api_response = {
             "domain_userid": ["user-123"],
             "page_views_count": [10],

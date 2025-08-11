@@ -1,10 +1,12 @@
 from snowplow_signals.models import (
     Attribute,
     BatchSource,
+    BatchView,
     Criteria,
     Criterion,
     Entity,
     Event,
+    ExternalBatchView,
     Field,
     InterventionClearAttributeContext,
 )
@@ -23,6 +25,7 @@ from snowplow_signals.models import (
     LinkEntity,
     RuleIntervention,
     Service,
+    StreamView,
     View,
 )
 from snowplow_signals.signals import Signals
@@ -38,6 +41,9 @@ from .definitions import (
 
 Signals
 View
+ExternalBatchView
+StreamView
+BatchView
 Service
 Attribute
 Criteria

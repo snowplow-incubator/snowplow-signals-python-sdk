@@ -1,20 +1,21 @@
 import re
-from collections import OrderedDict
 from typing import Dict, FrozenSet, Literal, Set
 
 from pydantic import BaseModel
+from sqlglot.dialects.bigquery import BigQuery
+from sqlglot.dialects.snowflake import Snowflake
 
 from snowplow_signals.batch_autogen.models.modeling_step import (
     FilterCondition,
     ModelingCriteria,
     ModelingStep,
 )
+from snowplow_signals.batch_autogen.utils.utils import (
+    WarehouseType,
+)
 
 from ...models import AttributeOutput, Criterion, Event, ViewResponse
 from ..utils.utils import timedelta_isoformat
-
-from sqlglot.dialects.snowflake import Snowflake
-
 
 # FIXME can we extract from auto generated model attributes ?
 AggregationLiteral = Literal[
@@ -23,8 +24,6 @@ AggregationLiteral = Literal[
 SQLAggregationLiteral = Literal[
     "count", "sum", "min", "max", "avg", "first", "last", "unique_list"
 ]
-reserwed_words_dict = Snowflake.Tokenizer.KEYWORDS
-SQL_RESERVED_WORDS = sorted(reserwed_words_dict.keys())
 
 
 class DbtBaseConfig(BaseModel):
@@ -40,15 +39,23 @@ class BaseConfigGenerator:
     properties: list[dict[str, str]]
     periods: Set[str]
     data: ViewResponse
+    target_type: WarehouseType
 
     def __init__(
         self,
         data: ViewResponse,
+        target_type: WarehouseType,
     ):
         self.data = data
+        self.target_type = target_type
         self.events = []
         self.properties = []
         self.periods = set()
+
+    @property
+    def sorted_periods(self) -> list:
+        """Returns a sorted list of non-empty period strings."""
+        return sorted(p for p in self.periods if p not in {None, ""})
 
     def get_agg_short_name(
         self, aggregation: AggregationLiteral
@@ -77,30 +84,25 @@ class BaseConfigGenerator:
         Output: "device_class"
         """
 
-        if not isinstance(property, str):
-            return None
-
+        reserved_words_dict = (
+            Snowflake.Tokenizer.KEYWORDS
+            if self.target_type == "snowflake"
+            else BigQuery.Tokenizer.KEYWORDS
+        )
+        sql_reserved_words = reserved_words_dict.keys()
         if ":" in property:
             suffix = property.split(":")[1]
-            # Convert to snake_case
-            cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
-            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
-                cleaned += "_col"
-            return cleaned
         elif "." in property:
             suffix = property.split(".")[-1]
-            # Convert to snake_case
-            cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
-            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
-                cleaned += "_col"
-            return cleaned
         else:
-            cleaned = property.lower()
-            if cleaned in (kw.lower() for kw in SQL_RESERVED_WORDS):
-                cleaned += "_col"
-                return cleaned
-            else:
-                return property
+            suffix = property
+
+        cleaned = re.sub(r"([a-z])([A-Z])", r"\1_\2", suffix).lower()
+
+        if cleaned in (kw.lower() for kw in sql_reserved_words):
+            cleaned += "_col"
+
+        return cleaned
 
     def add_to_properties(self, new_entry: Dict[str, str]):
         """Dynamically add a new property while ensuring deduplication to create a unique list of cleaned properties."""
@@ -397,7 +399,7 @@ class BaseConfigGenerator:
         return DbtBaseConfig(
             events=[item for item in self.events if item not in {None, ""}],
             properties=self.properties,
-            periods=[item for item in self.periods if item not in {None, ""}],
+            periods=self.sorted_periods,
             transformed_attributes=transformed_attributes,
             entity_key=self.data.entity_key,
         )

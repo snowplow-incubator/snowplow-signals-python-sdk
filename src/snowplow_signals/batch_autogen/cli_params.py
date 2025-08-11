@@ -1,6 +1,8 @@
-from typing_extensions import Annotated
-import typer
+from enum import Enum
 from typing import Optional
+
+import typer
+from typing_extensions import Annotated
 
 API_KEY = Annotated[
     str,
@@ -102,5 +104,19 @@ VIEW_VERSION = Annotated[
     typer.Option(
         help="Version of the attribute view",
         envvar="SNOWPLOW_VIEW_VERSION",
+    ),
+]
+
+
+class TargetType(str, Enum):
+    snowflake = "snowflake"
+    bigquery = "bigquery"
+
+
+TARGET_TYPE = Annotated[
+    TargetType,
+    typer.Option(
+        help="Target database type. One of: `snowflake` or `bigquery`. Default: snowflake",
+        envvar="SNOWPLOW_TARGET_TYPE",
     ),
 ]

@@ -12,13 +12,18 @@ from test.utils import (
     MOCK_VIEW_NAME,
     MOCK_VIEW_VERSION,
 )
-from typing import Generator, List
-from unittest.mock import MagicMock, patch
+from typing import Generator, List, cast
+from unittest.mock import MagicMock, create_autospec, patch
 
 import pytest
 import typer
 
-from snowplow_signals.batch_autogen.cli import app, validate_repo_path
+from snowplow_signals.batch_autogen.cli import (
+    BatchAutogenClient,
+    app,
+    validate_repo_path,
+)
+from snowplow_signals.batch_autogen.cli_params import TargetType
 
 
 @pytest.fixture(scope="session")
@@ -46,17 +51,17 @@ def test_repo_dir() -> Generator[Path, None, None]:
 
 
 @pytest.fixture
-def mock_dbt_client() -> Generator[MagicMock, None, None]:
+def mock_dbt_client() -> Generator[BatchAutogenClient, None, None]:
     """
     Mock the BatchAutogenClient for testing.
 
     Returns:
-        Generator[MagicMock, None, None]: Mocked BatchAutogenClient instance
+        Generator[BatchAutogenClient, None, None]: Mocked BatchAutogenClient instance
     """
     with patch("snowplow_signals.batch_autogen.cli.BatchAutogenClient") as mock:
-        client = MagicMock()
+        client = create_autospec(BatchAutogenClient)
         mock.return_value = client
-        yield client
+        yield cast(BatchAutogenClient, client)
 
 
 @pytest.fixture
@@ -78,8 +83,16 @@ def api_params() -> List[str]:
     ]
 
 
+@pytest.fixture
+def target_type() -> str:
+    return "snowflake"
+
+
 def test_cli_init_project_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: BatchAutogenClient,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test successful initialization of dbt project.
@@ -89,19 +102,25 @@ def test_cli_init_project_succeeds(
         mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
-    mock_dbt_client.init_project.return_value = True
+    cast(MagicMock, mock_dbt_client.init_project).return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", str(test_repo_dir)] + api_params)
-
+        app(
+            ["init", "--repo-path", str(test_repo_dir)]
+            + api_params
+            + ["--target-type", target_type]
+        )
     assert exc_info.value.code == 0
-    mock_dbt_client.init_project.assert_called_once_with(
+    cast(MagicMock, mock_dbt_client.init_project).assert_called_once_with(
         repo_path=str(test_repo_dir), view_name=None, view_version=None
     )
 
 
 def test_cli_init_project_with_view_name_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: BatchAutogenClient,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test initialization with specific view name.
@@ -111,22 +130,26 @@ def test_cli_init_project_with_view_name_succeeds(
         mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
-    mock_dbt_client.init_project.return_value = True
+    cast(MagicMock, mock_dbt_client.init_project).return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
         app(
             ["init", "--repo-path", str(test_repo_dir), "--view-name", MOCK_VIEW_NAME]
             + api_params
+            + ["--target-type", target_type]
         )
 
     assert exc_info.value.code == 0
-    mock_dbt_client.init_project.assert_called_once_with(
+    cast(MagicMock, mock_dbt_client.init_project).assert_called_once_with(
         repo_path=str(test_repo_dir), view_name=MOCK_VIEW_NAME, view_version=None
     )
 
 
 def test_cli_init_project_with_view_name_and_version_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: BatchAutogenClient,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test initialization with specific view name and version.
@@ -136,7 +159,7 @@ def test_cli_init_project_with_view_name_and_version_succeeds(
         mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
-    mock_dbt_client.init_project.return_value = True
+    cast(MagicMock, mock_dbt_client.init_project).return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
         app(
@@ -150,10 +173,11 @@ def test_cli_init_project_with_view_name_and_version_succeeds(
                 str(MOCK_VIEW_VERSION),
             ]
             + api_params
+            + ["--target-type", target_type]
         )
 
     assert exc_info.value.code == 0
-    mock_dbt_client.init_project.assert_called_once_with(
+    cast(MagicMock, mock_dbt_client.init_project).assert_called_once_with(
         repo_path=str(test_repo_dir),
         view_name=MOCK_VIEW_NAME,
         view_version=MOCK_VIEW_VERSION,
@@ -161,7 +185,10 @@ def test_cli_init_project_with_view_name_and_version_succeeds(
 
 
 def test_cli_init_project_fails(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: BatchAutogenClient,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test initialization failure.
@@ -171,16 +198,23 @@ def test_cli_init_project_fails(
         mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
-    mock_dbt_client.init_project.return_value = False
+    cast(MagicMock, mock_dbt_client.init_project).return_value = False
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", str(test_repo_dir)] + api_params)
+        app(
+            ["init", "--repo-path", str(test_repo_dir)]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 1
 
 
 def test_cli_generate_models_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: BatchAutogenClient,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test successful generation of dbt models.
@@ -190,19 +224,26 @@ def test_cli_generate_models_succeeds(
         mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
-    mock_dbt_client.generate_models.return_value = True
+    cast(MagicMock, mock_dbt_client.generate_models).return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["generate", "--repo-path", str(test_repo_dir)] + api_params)
+        app(
+            ["generate", "--repo-path", str(test_repo_dir)]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 0
-    mock_dbt_client.generate_models.assert_called_once_with(
+    cast(MagicMock, mock_dbt_client.generate_models).assert_called_once_with(
         repo_path=str(test_repo_dir), project_name=None, update=False
     )
 
 
 def test_cli_generate_models_with_update_succeeds(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: BatchAutogenClient,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test generation with update flag.
@@ -212,19 +253,26 @@ def test_cli_generate_models_with_update_succeeds(
         mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
-    mock_dbt_client.generate_models.return_value = True
+    cast(MagicMock, mock_dbt_client.generate_models).return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["generate", "--repo-path", str(test_repo_dir), "--update"] + api_params)
+        app(
+            ["generate", "--repo-path", str(test_repo_dir), "--update"]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 0
-    mock_dbt_client.generate_models.assert_called_once_with(
+    cast(MagicMock, mock_dbt_client.generate_models).assert_called_once_with(
         repo_path=str(test_repo_dir), project_name=None, update=True
     )
 
 
 def test_cli_generate_models_fails(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: BatchAutogenClient,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test generation failure.
@@ -234,15 +282,21 @@ def test_cli_generate_models_fails(
         mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
-    mock_dbt_client.generate_models.return_value = False
+    cast(MagicMock, mock_dbt_client.generate_models).return_value = False
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["generate", "--repo-path", str(test_repo_dir)] + api_params)
+        app(
+            ["generate", "--repo-path", str(test_repo_dir)]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 1
 
 
-def test_cli_commands_with_invalid_repo_path_fail(api_params: List[str]) -> None:
+def test_cli_commands_with_invalid_repo_path_fail(
+    api_params: List[str], target_type: str
+) -> None:
     """
     Test commands with invalid repository path.
 
@@ -251,17 +305,28 @@ def test_cli_commands_with_invalid_repo_path_fail(api_params: List[str]) -> None
     """
     # Test init command with invalid path
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", "/nonexistent/path"] + api_params)
+        app(
+            ["init", "--repo-path", "/nonexistent/path"]
+            + api_params
+            + ["--target-type", target_type]
+        )
     assert exc_info.value.code == 1
 
     # Test generate command with invalid path
     with pytest.raises(SystemExit) as exc_info:
-        app(["generate", "--repo-path", "/nonexistent/path"] + api_params)
+        app(
+            ["generate", "--repo-path", "/nonexistent/path"]
+            + api_params
+            + ["--target-type", target_type]
+        )
     assert exc_info.value.code == 1
 
 
 def test_cli_commands_with_debug_logging_succeed(
-    test_repo_dir: Path, mock_dbt_client: MagicMock, api_params: List[str]
+    test_repo_dir: Path,
+    mock_dbt_client: BatchAutogenClient,
+    api_params: List[str],
+    target_type: str,
 ) -> None:
     """
     Test commands with verbose logging enabled.
@@ -271,17 +336,21 @@ def test_cli_commands_with_debug_logging_succeed(
         mock_dbt_client: Mocked BatchAutogenClient
         api_params: API-related command line arguments
     """
-    mock_dbt_client.init_project.return_value = True
+    cast(MagicMock, mock_dbt_client.init_project).return_value = True
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", str(test_repo_dir), "--verbose"] + api_params)
+        app(
+            ["init", "--repo-path", str(test_repo_dir), "--verbose"]
+            + api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 0
-    mock_dbt_client.init_project.assert_called_once()
+    cast(MagicMock, mock_dbt_client.init_project).assert_called_once()
 
 
 def test_cli_commands_with_custom_api_url_succeed(
-    test_repo_dir: Path, mock_dbt_client: MagicMock
+    test_repo_dir: Path, mock_dbt_client: BatchAutogenClient, target_type: str
 ) -> None:
     """
     Test commands with custom API URL.
@@ -290,7 +359,7 @@ def test_cli_commands_with_custom_api_url_succeed(
         test_repo_dir: Path to test repository directory
         mock_dbt_client: Mocked BatchAutogenClient
     """
-    mock_dbt_client.init_project.return_value = True
+    cast(MagicMock, mock_dbt_client.init_project).return_value = True
     custom_api_params = [
         "--api-url",
         "http://custom-api:8000",
@@ -303,10 +372,14 @@ def test_cli_commands_with_custom_api_url_succeed(
     ]
 
     with pytest.raises(SystemExit) as exc_info:
-        app(["init", "--repo-path", str(test_repo_dir)] + custom_api_params)
+        app(
+            ["init", "--repo-path", str(test_repo_dir)]
+            + custom_api_params
+            + ["--target-type", target_type]
+        )
 
     assert exc_info.value.code == 0
-    mock_dbt_client.init_project.assert_called_once()
+    cast(MagicMock, mock_dbt_client.init_project).assert_called_once()
 
 
 def test_validate_repo_path_creates_directory(test_repo_dir: Path) -> None:

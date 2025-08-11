@@ -55,7 +55,7 @@ def get_interventions_response() -> list[dict]:
     return [example_intervention, another_intervention]
 
 
-def get_example_intervention():
+def get_example_intervention() -> RuleIntervention:
     return RuleIntervention(
         name=example_intervention["name"],
         version=example_intervention["version"],

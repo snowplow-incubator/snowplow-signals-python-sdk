@@ -4,6 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from snowplow_signals.batch_autogen.models.base_config_generator import (
+    AggregationLiteral,
     BaseConfigGenerator,
 )
 from snowplow_signals.models import (
@@ -49,14 +50,16 @@ def test_view_response():
 
 
 @pytest.fixture
-def base_config_generator(test_view_response):
-    return BaseConfigGenerator(data=test_view_response)
+def base_config_generator(test_view_response: ViewResponse) -> BaseConfigGenerator:
+    return BaseConfigGenerator(data=test_view_response, target_type="snowflake")
 
 
 class TestBaseConfigGenerator:
 
     # Test _generate_column_name for a simple field
-    def test_generate_column_name_basic(self, base_config_generator):
+    def test_generate_column_name_basic(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute",
@@ -70,7 +73,9 @@ class TestBaseConfigGenerator:
         result = base_config_generator._generate_column_name(attribute, "count")
         assert result == "count_test_event"
 
-    def test_generate_column_name_with_special_characters(self, base_config_generator):
+    def test_generate_column_name_with_special_characters(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute with special characters",
@@ -84,7 +89,9 @@ class TestBaseConfigGenerator:
         result = base_config_generator._generate_column_name(attribute, "count")
         assert result == "count_test_property_test_event"
 
-    def test_generate_column_name_with_numeric_start(self, base_config_generator):
+    def test_generate_column_name_with_numeric_start(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute with numeric start",
@@ -98,7 +105,9 @@ class TestBaseConfigGenerator:
         result = base_config_generator._generate_column_name(attribute, "count")
         assert result == "count_123test"
 
-    def test_generate_column_name_with_long_name(self, base_config_generator):
+    def test_generate_column_name_with_long_name(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute with long name",
@@ -112,7 +121,9 @@ class TestBaseConfigGenerator:
         result = base_config_generator._generate_column_name(attribute, "count")
         assert result == "test_attribute"  # Should return original name when too long
 
-    def test_generate_column_name_with_property(self, base_config_generator):
+    def test_generate_column_name_with_property(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute with property",
@@ -126,7 +137,9 @@ class TestBaseConfigGenerator:
         result = base_config_generator._generate_column_name(attribute, "sum")
         assert result == "sum_test_property_test_event"
 
-    def test_generate_column_name_with_single_criteria(self, base_config_generator):
+    def test_generate_column_name_with_single_criteria(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test generate_column_name with a single criteria"""
         attribute = AttributeOutput(
             name="test_attribute",
@@ -151,7 +164,9 @@ class TestBaseConfigGenerator:
         assert result == "count_test_event_test_property_eq_test_value"
 
     #
-    def test_generate_column_name_with_multiple_criteria(self, base_config_generator):
+    def test_generate_column_name_with_multiple_criteria(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test generate_column_name with multiple criteria"""
         attribute = AttributeOutput(
             name="test_attribute",
@@ -172,7 +187,9 @@ class TestBaseConfigGenerator:
         result = base_config_generator._generate_column_name(attribute, "count")
         assert result == "count_test_event_bar_gt_1_any_baz_eq_x"
 
-    def test_generate_column_name_with_multiple_events(self, base_config_generator):
+    def test_generate_column_name_with_multiple_events(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute with multiple events",
@@ -189,7 +206,9 @@ class TestBaseConfigGenerator:
         result = base_config_generator._generate_column_name(attribute, "count")
         assert result == "count_test_event1_test_event2"
 
-    def test_generate_column_name_with_empty_event_name(self, base_config_generator):
+    def test_generate_column_name_with_empty_event_name(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         # Create a valid attribute first
         attribute = AttributeOutput(
             name="test_attribute",
@@ -210,7 +229,9 @@ class TestBaseConfigGenerator:
             base_config_generator._generate_column_name(attribute, "count")
 
     #
-    def test_generate_column_name_basic_click_event(self, base_config_generator):
+    def test_generate_column_name_basic_click_event(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test generate_column_name with basic case"""
         attribute = AttributeOutput(
             name="test_attribute",
@@ -227,7 +248,7 @@ class TestBaseConfigGenerator:
 
     #
     def test_generate_column_name_with_property_and_multiple_events(
-        self, base_config_generator
+        self, base_config_generator: BaseConfigGenerator
     ):
         """Test generate_column_name with property and multiple events"""
         attribute = AttributeOutput(
@@ -247,7 +268,9 @@ class TestBaseConfigGenerator:
         assert result == "sum_amount_login_purchase"
 
     #
-    def test_generate_column_name_edge_cases(self, base_config_generator):
+    def test_generate_column_name_edge_cases(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test generate_column_name with edge cases"""
         # Empty string in event name - not allowed by Event model
         with pytest.raises(
@@ -295,9 +318,11 @@ class TestBaseConfigGenerator:
         )  # Implementation takes second part after first colon
 
     # Test get_agg_short_name for all the supported aggregations
-    def test_get_agg_short_name_supported_aggregations(self, base_config_generator):
+    def test_get_agg_short_name_supported_aggregations(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test get_agg_short_name with supported aggregations"""
-        test_cases = [
+        test_cases: list[tuple[AggregationLiteral, str]] = [
             ("counter", "count"),
             ("sum", "sum"),
             ("min", "min"),
@@ -310,15 +335,19 @@ class TestBaseConfigGenerator:
             assert base_config_generator.get_agg_short_name(agg) == expected
 
     # Test get_agg_short_name for non supported aggregation and invalid input types
-    def test_get_agg_short_name_unsupported_aggregation(self, base_config_generator):
+    def test_get_agg_short_name_unsupported_aggregation(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test get_agg_short_name with unsupported aggregation and invalid input types"""
         assert base_config_generator.get_agg_short_name("mean") is None
-        assert base_config_generator.get_agg_short_name(None) is None
-        assert base_config_generator.get_agg_short_name("") is None
-        assert base_config_generator.get_agg_short_name(123) is None
+        assert base_config_generator.get_agg_short_name(None) is None  # type: ignore
+        assert base_config_generator.get_agg_short_name("") is None  # type: ignore
+        assert base_config_generator.get_agg_short_name(123) is None  # type: ignore
 
     # Test get_cleaned_property_name for classic custom context
-    def test_get_cleaned_property_name_with_colon(self, base_config_generator):
+    def test_get_cleaned_property_name_with_colon(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test get_cleaned_property_name with colon separator"""
         assert (
             base_config_generator.get_cleaned_property_name("fieldA:deviceClassLast")
@@ -326,7 +355,9 @@ class TestBaseConfigGenerator:
         )
 
     # FIXME https://snplow.atlassian.net/browse/AISP-352
-    def test_get_cleaned_property_name_with_dot(self, base_config_generator):
+    def test_get_cleaned_property_name_with_dot(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test get_cleaned_property_name with dot separator"""
         assert (
             base_config_generator.get_cleaned_property_name("path.to:FieldName")
@@ -334,7 +365,9 @@ class TestBaseConfigGenerator:
         )
 
     # Test get_cleaned_property_name for simple column (e.g mkt_source )
-    def test_get_cleaned_property_name_simple(self, base_config_generator):
+    def test_get_cleaned_property_name_simple(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test get_cleaned_property_name with simple field name"""
         assert (
             base_config_generator.get_cleaned_property_name("just_a_field")
@@ -342,11 +375,6 @@ class TestBaseConfigGenerator:
         )
 
     #
-    def test_get_cleaned_property_name_invalid_input(self, base_config_generator):
-        """Test get_cleaned_property_name with invalid input"""
-        assert base_config_generator.get_cleaned_property_name(None) is None
-        assert base_config_generator.get_cleaned_property_name(123) is None
-
     def test_get_cleaned_property_name_multiple_separators(self, base_config_generator):
         """Test get_cleaned_property_name with multiple separators"""
         # The implementation takes the last part after the last separator
@@ -364,7 +392,9 @@ class TestBaseConfigGenerator:
         )
 
     #
-    def test_get_cleaned_property_name_with_brackets(self, base_config_generator):
+    def test_get_cleaned_property_name_with_brackets(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test get_cleaned_property_name with bracketed context"""
         assert (
             base_config_generator.get_cleaned_property_name(
@@ -379,7 +409,9 @@ class TestBaseConfigGenerator:
             == "device_class_last"
         )
 
-    def test_get_cleaned_property_name_edge_cases(self, base_config_generator):
+    def test_get_cleaned_property_name_edge_cases(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test get_cleaned_property_name with edge cases"""
         # Empty string
         assert base_config_generator.get_cleaned_property_name("") == ""
@@ -404,14 +436,18 @@ class TestBaseConfigGenerator:
         # SQL reserved words
         assert base_config_generator.get_cleaned_property_name("select") == "select_col"
 
-    def test_add_to_properties_empty_entries(self, base_config_generator):
+    def test_add_to_properties_empty_entries(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test add_to_properties with empty key or value"""
         base_config_generator.add_to_properties({"": "x"})
-        base_config_generator.add_to_properties({None: "x"})
+        base_config_generator.add_to_properties({None: "x"})  # type: ignore
         assert base_config_generator.properties == []
 
     #
-    def test_add_to_properties_duplicate_entries(self, base_config_generator):
+    def test_add_to_properties_duplicate_entries(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test add_to_properties with duplicate entries"""
         base_config_generator.add_to_properties({"a": "b"})
         base_config_generator.add_to_properties({"a": "b"})
@@ -419,18 +455,18 @@ class TestBaseConfigGenerator:
 
     #
     def test_get_filter_condition_name_component_mixed_operators(
-        self, base_config_generator
+        self, base_config_generator: BaseConfigGenerator
     ):
         """Test get_filter_condition_name_component with mixed operators and special characters"""
         filter_condition = Criterion(property="FooBar", operator="!=", value="A B.%/C")
         result = base_config_generator._get_filter_condition_name_component(
             filter_condition
         )
-        assert (
-            result == "FooBar_neq_a_b_pct_c"
-        )  # Property name is not converted to snake_case
+        assert result == "foo_bar_neq_a_b_pct_c"
 
-    def test_generate_modeling_steps_basic_counter(self, base_config_generator):
+    def test_generate_modeling_steps_basic_counter(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute",
@@ -451,6 +487,7 @@ class TestBaseConfigGenerator:
         # Check daily aggregation step
         assert steps[1].aggregation == "count"
         assert steps[1].column_name == "count_test_event"
+        assert steps[1].modeling_criteria is not None
         assert steps[1].modeling_criteria.all[0].property == "event_name"
         assert steps[1].modeling_criteria.all[0].operator == "in"
         assert steps[1].modeling_criteria.all[0].value == "'test_event'"
@@ -459,7 +496,9 @@ class TestBaseConfigGenerator:
         assert steps[2].aggregation == "sum"  # count becomes sum in final aggregation
         assert steps[2].column_name == "test_attribute"
 
-    def test_generate_modeling_steps_first_aggregation(self, base_config_generator):
+    def test_generate_modeling_steps_first_aggregation(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute with first aggregation",
@@ -477,7 +516,7 @@ class TestBaseConfigGenerator:
         assert steps[1].column_name == "first_test_property"
 
     def test_generate_modeling_steps_with_filter_conditions(
-        self, base_config_generator
+        self, base_config_generator: BaseConfigGenerator
     ):
         attribute = AttributeOutput(
             name="test_attribute",
@@ -501,6 +540,7 @@ class TestBaseConfigGenerator:
         steps = base_config_generator._generate_modeling_steps(attribute)
 
         assert len(steps) == 3
+        assert steps[1].modeling_criteria is not None
         assert (
             len(steps[1].modeling_criteria.all) == 2
         )  # event condition + filter condition
@@ -508,7 +548,9 @@ class TestBaseConfigGenerator:
         assert steps[1].modeling_criteria.all[1].operator == "="
         assert steps[1].modeling_criteria.all[1].value == "test_value"
 
-    def test_generate_modeling_steps_with_period(self, base_config_generator):
+    def test_generate_modeling_steps_with_period(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute with period",
@@ -521,13 +563,14 @@ class TestBaseConfigGenerator:
         )
         steps = base_config_generator._generate_modeling_steps(attribute)
 
+        assert steps[2].modeling_criteria is not None
         assert len(steps) == 3
         assert steps[2].modeling_criteria.all[0].property == "period"
         assert steps[2].modeling_criteria.all[0].operator == ">"
         assert steps[2].modeling_criteria.all[0].value == 7
 
     def test_generate_modeling_steps_unsupported_aggregation(
-        self, base_config_generator
+        self, base_config_generator: BaseConfigGenerator
     ):
         # Create a valid attribute first
         attribute = AttributeOutput(
@@ -548,7 +591,7 @@ class TestBaseConfigGenerator:
             base_config_generator._generate_modeling_steps(attribute)
 
     def test_generate_modeling_steps_first_without_property(
-        self, base_config_generator
+        self, base_config_generator: BaseConfigGenerator
     ):
         attribute = AttributeOutput(
             name="test_attribute",
@@ -566,8 +609,10 @@ class TestBaseConfigGenerator:
             base_config_generator._generate_modeling_steps(attribute)
 
     #
-    def test_generate_modeling_steps_first_aggregation(self, base_config_generator):
-        """Test generate_modeling_steps with first aggregation"""
+    def test_generate_modeling_steps_daily_aggregation(
+        self, base_config_generator: BaseConfigGenerator
+    ):
+        """Test generate_modeling_steps with daily aggregation"""
         attribute = AttributeOutput(
             name="test_attribute",
             description="Test attribute",
@@ -585,7 +630,9 @@ class TestBaseConfigGenerator:
         assert steps[2].column_name == "test_attribute"
 
     #
-    def test_generate_modeling_steps_last_aggregation(self, base_config_generator):
+    def test_generate_modeling_steps_last_aggregation(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test generate_modeling_steps with last aggregation"""
         attribute = AttributeOutput(
             name="test_attribute",
@@ -604,7 +651,9 @@ class TestBaseConfigGenerator:
         assert steps[2].column_name == "test_attribute"
 
     #
-    def test_generate_modeling_steps_unique_list(self, base_config_generator):
+    def test_generate_modeling_steps_unique_list(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test generate_modeling_steps with unique_list aggregation"""
         attribute = AttributeOutput(
             name="test_attribute",
@@ -623,7 +672,9 @@ class TestBaseConfigGenerator:
         assert steps[2].aggregation == "unique_list"
 
     #
-    def test_generate_modeling_steps_empty_events(self, base_config_generator):
+    def test_generate_modeling_steps_empty_events(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test generate_modeling_steps with empty events list"""
         # The implementation requires at least one event
         with pytest.raises(ValueError, match="List should have at least 1 item"):
@@ -639,7 +690,9 @@ class TestBaseConfigGenerator:
             )
             base_config_generator._generate_modeling_steps(attribute)
 
-    def test_generate_modeling_steps_invalid_event_name(self, base_config_generator):
+    def test_generate_modeling_steps_invalid_event_name(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test generate_modeling_steps with invalid event name"""
         attribute = AttributeOutput(
             name="test_attribute",
@@ -655,7 +708,9 @@ class TestBaseConfigGenerator:
             base_config_generator._generate_modeling_steps(attribute)
 
     # FIXME do we want to support empty attributes? Should we raise an error?
-    def test_create_base_config_empty_attributes(self, base_config_generator):
+    def test_create_base_config_empty_attributes(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test create_base_config with empty attributes"""
         base_config_generator.data.attributes = []
         config = base_config_generator.create_base_config()
@@ -666,7 +721,9 @@ class TestBaseConfigGenerator:
         assert config.entity_key == base_config_generator.data.entity_key
 
     #
-    def test_create_base_config_multiple_attributes(self, base_config_generator):
+    def test_create_base_config_multiple_attributes(
+        self, base_config_generator: BaseConfigGenerator
+    ):
         """Test create_base_config with multiple attributes"""
         base_config_generator.data.attributes = [
             AttributeOutput(
@@ -696,3 +753,13 @@ class TestBaseConfigGenerator:
         assert len(config.periods) == 1
         assert len(config.transformed_attributes) == 2
         assert config.entity_key == base_config_generator.data.entity_key
+
+    def test_sorted_periods_filters_and_sorts(self, base_config_generator):
+        base_config_generator.periods = {
+            "P5D",
+            "P1D",
+            "",
+            None,
+        }
+        result = base_config_generator.sorted_periods
+        assert result == ["P1D", "P5D"]

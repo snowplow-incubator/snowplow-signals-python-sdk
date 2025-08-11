@@ -1,4 +1,5 @@
-from pydantic import Field, EmailStr
+from pydantic import EmailStr, Field
+
 from .view import View
 
 

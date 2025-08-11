@@ -1,8 +1,7 @@
 from snowplow_signals.batch_autogen.models.modeling_step import (
-    ModelingStep,
     FilterCondition,
-    ModelingStep,
     ModelingCriteria,
+    ModelingStep,
 )
 
 # Attribute templates for different test cases

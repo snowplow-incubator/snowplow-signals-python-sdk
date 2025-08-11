@@ -1,10 +1,14 @@
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import BeforeValidator, EmailStr
+from pydantic import Field
 from pydantic import Field as PydanticField
 
 from .model import (
+    AttributeInput,
+    BatchSource,
     Entity,
+    FieldModel,
     LinkEntity,
     ViewInput,
 )
@@ -51,3 +55,70 @@ class View(ViewInput):
             identifier=identifier,
             attributes=[attribute.name for attribute in self.attributes],
         )
+
+
+class StreamOrBatchView(View):
+    fields: Literal[None] = Field(
+        default=None,
+        description="Not applicable.",
+    )
+    attributes: list[AttributeInput] = Field(
+        description="The list of attributes that will be calculated from events as part of this view.",
+        title="Attributes",
+        min_length=1,
+    )
+
+
+class StreamView(StreamOrBatchView):
+    """
+    A stream view is a view that is calculated from events in real-time using the Signals streaming engine.
+    """
+
+    offline: Literal[False] = Field(
+        default=False,
+        description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
+        title="Offline",
+    )
+    batch_source: Literal[None] = Field(
+        default=None,
+        description="Not applicable for stream views.",
+        title="Batch Source",
+    )
+
+
+class BatchView(StreamOrBatchView):
+    """
+    A batch view is a view that is calculated from events in batch using the Signals batch engine.
+    """
+
+    offline: Literal[True] = Field(
+        default=True,
+        description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
+        title="Offline",
+    )
+
+
+class ExternalBatchView(View):
+    """
+    An external batch view is a view that is derived from an existing warehouse table.
+    """
+
+    offline: Literal[True] = Field(
+        default=True,
+        description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
+        title="Offline",
+    )
+    fields: list[FieldModel] = Field(
+        description="The list of table columns that are part of this view during materialization.",
+        title="Fields",
+        min_length=1,
+    )
+    attributes: Literal[None] = Field(
+        default=None,
+        description="Not applicable for warehouse table views.",
+        title="Attributes",
+    )
+    batch_source: BatchSource = Field(
+        description="The batch source for materializing this view from the warehouse.",
+        title="Batch Source",
+    )

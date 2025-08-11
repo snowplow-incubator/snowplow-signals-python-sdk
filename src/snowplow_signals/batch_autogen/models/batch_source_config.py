@@ -1,6 +1,7 @@
-from pydantic import BaseModel, model_validator, ValidationError
 import logging
-from typing import Self, Dict, Any
+from typing import Self
+
+from pydantic import BaseModel, model_validator
 
 logger = logging.getLogger(__name__)
 
@@ -17,12 +18,9 @@ class BatchSourceConfig(BaseModel):
     owner: str | None
 
     @model_validator(mode="after")
-    def validate_config(cls, values):
-        ts = values.timestamp_field
-        created_ts = values.created_timestamp_column
-
-        if ts == created_ts:
+    def validate_config(self) -> Self:
+        if self.timestamp_field == self.created_timestamp_column:
             raise ValueError(
                 "timestamp_field and created_timestamp_column should not be the same."
             )
-        return values
+        return self

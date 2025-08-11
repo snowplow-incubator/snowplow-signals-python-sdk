@@ -13,44 +13,63 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     )
 }}
 
-select
-    event_id,
-    {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key,
-    derived_tstamp,
-    date(derived_tstamp) as event_date,
-    load_tstamp,
-    {{ dbt_utils.generate_surrogate_key([var('snowplow__entity_key', 'domain_userid'), 'event_date']) }} AS entity_key_date_id,
-    event_name,
-    {% endraw %}
-    {%- for property in properties %}
-        {%- for key, value in property.items() -%}
-            {{ key }} AS {{ value }}
-        {%- endfor %}
-        {%- if not loop.last %},{% endif %}
+with prep as (
+
+    select
+        event_id,
+        {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key,
+        derived_tstamp,
+        date(derived_tstamp) as event_date,
+        load_tstamp,
+        event_name,
+        {% endraw %}
+        {%- for prop in properties %}
+            {% if prop.column_prefix %}
+                {% set required_field = prop.alias  %}
+                {% raw %}
+                {{ snowplow_utils.combine_column_versions(
+                    relation=ref('snowplow_batch_autogen_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
+                    column_prefix="{% endraw %}{{ prop.column_prefix }}{% raw %}",
+                    required_fields=[("{% endraw %}{{ required_field }}{% raw %}","{% endraw %}{{ prop.alias }}{% raw %}")],
+                    include_field_alias=True
+                ) | join(', ')}}
+                {% endraw %}
+            {% else %}
+                {{ prop.full_path }} AS {{ prop.alias }}
+            {%- endif %}
+            {%- if not loop.last %},{% endif %}
+        {% endfor %}
+
+    from{% raw %}
+        {{ ref('{% endraw %}{{ project_name }}{% raw %}_base_events_this_run') }}
+    where {% endraw %}
+    {%- for event in events %}
+        (event_name = '{{ event["event_name"] }}'
+
+        {%- if event["event_vendor"] and event["event_vendor"] != "" %}
+            and event_vendor = '{{ event["event_vendor"] }}'
+        {%- endif %}
+        
+        {%- if event["event_version"] and event["event_version"] != "" %}
+            and event_version = '{{ event["event_version"] }}'
+        {%- endif %}
+        )
+        {%- if not loop.last %} or {% endif %}
+
     {% endfor %}
+        {% raw %}
+        and {{ snowplow_utils.is_run_with_new_events("{% endraw %}{{ project_name }}{% raw %}"
+            , new_event_limits_table="{% endraw %}{{ project_name }}{% raw %}_base_new_event_limits"
+            , incremental_manifest_table="{% endraw %}{{ project_name }}{% raw %}_incremental_manifest"
+            , base_sessions_lifecycle_table="{% endraw %}{{ project_name }}{% raw %}_base_sessions_lifecycle"
+            ) }}
 
-from{% raw %}
-    {{ ref('{% endraw %}{{ project_name }}{% raw %}_base_events_this_run') }}
-where {% endraw %}
-{%- for event in events %}
-    (event_name = '{{ event["event_name"] }}'
+)
 
-    {%- if event["event_vendor"] and event["event_vendor"] != "" %}
-        and event_vendor = '{{ event["event_vendor"] }}'
-    {%- endif %}
-    
-    {%- if event["event_version"] and event["event_version"] != "" %}
-        and event_version = '{{ event["event_version"] }}'
-    {%- endif %}
-    )
-    {%- if not loop.last %} or {% endif %}
-
-{% endfor %}
-    {% raw %}
-    and {{ snowplow_utils.is_run_with_new_events("{% endraw %}{{ project_name }}{% raw %}"
-        , new_event_limits_table="{% endraw %}{{ project_name }}{% raw %}_base_new_event_limits"
-        , incremental_manifest_table="{% endraw %}{{ project_name }}{% raw %}_incremental_manifest"
-        , base_sessions_lifecycle_table="{% endraw %}{{ project_name }}{% raw %}_base_sessions_lifecycle"
-        ) }}
-
+select
+    *,
+    {{ dbt_utils.generate_surrogate_key(['entity_key', 'event_date']) }} AS entity_key_date_id
+from prep
 {% endraw %}
+    
+

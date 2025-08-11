@@ -28,6 +28,8 @@ select
     last_device_class,
     last_mkt_source,
     last_mkt_medium,
-    total_revenue_last_7_days
+    total_revenue_last_7_days,
+    op_systems,
+    op_systems_2
 
 from {{ ref('snowplow_batch_autogen_attributes_expected') }}

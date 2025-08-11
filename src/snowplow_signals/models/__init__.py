@@ -1,3 +1,4 @@
+from .criterion_wrapper import Criterion
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import AttributeInput as Attribute
@@ -27,18 +28,20 @@ from .model import SetAttributeContext as InterventionSetAttributeContext
 from .model import (
     SignalsApiModelsInterventionCriterionCriterion as InterventionCriterion,
 )
-from .model import SignalsApiModelsViewCriterionCriterion as Criterion
 from .model import (
     TestViewRequest,
     ViewResponse,
 )
 from .service import Service
-from .view import View
+from .view import BatchView, ExternalBatchView, StreamView, View
 
 AttributeOutput
 Criteria
 Criterion
 View
+StreamView
+BatchView
+ExternalBatchView
 ViewResponse
 Service
 Entity

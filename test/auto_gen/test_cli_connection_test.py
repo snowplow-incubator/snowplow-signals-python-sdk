@@ -4,22 +4,22 @@ Verifies command-line argument handling and command execution.
 """
 
 from pathlib import Path
+from test.utils import MOCK_API_KEY, MOCK_API_KEY_ID, MOCK_API_URL, MOCK_ORG_ID
 from typing import Generator, List
 from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-import typer
+from respx import MockRouter
 
 from snowplow_signals.batch_autogen.cli import app
-from test.utils import MOCK_API_KEY, MOCK_API_KEY_ID, MOCK_API_URL, MOCK_ORG_ID
 
 
+@pytest.mark.usefixtures(
+    "mock_successful_registry_views", "mock_successful_api_health", "mock_auth"
+)
 def test_cli_test_connection_succeeds(
     api_params: List[str],
-    mock_successful_registry_views: None,
-    mock_successful_api_health: None,
-    mock_auth: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test successful connection to both auth and API services."""
@@ -38,11 +38,11 @@ def test_cli_test_connection_succeeds(
         assert "✨ All services are operational!" in caplog.text
 
 
+@pytest.mark.usefixtures(
+    "mock_successful_registry_views", "mock_successful_api_health", "mock_auth"
+)
 def test_cli_test_connection_verbose(
     api_params: List[str],
-    mock_successful_registry_views: None,
-    mock_successful_api_health: None,
-    mock_auth: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test connection with verbose output showing additional details."""
@@ -62,10 +62,9 @@ def test_cli_test_connection_verbose(
         assert "Dependencies status:" in caplog.text
 
 
+@pytest.mark.usefixtures("mock_successful_registry_views", "mock_auth")
 def test_cli_test_connection_auth_only(
     api_params: List[str],
-    mock_successful_registry_views: None,
-    mock_auth: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test connection with only authentication check enabled."""
@@ -83,10 +82,9 @@ def test_cli_test_connection_auth_only(
         assert "✨ Selected services are operational!" in caplog.text
 
 
+@pytest.mark.usefixtures("mock_successful_api_health", "mock_auth")
 def test_cli_test_connection_api_only(
     api_params: List[str],
-    mock_successful_api_health: None,
-    mock_auth: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test connection with only API health check enabled."""
@@ -106,7 +104,7 @@ def test_cli_test_connection_api_only(
 
 def test_cli_test_connection_auth_fails(
     api_params: List[str],
-    respx_mock,
+    respx_mock: MockRouter,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test connection when authentication fails with 401 Unauthorized."""
@@ -130,11 +128,10 @@ def test_cli_test_connection_auth_fails(
         assert "⚠️ API service is not operational" in caplog.text
 
 
+@pytest.mark.usefixtures("mock_successful_registry_views", "mock_auth")
 def test_cli_test_connection_fails_with_down_status(
     api_params: List[str],
-    mock_successful_registry_views: None,
-    respx_mock,
-    mock_auth: None,
+    respx_mock: MockRouter,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test connection when API service reports down status."""
@@ -166,7 +163,7 @@ def test_cli_test_connection_fails_with_down_status(
 
 def test_cli_test_connection_fails_with_exception(
     api_params: List[str],
-    respx_mock,
+    respx_mock: MockRouter,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test connection when auth endpoint is unreachable."""
@@ -192,7 +189,7 @@ def test_cli_test_connection_fails_with_exception(
 
 def test_cli_test_connection_fails_with_non_200_status(
     api_params: List[str],
-    respx_mock,
+    respx_mock: MockRouter,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test connection when API health check returns 500 error."""
