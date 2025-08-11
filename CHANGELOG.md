@@ -1,5 +1,15 @@
 # Changelog
 
+# [0.1.4] - 2025-08-11
+
+### Changed
+
+- [AISP-571] Add new StreamView, BatchView and BatchDerivedView classes
+- [AISP-532] Criterion new property classes and operator API
+- [AISP-555] Typed test arguments
+- [AISP-665] Add SDK version on headers
+- [AISP-489] Add BigQuery autogen
+
 ## [0.1.3] - 2025-07-14
 
 ### Changed
