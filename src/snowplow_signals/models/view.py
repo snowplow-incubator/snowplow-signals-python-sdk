@@ -1,13 +1,16 @@
 from typing import TYPE_CHECKING, Annotated, Literal
-from pydantic import Field as PydanticField, BeforeValidator, EmailStr, Field
+
+from pydantic import BeforeValidator, EmailStr
+from pydantic import Field
+from pydantic import Field as PydanticField
 
 from .model import (
+    AttributeInput,
+    BatchSource,
     Entity,
+    FieldModel,
     LinkEntity,
     ViewInput,
-    AttributeInput,
-    FieldModel,
-    BatchSource,
 )
 
 if TYPE_CHECKING:

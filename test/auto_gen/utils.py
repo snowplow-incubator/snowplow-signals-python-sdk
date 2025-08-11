@@ -5,7 +5,7 @@ Provides mock data and helper functions for testing.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Literal
 
 # Mock data for testing
 MOCK_ECOMMERCE_VIEW = {
@@ -125,13 +125,15 @@ def get_attribute_view_response_from_file() -> List[Dict[str, Any]]:
         FileNotFoundError: If the mock data file doesn't exist
         json.JSONDecodeError: If the file contains invalid JSON
     """
-    json_path = Path(__file__).parent / "mock_attribute_views.json"
+    json_path = Path(__file__).parent / "mock_attribute_views_snowflake.json"
     with open(json_path, "r") as f:
         data = json.load(f)
     return data["mock_attribute_views"]
 
 
-def get_integration_test_view_response() -> List[Dict[str, Any]]:
+def get_integration_test_view_response(
+    warehouse: Literal["snowflake", "bigquery"],
+) -> List[Dict[str, Any]]:
     """
     Reads and returns mock attribute views from a JSON file.
 
@@ -142,7 +144,12 @@ def get_integration_test_view_response() -> List[Dict[str, Any]]:
         FileNotFoundError: If the mock data file doesn't exist
         json.JSONDecodeError: If the file contains invalid JSON
     """
-    json_path = Path(__file__).parent / "integration_test_view.json"
+    if warehouse == "snowflake":
+        json_path = Path(__file__).parent / "integration_test_view_snowflake.json"
+    elif warehouse == "bigquery":
+        json_path = Path(__file__).parent / "integration_test_view_bigquery.json"
+    else:
+        raise ValueError(f"Unsupported warehouse: {warehouse}")
     with open(json_path, "r") as f:
         data = json.load(f)
     return data["mock_attribute_views"]

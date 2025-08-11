@@ -3,8 +3,10 @@ Tests for the CLI interface of the dbt model generation tool.
 Verifies command-line argument handling and command execution.
 """
 
-from test.utils import MOCK_API_URL
-from typing import List
+from pathlib import Path
+from test.utils import MOCK_API_KEY, MOCK_API_KEY_ID, MOCK_API_URL, MOCK_ORG_ID
+from typing import Generator, List
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest

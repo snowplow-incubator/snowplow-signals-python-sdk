@@ -8,6 +8,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from snowplow_signals.api_client import ApiClient
+from snowplow_signals.batch_autogen.cli_params import (
+    TargetType,
+)
 from snowplow_signals.batch_autogen.dbt_client import BatchAutogenClient
 from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
 from snowplow_signals.batch_autogen.models.dbt_config_generator import (
@@ -28,7 +31,7 @@ def mock_api_client() -> MagicMock:
 @pytest.fixture
 def dbt_client(mock_api_client) -> BatchAutogenClient:
     """Create a BatchAutogenClient instance with mocked API client"""
-    return BatchAutogenClient(mock_api_client)
+    return BatchAutogenClient(mock_api_client, target_type="snowflake")
 
 
 @pytest.fixture
@@ -109,6 +112,7 @@ def test_init_project_with_view_name(
         repo_path=temp_repo_path,
         view_name="test_view",
         view_version=None,
+        target_type=TargetType.snowflake,
     )
 
 
@@ -125,6 +129,7 @@ def test_init_project_with_view_version(
         repo_path=temp_repo_path,
         view_name="test_view",
         view_version=1,
+        target_type=TargetType.snowflake,
     )
 
 

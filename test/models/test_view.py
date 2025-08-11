@@ -2,15 +2,15 @@ import pytest
 from pydantic import ValidationError
 
 from snowplow_signals.models import (
-    View,
-    StreamView,
-    BatchView,
     Attribute,
-    Event,
+    BatchSource,
+    BatchView,
     Entity,
+    Event,
     ExternalBatchView,
     Field,
-    BatchSource,
+    StreamView,
+    View,
 )
 
 

@@ -11,7 +11,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     materialized='table',
     dist=var('snowplow__entity_key', 'domain_userid'),
     partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
-      "field": "last_event_tstamp",
+      "field": "valid_at_tstamp",
       "data_type": "timestamp"
     }, databricks_val='last_event_date'),
     sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
@@ -30,7 +30,7 @@ with  aggregations as (
       , {{ attribute['aggregation_type'] }}({{ attribute["daily_agg_column_name"] }}) as {{ attribute["column_name"] }}
     {% endfor %}
     {% for attribute in last_n_day_aggregates %}
-      , {{ attribute['aggregation_type'] }}({% raw %}case when event_date >= {{dbt.dateadd('day', -{% endraw %}{{ attribute["period"] }}{% raw %}, upper_limit)}} then {% endraw %}{{ attribute["daily_agg_column_name"] }} end) as {{ attribute["column_name"] }}
+      , {{ attribute['aggregation_type'] }}({% raw %}case when event_date >= {{snowplow_utils.add_days_to_date(-{% endraw %}{{ attribute["period"] }}{% raw %}, upper_limit)}} and event_date < {{ upper_limit }} then {% endraw %}{{ attribute["daily_agg_column_name"] }} end) as {{ attribute["column_name"] }}
     {% endfor %}
 
 {% raw %}
@@ -42,35 +42,34 @@ with  aggregations as (
 {% endraw %}
 
 {% for attribute in unique_list_attributes %}
-  {% if attribute['period'] is not none %}
-    , filtered_data_{{ attribute['column_name'] }} as (
+  {% set col = attribute['column_name'] %}
+  {% set agg_col = attribute['daily_agg_column_name'] %}
+  {% set period = attribute['period'] %}
+  {% set has_period = period is not none %}
+  {% set filtered_table = "filtered_data_" ~ col if has_period else "{{ ref('"~project_name~ "_daily_aggregates') }}" %}
+  
+  {% if has_period %}
+    , filtered_data_{{ col }} as (
       select
           entity_key,
-          {{ attribute['daily_agg_column_name'] }}{% raw %}
-      from {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates')}}
-      where event_date >= {{ dbt.dateadd('day', -{% endraw %}{{ attribute["period"] }}{% raw %}, upper_limit) }}
-    ),
-    {% endraw %}{{ attribute['column_name'] }}_flattened as (
-      select
-          d.entity_key,
-          array_agg(distinct f.value::string) as {{ attribute['column_name'] }}{% raw %}
-      from filtered_data_{% endraw %}{{ attribute['column_name'] }} d,
-      LATERAL FLATTEN(input => {{ attribute['daily_agg_column_name'] }}) f
-      group by d.entity_key
-      
-    )
-
-  {% else %}
-
-    , {{ attribute['column_name'] }}_flattened as (
-      select
-          d.entity_key,
-          array_agg(distinct f.value::string) as {{ attribute['column_name'] }}{% raw %}
-      from {{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates')}} d,
-      LATERAL FLATTEN(input => {% endraw %}{{ attribute['daily_agg_column_name'] }}) f
-      group by d.entity_key
-    )
+          {{ agg_col }}
+      from {% raw %}{{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates') }}
+      where event_date >= {{ dbt.dateadd('day', -{% endraw %}{{ period }}, {% raw %}upper_limit) }}
+    ){% endraw %}
   {% endif %}
+
+  , {{ col }}_flattened as (
+    select
+        d.entity_key,
+        array_agg(distinct cast(f{%raw%}{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}){%endraw%} as {{ col }}
+    from {{ filtered_table }} d,
+         {%raw%}{% if target.type == 'snowflake' %}{% endraw %}
+           LATERAL FLATTEN(input => {{ agg_col }}) f
+         {%raw%}{% elif target.type == 'bigquery' %}{% endraw %}
+           UNNEST(d.{{ col }}) AS f
+         {%raw%}{% endif %}{% endraw %}
+    group by d.entity_key
+  )
 {% endfor %}
 
 {%- if first_value_attributes | length > 0 or last_value_attributes | length > 0 %}
@@ -103,7 +102,7 @@ with  aggregations as (
   {% else %}
     , last_value({{ attribute['daily_agg_column_name'] }}) over (
                 partition by entity_key
-                order by last_event_tstamp ASC
+                order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
             ) as {{ attribute['column_name'] }}
   {% endif %}
 {% endfor %}
@@ -118,8 +117,8 @@ select
     
   a.entity_key as {{ entity_key }},
   {% raw %}{{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
-  cast({{ lower_limit }} as date) as lower_limit,
-  cast({{ upper_limit }} as date) as upper_limit{% endraw %}
+  date({{ lower_limit }}) as lower_limit,
+  date({{ upper_limit }}) as upper_limit{% endraw %}
   {% for attribute in first_value_attributes %}
     , w.{{ attribute['column_name'] }} 
   {%- endfor %}

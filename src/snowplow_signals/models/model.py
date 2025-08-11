@@ -10,6 +10,8 @@ from uuid import UUID
 
 from pydantic import UUID4, BaseModel, Field, RootModel, conint, constr
 
+PropertySyntax = Literal["blobl", "snowflake", "bigquery"]
+
 
 class ApplyResponse(BaseModel):
     status: Literal["applied", "nothing to apply"] = Field(..., title="Status")
@@ -403,7 +405,7 @@ class SignalsApiModelsInterventionCriterionCriterion(BaseModel):
 
 
 class SignalsApiModelsViewCriterionCriterion(BaseModel):
-    property_syntax: Optional[Literal["blobl", "snowflake"]] = Field(
+    property_syntax: PropertySyntax = Field(
         default="snowflake",
         description="The syntax used to reference the property.",
         title="Property Syntax",
@@ -595,7 +597,7 @@ class AttributeInput(BaseModel):
     ] = Field(
         ..., description="The aggregation type of the attribute.", title="Aggregation"
     )
-    property_syntax: Optional[Literal["blobl", "snowflake"]] = Field(
+    property_syntax: PropertySyntax = Field(
         default="snowflake",
         description="The syntax used to reference the property.",
         title="Property Syntax",
@@ -665,7 +667,7 @@ class AttributeOutput(BaseModel):
     ] = Field(
         ..., description="The aggregation type of the attribute.", title="Aggregation"
     )
-    property_syntax: Optional[Literal["blobl", "snowflake"]] = Field(
+    property_syntax: PropertySyntax = Field(
         default="snowflake",
         description="The syntax used to reference the property.",
         title="Property Syntax",

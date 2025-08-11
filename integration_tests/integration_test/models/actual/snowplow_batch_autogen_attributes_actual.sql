@@ -6,29 +6,65 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 #}
 
 
+with prep as (
+    select
 
-select
+        domain_userid,
+        -- valid_at_tstamp,
+        lower_limit,
+        upper_limit,
+        first_mkt_source,
+        first_mkt_medium,
+        first_referrer_source,
+        first_referrer_medium,
+        page_view_events_count_last_7_days,
+        page_ping_events_count_last_7_days,
+        pricing_pageview_count_last_7_days,
+        demo_pageview_count_last_7_days,
+        media_video_event_count_last_7_days,
+        form_focus_change_event_count_last_7_days,
+        last_geo_country,
+        last_timezone,
+        cast(last_os as {{ dbt.type_string() }}) as last_os,
+        cast(last_device_class as {{ dbt.type_string() }}) as last_device_class,
+        last_mkt_source,
+        last_mkt_medium,
+        total_revenue_last_7_days,
+        -- Currently snowflake arrays are not sorted, freeze it for expected results
+        {% if target.type == 'snowflake' %}
+            ARRAY_SORT(op_systems) AS op_systems,
+            ARRAY_SORT(op_systems_2) AS op_systems_2
+        {% else %}
+            op_systems,
+            op_systems_2
+        {% endif %}
+    from {{ ref('ecommerce_transaction_interactions_features_1_attributes') }}
+)
 
-    domain_userid,
-    -- valid_at_tstamp,
-    lower_limit,
-    upper_limit,
-    first_mkt_source,
-    first_mkt_medium,
-    first_referrer_source,
-    first_referrer_medium,
-    page_view_events_count_last_7_days,
-    page_ping_events_count_last_7_days,
-    pricing_pageview_count_last_7_days,
-    demo_pageview_count_last_7_days,
-    media_video_event_count_last_7_days,
-    form_focus_change_event_count_last_7_days,
-    last_geo_country,
-    last_timezone,
-    cast(last_os as {{ dbt.type_string() }}) as last_os,
-    cast(last_device_class as {{ dbt.type_string() }}) as last_device_class,
-    last_mkt_source,
-    last_mkt_medium,
-    total_revenue_last_7_days
+    select
 
-from {{ ref('ecommerce_transaction_interactions_features_1_attributes') }}
+        domain_userid,
+        -- valid_at_tstamp,
+        lower_limit,
+        upper_limit,
+        first_mkt_source,
+        first_mkt_medium,
+        first_referrer_source,
+        first_referrer_medium,
+        page_view_events_count_last_7_days,
+        page_ping_events_count_last_7_days,
+        pricing_pageview_count_last_7_days,
+        demo_pageview_count_last_7_days,
+        media_video_event_count_last_7_days,
+        form_focus_change_event_count_last_7_days,
+        last_geo_country,
+        last_timezone,
+        last_os,
+        last_device_class,
+        last_mkt_source,
+        last_mkt_medium,
+        total_revenue_last_7_days,
+        {{ snowplow_utils.get_array_to_string('op_systems', 'p', ', ') }} as op_systems,
+        {{ snowplow_utils.get_array_to_string('op_systems_2', 'p', ', ') }} as op_systems_2
+
+from prep p

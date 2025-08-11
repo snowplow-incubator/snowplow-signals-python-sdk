@@ -9,7 +9,8 @@ dist
 *.DS_Store
 
 # Autogen
-local_testing/customer_repo/
+local_testing/customer_repo_snowflake
+local_testing/customer_repo_bigquery
 
 /.vscode
 
