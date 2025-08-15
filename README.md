@@ -50,7 +50,7 @@ response = signals.get_view_attributes(
     version=1,
     entity="domain_sessionid",
     attributes=["page_view_count"],
-    identifiers="abc-123",
+    identifier="abc-123",
 )
 ```
 
