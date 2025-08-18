@@ -1,7 +1,7 @@
+from .attribute import Attribute
 from .criterion_wrapper import Criterion
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
-from .model import AttributeInput as Attribute
 from .model import (
     AttributeOutput,
     BatchSource,
