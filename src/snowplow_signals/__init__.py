@@ -36,6 +36,9 @@ from snowplow_signals.models.property_wrappers import (
 from snowplow_signals.signals import Signals
 
 from .definitions import (
+    PagePing,
+    PageView,
+    StructuredEvent,
     domain_sessionid,
     domain_userid,
     network_userid,
@@ -67,6 +70,9 @@ network_userid
 EntityProperty
 EventProperty
 AtomicProperty
+PagePing
+PageView
+StructuredEvent
 
 # Interventions
 RuleIntervention
