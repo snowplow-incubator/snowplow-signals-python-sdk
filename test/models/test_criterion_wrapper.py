@@ -2,10 +2,8 @@ import re
 
 import pytest
 
+from snowplow_signals import AtomicProperty, EntityProperty, EventProperty
 from snowplow_signals.models.criterion_wrapper import Criterion
-from snowplow_signals.models.property_wrappers.atomic import AtomicProperty
-from snowplow_signals.models.property_wrappers.entity import EntityProperty
-from snowplow_signals.models.property_wrappers.event import EventProperty
 
 
 class TestCriterionWrapper:

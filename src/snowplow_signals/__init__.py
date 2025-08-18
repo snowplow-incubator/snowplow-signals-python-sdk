@@ -28,6 +28,11 @@ from snowplow_signals.models import (
     StreamView,
     View,
 )
+from snowplow_signals.models.property_wrappers import (
+    AtomicProperty,
+    EntityProperty,
+    EventProperty,
+)
 from snowplow_signals.signals import Signals
 
 from .definitions import (
@@ -59,6 +64,9 @@ domain_userid
 domain_sessionid
 user_id
 network_userid
+EntityProperty
+EventProperty
+AtomicProperty
 
 # Interventions
 RuleIntervention
