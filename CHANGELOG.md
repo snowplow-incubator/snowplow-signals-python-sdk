@@ -1,5 +1,13 @@
 # Changelog
 
+# [0.1.5] - 2025-08-18
+
+### Changed
+
+- [AISP-685] Add PageView PagePing StructuredEvent wrappers.
+- [AISP-684] Allow property wrappers for the property attribute on Attribute class.
+- Fix root package export for AtomicProperty, EventProperty and EntityProperty.
+
 # [0.1.4] - 2025-08-11
 
 ### Changed
