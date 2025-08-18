@@ -8,6 +8,9 @@ from snowplow_signals import (
     EntityProperty,
     Event,
     EventProperty,
+    PagePing,
+    PageView,
+    StructuredEvent,
 )
 
 
@@ -234,3 +237,52 @@ class TestValidPropertyWrappers:
             property=AtomicProperty(name="mkt_source"),
         )
         assert attribute.property == "mkt_source"
+
+
+class TestValidEventWrappers:
+    def test_valid_page_view_event(self):
+        last_mkt_source_page_view = Attribute(
+            name="last_mkt_source",
+            type="string",
+            events=[PageView()],
+            aggregation="last",
+            property=AtomicProperty(name="mkt_source"),
+        )
+        assert last_mkt_source_page_view.events[0].name == "page_view"
+        assert (
+            last_mkt_source_page_view.events[0].vendor
+            == "com.snowplowanalytics.snowplow"
+        )
+        assert last_mkt_source_page_view.events[0].version == "1-0-0"
+
+    def test_valid_page_ping_event(self):
+        last_mkt_source_page_ping = Attribute(
+            name="last_mkt_source",
+            type="string",
+            events=[PagePing()],
+            aggregation="last",
+            property=AtomicProperty(name="mkt_source"),
+        )
+        assert last_mkt_source_page_ping.events[0].name == "page_ping"
+        assert (
+            last_mkt_source_page_ping.events[0].vendor
+            == "com.snowplowanalytics.snowplow"
+        )
+        assert last_mkt_source_page_ping.events[0].version == "1-0-0"
+
+    def test_valid_structured_event(self):
+        last_mkt_source_structured_event = Attribute(
+            name="last_mkt_source",
+            type="string",
+            events=[StructuredEvent()],
+            aggregation="last",
+            property=AtomicProperty(name="mkt_source"),
+            criteria=Criteria(
+                all=[Criterion.eq(AtomicProperty(name="se_category"), "marketing")]
+            ),
+        )
+        assert last_mkt_source_structured_event.events[0].name == "event"
+        assert (
+            last_mkt_source_structured_event.events[0].vendor == "com.google.analytics"
+        )
+        assert last_mkt_source_structured_event.events[0].version == "1-0-0"

@@ -1,4 +1,4 @@
-from .models import Entity
+from .models import Entity, Event
 
 # Predefined entities
 user_entity = Entity(
@@ -34,3 +34,23 @@ network_userid = Entity(
     key="network_userid",
     description="The network user ID for the user.",
 )
+
+
+def PageView():
+    return Event(
+        vendor="com.snowplowanalytics.snowplow",
+        name="page_view",
+        version="1-0-0",
+    )
+
+
+def PagePing():
+    return Event(
+        vendor="com.snowplowanalytics.snowplow",
+        name="page_ping",
+        version="1-0-0",
+    )
+
+
+def StructuredEvent():
+    return Event(name="event", vendor="com.google.analytics", version="1-0-0")
