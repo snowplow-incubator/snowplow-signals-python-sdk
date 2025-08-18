@@ -1,6 +1,14 @@
 import pytest
 
-from snowplow_signals import Attribute, Criteria, Criterion, Event
+from snowplow_signals import (
+    AtomicProperty,
+    Attribute,
+    Criteria,
+    Criterion,
+    EntityProperty,
+    Event,
+    EventProperty,
+)
 
 
 class TestValidAttributes:
@@ -160,3 +168,69 @@ class TestInvalidAttributes:
                     ],
                 ),
             )
+
+
+class TestValidPropertyWrappers:
+    def test_valid_entity_property(self):
+        attribute = Attribute(
+            name="max_cart_value",
+            type="int32",
+            events=[
+                Event(
+                    vendor="com.snowplowanalytics.snowplow.ecommerce",
+                    name="snowplow_ecommerce_action",
+                    version="1-0-2",
+                )
+            ],
+            aggregation="max",
+            property=EntityProperty(
+                vendor="com.snowplowanalytics.snowplow.ecommerce",
+                name="cart",
+                major_version=1,
+                path="total_value",
+            ),
+        )
+        assert (
+            attribute.property
+            == "contexts_com_snowplowanalytics_snowplow_ecommerce_cart_1[0].total_value"
+        )
+
+    def test_valid_event_property(self):
+        attribute = Attribute(
+            name="first_button_click_label",
+            type="string",
+            events=[
+                Event(
+                    vendor="com.snowplowanalytics.snowplow",
+                    name="button_click",
+                    version="1-0-0",
+                )
+            ],
+            aggregation="first",
+            property=EventProperty(
+                vendor="com.snowplowanalytics.snowplow",
+                name="button_click",
+                major_version=1,
+                path="label",
+            ),
+        )
+        assert (
+            attribute.property
+            == "unstruct_event_com_snowplowanalytics_snowplow_button_click_1:label"
+        )
+
+    def test_valid_atomic_property(self):
+        attribute = Attribute(
+            name="last_mkt_source",
+            type="string",
+            events=[
+                Event(
+                    vendor="com.snowplowanalytics.snowplow",
+                    name="link_click",
+                    version="1-0-1",
+                )
+            ],
+            aggregation="last",
+            property=AtomicProperty(name="mkt_source"),
+        )
+        assert attribute.property == "mkt_source"
