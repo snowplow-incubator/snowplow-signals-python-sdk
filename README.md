@@ -42,7 +42,7 @@ view = StreamView(
     entity=domain_sessionid,
     attributes=[page_view_count],
 )
-signals.apply([view])
+signals.publish([view])
 
 # Retrieve attributes
 response = signals.get_view_attributes(

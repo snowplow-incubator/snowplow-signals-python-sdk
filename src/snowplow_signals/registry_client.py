@@ -8,7 +8,7 @@ class RegistryClient:
     def __init__(self, api_client: ApiClient):
         self.api_client = api_client
 
-    def apply(
+    def create_or_update(
         self, objects: list[View | Service | Entity | RuleIntervention]
     ) -> list[View | Service | Entity | RuleIntervention]:
         updated_objects: list[View | Service | Entity | RuleIntervention] = []
@@ -34,6 +34,26 @@ class RegistryClient:
                 )
 
         return updated_objects
+
+    def delete(self, objects: list[View | Service | Entity | RuleIntervention]) -> None:
+        """
+        Deletes the provided objects from the Signals registry.
+        """
+        for object in objects:
+            if isinstance(object, View):
+                self._delete_view(view=object)
+
+        for object in objects:
+            if isinstance(object, Service):
+                self._delete_service(service=object)
+
+        for object in objects:
+            if isinstance(object, Entity):
+                self._delete_entity(entity=object)
+
+        for object in objects:
+            if isinstance(object, RuleIntervention):
+                self._delete_intervention(intervention=object)
 
     def get_view(self, name: str, version: int | None = None) -> ViewResponse:
         if version is not None:
@@ -135,6 +155,30 @@ class RegistryClient:
                 raise e
 
         return Entity.model_validate(response)
+
+    def _delete_view(self, view: View) -> None:
+        self.api_client.make_request(
+            method="DELETE",
+            endpoint=(f"registry/views/{view.name}/versions/{view.version}"),
+        )
+
+    def _delete_service(self, service: Service) -> None:
+        self.api_client.make_request(
+            method="DELETE",
+            endpoint=(f"registry/services/{service.name}"),
+        )
+
+    def _delete_intervention(self, intervention: RuleIntervention) -> None:
+        self.api_client.make_request(
+            method="DELETE",
+            endpoint=(f"registry/interventions/{intervention.name}/versions/{intervention.version}"),
+        )
+
+    def _delete_entity(self, entity: Entity) -> None:
+        self.api_client.make_request(
+            method="DELETE",
+            endpoint=(f"registry/entities/{entity.name}"),
+        )
 
     def _model_dump(self, model: BaseModel) -> dict:
         return model.model_dump(
