@@ -5,7 +5,6 @@ import pandas as pd
 
 from .api_client import ApiClient
 from .attributes_client import AttributesClient
-from .feature_store_client import FeatureStoreClient
 from .interventions_client import InterventionsClient
 from .models import (
     Entity,
@@ -30,24 +29,56 @@ class Signals:
 
         self.interventions = InterventionsClient(api_client=self.api_client)
         self.registry = RegistryClient(api_client=self.api_client)
-        self.feature_store = FeatureStoreClient(api_client=self.api_client)
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
 
-    def apply(
+    def publish(
         self, objects: list[View | Service | Entity | RuleIntervention]
     ) -> list[View | Service | Entity | RuleIntervention]:
         """
-        Registers the provided objects to the Signals registry.
+        Creates or updates the provided objects in the Signals registry and publishes them to the compute engines.
 
         Args:
-            objects: The list of objects to register.
+            objects: The list of objects to publish.
         Returns:
             The list of updated objects
         """
-        updated_objects = self.registry.apply(objects=objects)
-        self.feature_store.apply()
+        to_update = [
+            object.model_copy(update={"is_published": True}) for object in objects
+        ]
+
+        updated_objects = self.registry.create_or_update(objects=to_update)
         return updated_objects
+
+    def unpublish(
+        self, objects: list[View | Service | Entity | RuleIntervention]
+    ) -> list[View | Service | Entity | RuleIntervention]:
+        """
+        Creates or updates the provided objects in the Signals registry and unpublishes them from the compute engines.
+
+        Args:
+            objects: The list of objects to unpublish.
+        Returns:
+            The list of unpublished objects
+        """
+        to_update = [
+            object.model_copy(update={"is_published": False}) for object in objects
+        ]
+
+        updated_objects = self.registry.create_or_update(objects=to_update)
+        return updated_objects
+
+    def delete(self, objects: list[View | Service | Entity | RuleIntervention]) -> None:
+        """
+        Deletes the provided objects from the Signals registry.
+        Make sure to unpublish the objects first.
+
+        Args:
+            objects: The list of objects to delete.
+        Returns:
+            The list of deleted objects
+        """
+        self.registry.delete(objects=objects)
 
     def get_view(self, name: str, version: int | None = None) -> ViewResponse:
         """

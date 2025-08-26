@@ -8,7 +8,6 @@ from snowplow_signals.models import (
     Event,
     ExternalBatchView,
     Field,
-    InterventionClearAttributeContext,
 )
 from snowplow_signals.models import (
     InterventionCriteriaAllInput as InterventionCriteriaAll,
@@ -21,7 +20,6 @@ from snowplow_signals.models import (
 )
 from snowplow_signals.models import (
     InterventionCriterion,
-    InterventionSetAttributeContext,
     LinkEntity,
     RuleIntervention,
     Service,
@@ -34,6 +32,7 @@ from snowplow_signals.models.property_wrappers import (
     EventProperty,
 )
 from snowplow_signals.signals import Signals
+from snowplow_signals.api_client import SignalsAPIError
 
 from .definitions import (
     PagePing,
@@ -76,9 +75,8 @@ StructuredEvent
 
 # Interventions
 RuleIntervention
-InterventionSetAttributeContext
-InterventionClearAttributeContext
 InterventionCriteriaAll
 InterventionCriteriaAny
 InterventionCriteriaNone
 InterventionCriterion
+SignalsAPIError
