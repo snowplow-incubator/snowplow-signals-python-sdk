@@ -40,20 +40,20 @@ class RegistryClient:
         Deletes the provided objects from the Signals registry.
         """
         for object in objects:
-            if isinstance(object, View):
-                self._delete_view(view=object)
+            if isinstance(object, RuleIntervention):
+                self._delete_intervention(intervention=object)
 
         for object in objects:
             if isinstance(object, Service):
                 self._delete_service(service=object)
 
         for object in objects:
-            if isinstance(object, Entity):
-                self._delete_entity(entity=object)
+            if isinstance(object, View):
+                self._delete_view(view=object)
 
         for object in objects:
-            if isinstance(object, RuleIntervention):
-                self._delete_intervention(intervention=object)
+            if isinstance(object, Entity):
+                self._delete_entity(entity=object)
 
     def get_view(self, name: str, version: int | None = None) -> ViewResponse:
         if version is not None:
