@@ -43,10 +43,11 @@ class Signals:
         Returns:
             The list of updated objects
         """
-        for object in objects:
-            object.is_published = True
+        to_update = [
+            object.model_copy(update={"is_published": True}) for object in objects
+        ]
 
-        updated_objects = self.registry.create_or_update(objects=objects)
+        updated_objects = self.registry.create_or_update(objects=to_update)
         return updated_objects
 
     def unpublish(
@@ -60,10 +61,11 @@ class Signals:
         Returns:
             The list of unpublished objects
         """
-        for object in objects:
-            object.is_published = False
+        to_update = [
+            object.model_copy(update={"is_published": False}) for object in objects
+        ]
 
-        updated_objects = self.registry.create_or_update(objects=objects)
+        updated_objects = self.registry.create_or_update(objects=to_update)
         return updated_objects
 
     def delete(self, objects: list[View | Service | Entity | RuleIntervention]) -> None:
