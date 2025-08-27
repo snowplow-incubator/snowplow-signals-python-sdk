@@ -8,6 +8,8 @@ from .attributes_client import AttributesClient
 from .interventions_client import InterventionsClient
 from .models import (
     Entity,
+    EntityIdentifiers,
+    InterventionInstance,
     RuleIntervention,
     Service,
     TestViewRequest,
@@ -163,3 +165,28 @@ class Signals:
             app_ids=app_ids,
         )
         return self.testing.test_view(request=request)
+
+    def push_intervention(
+        self, targets: EntityIdentifiers, intervention: InterventionInstance
+    ):
+        """
+        Publish the given intervention to any active subscribers for the given lists of Attribute Keys.
+
+        Args:
+            targets: Mapping of Attribute Keys to identifiers to send the intervention to.
+            intervention: The intervention payload to publish to the target subscribers.
+        Returns:
+            Status detailing if the intervention was received by any subscribers.
+        """
+        return self.interventions.publish(intervention, targets)
+
+    def pull_interventions(self, targets: EntityIdentifiers):
+        """
+        Return a subscription for interventions targeting the given Attribute Key targets.
+
+        Args:
+            targets: Mapping of Attribute Keys to identifiers to receive interventions for.
+        Returns:
+            A subscription object that can be started or used as a context manager to receive interventions.
+        """
+        return self.interventions.subscribe(targets)

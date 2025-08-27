@@ -5,8 +5,6 @@ from .interventions import RuleIntervention
 from .model import (
     AttributeOutput,
     BatchSource,
-)
-from .model import (
     Criteria,
 )
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
@@ -14,28 +12,31 @@ from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
 from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
     Entity,
+    EntityIdentifiers,
+    EntityReference,
     Event,
 )
 from .model import FieldModel as Field
 from .model import (
-    GetViewAttributesRequest,
     GetServiceAttributesRequest,
+    GetViewAttributesRequest,
+)
+from .model import InterventionInstance as InterventionInstance
+from .model import (
+    InterventionReference,
     LinkEntity,
     RuleInterventionInput,
     RuleInterventionOutput,
-    EntityIdentifiers,
-    ViewReference,
-    ServiceReference,
-    InterventionReference,
-    EntityReference,
     SelectivePublishRequest,
-    UnpublishRequest,
+    ServiceReference,
 )
 from .model import (
     SignalsApiModelsInterventionCriterionCriterion as InterventionCriterion,
 )
 from .model import (
     TestViewRequest,
+    UnpublishRequest,
+    ViewReference,
     ViewResponse,
 )
 from .service import Service

@@ -1,5 +1,6 @@
 import json
 import os
+from collections.abc import Generator, Mapping
 from importlib.metadata import version
 from typing import Literal, Optional
 
@@ -19,8 +20,9 @@ class ApiClient:
         self.org_id = org_id
         self.token = None
 
-    def _get_headers(self, token: str):
+    def _get_headers(self, token: str, custom: Optional[dict[str, str]] = None):
         return {
+            **(custom or {}),
             "Content-Type": "application/json; charset=utf-8",
             "X-Signals-Sdk-Name": X_SIGNALS_SDK_NAME,
             "Authorization": f"Bearer {token}",
@@ -95,6 +97,50 @@ class ApiClient:
                 response.status_code, f"Failed to decode response: {response.text}"
             )
 
+    def _stream_request(
+        self,
+        method: HTTP_METHODS,
+        endpoint: str,
+        params: Optional[Mapping[str, str | list[str]]] = None,
+        data: Optional[dict] = None,
+        headers: Optional[dict[str, str]] = None,
+    ) -> Generator[str | None]:
+        token = self._check_token(self.token)
+        self.token = token
+
+        url = f"{self.api_url}/api/v1/{endpoint}"
+
+        with httpx.stream(
+            method=method,
+            url=url,
+            headers=self._get_headers(token, headers),
+            params=params,
+            json=data,
+        ) as stream:
+            if stream.status_code == 200:
+                gen = stream.iter_lines()
+
+                # we need to manually consume the iterator to handle the timeout for each call
+                while True:
+                    try:
+                        line = next(gen)
+                        yield line
+                    except httpx.ReadTimeout:
+                        # yield empty result so we can check if the request should be killed
+                        yield None
+                    except StopIteration:
+                        # connection likely killed
+                        break
+            else:
+                try:
+                    stream.read()
+                    payload = stream.json()
+                    raise SignalsAPIError(stream.status_code, payload)
+                except json.JSONDecodeError:
+                    raise SignalsAPIError(
+                        stream.status_code, f"Failed to decode response: {stream.text}"
+                    )
+
     def make_request(
         self,
         method: HTTP_METHODS,
@@ -103,6 +149,18 @@ class ApiClient:
         data: Optional[dict] = None,
     ) -> dict:
         return self._request(method=method, endpoint=endpoint, params=params, data=data)
+
+    def make_stream_request(
+        self,
+        method: HTTP_METHODS,
+        endpoint: str,
+        params: Optional[Mapping[str, str | list[str]]] = None,
+        data: Optional[dict[str, object]] = None,
+        headers: Optional[dict[str, str]] = None,
+    ) -> Generator[str | None]:
+        return self._stream_request(
+            method=method, endpoint=endpoint, params=params, data=data, headers=headers
+        )
 
 
 class SignalsAPIError(Exception):
