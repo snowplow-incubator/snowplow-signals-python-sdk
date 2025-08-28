@@ -1,3 +1,4 @@
+from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
     Attribute,
     BatchSource,
@@ -5,6 +6,9 @@ from snowplow_signals.models import (
     Criteria,
     Criterion,
     Entity,
+)
+from snowplow_signals.models import EntityIdentifiers as EntityIdentifiers
+from snowplow_signals.models import (
     Event,
     ExternalBatchView,
     Field,
@@ -20,6 +24,9 @@ from snowplow_signals.models import (
 )
 from snowplow_signals.models import (
     InterventionCriterion,
+)
+from snowplow_signals.models import InterventionInstance as InterventionInstance
+from snowplow_signals.models import (
     LinkEntity,
     RuleIntervention,
     Service,
@@ -32,7 +39,6 @@ from snowplow_signals.models.property_wrappers import (
     EventProperty,
 )
 from snowplow_signals.signals import Signals
-from snowplow_signals.api_client import SignalsAPIError
 
 from .definitions import (
     PagePing,

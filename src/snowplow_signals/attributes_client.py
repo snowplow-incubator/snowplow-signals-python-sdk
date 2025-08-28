@@ -2,10 +2,10 @@ from typing import Any
 
 from .api_client import ApiClient
 from .models import (
-    GetAttributesResponse,
-    GetViewAttributesRequest,
-    GetServiceAttributesRequest,
     EntityIdentifiers,
+    GetAttributesResponse,
+    GetServiceAttributesRequest,
+    GetViewAttributesRequest,
 )
 
 

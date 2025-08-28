@@ -198,9 +198,9 @@ class TestRegistryClient:
 
     def test_delete_intervention(self, respx_mock: MockRouter, api_client: ApiClient):
         from snowplow_signals.models import (
-            RuleIntervention,
             InterventionCriterion,
             LinkEntity,
+            RuleIntervention,
         )
 
         intervention = RuleIntervention(

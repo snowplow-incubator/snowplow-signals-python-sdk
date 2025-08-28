@@ -171,7 +171,9 @@ class RegistryClient:
     def _delete_intervention(self, intervention: RuleIntervention) -> None:
         self.api_client.make_request(
             method="DELETE",
-            endpoint=(f"registry/interventions/{intervention.name}/versions/{intervention.version}"),
+            endpoint=(
+                f"registry/interventions/{intervention.name}/versions/{intervention.version}"
+            ),
         )
 
     def _delete_entity(self, entity: Entity) -> None:
