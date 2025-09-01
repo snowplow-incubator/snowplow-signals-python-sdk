@@ -8,22 +8,22 @@ from snowplow_signals.batch_autogen.models.base_config_generator import (
     BaseConfigGenerator,
 )
 from snowplow_signals.models import (
+    AttributeGroupResponse,
     AttributeOutput,
     BatchSource,
     Criteria,
     Criterion,
     Event,
-    LinkEntity,
-    ViewResponse,
+    LinkAttributeKey,
 )
 
 
 @pytest.fixture
 def test_view_response():
-    return ViewResponse(
+    return AttributeGroupResponse(
         name="test_view",
         version=1,
-        entity=LinkEntity(name="user"),
+        entity=LinkAttributeKey(name="user"),
         ttl=timedelta(days=30),
         batch_source=BatchSource(
             name="test_source",
@@ -50,7 +50,9 @@ def test_view_response():
 
 
 @pytest.fixture
-def base_config_generator(test_view_response: ViewResponse) -> BaseConfigGenerator:
+def base_config_generator(
+    test_view_response: AttributeGroupResponse,
+) -> BaseConfigGenerator:
     return BaseConfigGenerator(data=test_view_response, target_type="snowflake")
 
 

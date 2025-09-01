@@ -14,7 +14,7 @@ from snowplow_signals.batch_autogen.utils.utils import (
     WarehouseType,
 )
 
-from ...models import AttributeOutput, Criterion, Event, ViewResponse
+from ...models import AttributeGroupResponse, AttributeOutput, Criterion, Event
 from ..utils.utils import timedelta_isoformat
 
 # FIXME can we extract from auto generated model attributes ?
@@ -38,12 +38,12 @@ class BaseConfigGenerator:
     events: list[str]
     properties: list[dict[str, str]]
     periods: Set[str]
-    data: ViewResponse
+    data: AttributeGroupResponse
     target_type: WarehouseType
 
     def __init__(
         self,
-        data: ViewResponse,
+        data: AttributeGroupResponse,
         target_type: WarehouseType,
     ):
         self.data = data

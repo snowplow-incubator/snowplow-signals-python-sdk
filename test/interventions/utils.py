@@ -1,8 +1,8 @@
 from snowplow_signals import (
-    EntityIdentifiers,
+    AttributeKeyIdentifiers,
     InterventionCriterion,
     InterventionInstance,
-    LinkEntity,
+    LinkAttributeKey,
     RuleIntervention,
 )
 
@@ -60,18 +60,21 @@ def get_example_intervention() -> RuleIntervention:
             value=example_intervention["criteria"]["value"],
         ),
         target_entities=[
-            LinkEntity(name=e["name"]) for e in example_intervention["target_entities"]
+            LinkAttributeKey(name=e["name"])
+            for e in example_intervention["target_entities"]
         ],
     )
 
 
-def get_publishable_intervention() -> tuple[EntityIdentifiers, InterventionInstance]:
-    return EntityIdentifiers({"domain_userid": ["123"]}), InterventionInstance(
+def get_publishable_intervention() -> (
+    tuple[AttributeKeyIdentifiers, InterventionInstance]
+):
+    return AttributeKeyIdentifiers({"domain_userid": ["123"]}), InterventionInstance(
         name="test_intervention", version=1
     )
 
 
-def get_intervention_stream() -> tuple[EntityIdentifiers, bytes]:
+def get_intervention_stream() -> tuple[AttributeKeyIdentifiers, bytes]:
     import json
     import uuid
 
@@ -83,6 +86,6 @@ def get_intervention_stream() -> tuple[EntityIdentifiers, bytes]:
         attributes={},
     )
 
-    return EntityIdentifiers(
+    return AttributeKeyIdentifiers(
         {"domain_userid": ["123"]}
     ), f"data: {json.dumps(instance, indent=None)}\n\n".encode("utf8")

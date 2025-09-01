@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Annotated
 from pydantic import BeforeValidator, EmailStr, Field
 
 from .model import Service as ServiceInput
-from .model import VersionedLinkView
+from .model import VersionedLinkAttributeGroup
 from .view import View
 
 if TYPE_CHECKING:
@@ -11,12 +11,12 @@ if TYPE_CHECKING:
 
 
 def view_to_link(
-    views: list[View | VersionedLinkView | dict] | None,
-) -> list[VersionedLinkView | dict] | None:
+    views: list[View | VersionedLinkAttributeGroup | dict] | None,
+) -> list[VersionedLinkAttributeGroup | dict] | None:
     if views:
         views = [
             (
-                VersionedLinkView(name=view.name, version=view.version)
+                VersionedLinkAttributeGroup(name=view.name, version=view.version)
                 if isinstance(view, View)
                 else view
             )
@@ -26,15 +26,15 @@ def view_to_link(
 
 
 class Service(ServiceInput):
-    views: Annotated[list[VersionedLinkView | View], BeforeValidator(view_to_link)] = (
-        Field(
-            None,
-            description="A list containing views, representing the features in the service.",
-            max_length=100,
-            min_length=1,
-            title="Views",
-        )  # type: ignore[assignment]
-    )
+    views: Annotated[
+        list[VersionedLinkAttributeGroup | View], BeforeValidator(view_to_link)
+    ] = Field(
+        None,
+        description="A list containing views, representing the features in the service.",
+        max_length=100,
+        min_length=1,
+        title="Views",
+    )  # type: ignore[assignment]
     owner: EmailStr = Field(
         ...,
         description="The owner of the service, typically the email of the primary maintainer. This field is required for service creation.",

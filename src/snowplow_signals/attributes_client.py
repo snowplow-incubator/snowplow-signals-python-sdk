@@ -2,10 +2,10 @@ from typing import Any
 
 from .api_client import ApiClient
 from .models import (
-    EntityIdentifiers,
+    AttributeKeyIdentifiers,
+    GetAttributeGroupAttributesRequest,
     GetAttributesResponse,
     GetServiceAttributesRequest,
-    GetViewAttributesRequest,
 )
 
 
@@ -26,11 +26,11 @@ class AttributesClient:
             if isinstance(attributes, list)
             else [attributes]
         )
-        entity_identifiers = EntityIdentifiers(root={entity: [identifier]})
+        entity_identifiers = AttributeKeyIdentifiers(root={entity: [identifier]})
 
-        request = GetViewAttributesRequest(
+        request = GetAttributeGroupAttributesRequest(
             attributes=attributes,
-            entities=entity_identifiers,
+            attribute_keys=entity_identifiers,
         )
         return self._make_request(request)
 
@@ -40,16 +40,16 @@ class AttributesClient:
         entity: str,
         identifier: str,
     ) -> dict[str, Any]:
-        entity_identifiers = EntityIdentifiers(root={entity: [identifier]})
+        entity_identifiers = AttributeKeyIdentifiers(root={entity: [identifier]})
 
         request = GetServiceAttributesRequest(
             service=name,
-            entities=entity_identifiers,
+            attribute_keys=entity_identifiers,
         )
         return self._make_request(request)
 
     def _make_request(
-        self, request: GetViewAttributesRequest | GetServiceAttributesRequest
+        self, request: GetAttributeGroupAttributesRequest | GetServiceAttributesRequest
     ) -> dict[str, Any]:
         response = self.api_client.make_request(
             method="POST",

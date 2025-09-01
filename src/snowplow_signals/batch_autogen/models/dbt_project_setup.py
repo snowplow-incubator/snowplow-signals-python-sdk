@@ -15,7 +15,7 @@ from snowplow_signals.batch_autogen.models.batch_source_config import (
 from snowplow_signals.cli_logging import get_logger
 
 from ...api_client import ApiClient
-from ...models import ViewResponse
+from ...models import AttributeGroupResponse
 from ..utils.utils import WarehouseType, filter_latest_model_version_by_name
 
 logger = get_logger(__name__)
@@ -67,7 +67,7 @@ class DbtProjectSetup:
 
     def _get_attribute_view_project_config(
         self,
-        attribute_view: ViewResponse,
+        attribute_view: AttributeGroupResponse,
     ) -> DbtBaseConfig:
         generator = BaseConfigGenerator(
             data=attribute_view, target_type=self.target_type
@@ -75,7 +75,7 @@ class DbtProjectSetup:
         return generator.create_base_config()
 
     def _get_default_batch_source_config(
-        self, attribute_view: ViewResponse
+        self, attribute_view: AttributeGroupResponse
     ) -> BatchSourceConfig:
         """
         Creates a pre-populated config file for users to fill out for materialization.
@@ -115,15 +115,15 @@ class DbtProjectSetup:
 
         return True
 
-    def _fetch_attribute_views(self) -> list[ViewResponse]:
+    def _fetch_attribute_views(self) -> list[AttributeGroupResponse]:
         attribute_views = self.api_client.make_request(
             method="GET",
-            endpoint="registry/views/",
+            endpoint="registry/attribute_groups/",
             params={"offline": True, "property_syntax": self.target_type},
         )
-        return [ViewResponse.model_validate(view) for view in attribute_views]
+        return [AttributeGroupResponse.model_validate(view) for view in attribute_views]
 
-    def _get_attribute_views(self) -> list[ViewResponse]:
+    def _get_attribute_views(self) -> list[AttributeGroupResponse]:
         logger.info("🔗 Fetching attribute views from API")
         all_attribute_views = self._fetch_attribute_views()
         logger.debug(

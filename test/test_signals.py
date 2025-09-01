@@ -3,7 +3,7 @@ import json
 import httpx
 from respx import MockRouter
 
-from snowplow_signals import Entity, Service, Signals, View, domain_userid
+from snowplow_signals import AttributeKey, Service, Signals, View, domain_userid
 
 
 class TestSignalsPublish:
@@ -68,7 +68,7 @@ class TestSignalsPublish:
     def test_publish_entity_view_and_service(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
-        custom_entity = Entity(
+        custom_entity = AttributeKey(
             name="custom_entity",
         )
         view = View(

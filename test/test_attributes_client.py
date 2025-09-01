@@ -69,7 +69,7 @@ class TestAttributesClient:
             import json
 
             body = json.loads(request.content)
-            # Verify GetServiceAttributesRequest structure with EntityIdentifiers wrapper
+            # Verify GetServiceAttributesRequest structure with AttributeKeyIdentifiers wrapper
             assert "entities" in body
             assert body["entities"]["domain_userid"] == ["user-123"]
             assert "service" in body

@@ -8,12 +8,12 @@ from snowplow_signals import (
     Attribute,
     BatchSource,
     Event,
-    LinkEntity,
+    LinkAttributeKey,
     View,
     domain_userid,
 )
 from snowplow_signals.api_client import ApiClient
-from snowplow_signals.models import ViewResponse
+from snowplow_signals.models import AttributeGroupResponse
 from snowplow_signals.registry_client import RegistryClient
 
 from .utils import MOCK_ORG_ID
@@ -43,9 +43,9 @@ class TestRegistryClient:
                 )
             ],
         )
-        view_output = ViewResponse(
+        view_output = AttributeGroupResponse(
             name="my_view",
-            entity=LinkEntity(name="user"),
+            entity=LinkAttributeKey(name="user"),
             feast_name="my_view_v1",
             offline=True,
             stream_source_name="my_stream",
@@ -92,9 +92,9 @@ class TestRegistryClient:
                 table="my_table",
             ),
         )
-        view_output = ViewResponse(
+        view_output = AttributeGroupResponse(
             name="my_view",
-            entity=LinkEntity(name="user"),
+            entity=LinkAttributeKey(name="user"),
             feast_name="my_view_v1",
             offline=True,
             stream_source_name="my_stream",
@@ -130,9 +130,9 @@ class TestRegistryClient:
             owner="test@example.com",
             attributes=[],
         )
-        view_output = ViewResponse(
+        view_output = AttributeGroupResponse(
             name="my_view",
-            entity=LinkEntity(name="user"),
+            entity=LinkAttributeKey(name="user"),
             feast_name="my_view_v1",
             offline=True,
             stream_source_name="my_stream",
@@ -181,9 +181,9 @@ class TestRegistryClient:
         assert delete_mock.called
 
     def test_delete_entity(self, respx_mock: MockRouter, api_client: ApiClient):
-        from snowplow_signals import Entity
+        from snowplow_signals import AttributeKey
 
-        entity = Entity(
+        entity = AttributeKey(
             name="my_entity",
         )
 
@@ -199,7 +199,7 @@ class TestRegistryClient:
     def test_delete_intervention(self, respx_mock: MockRouter, api_client: ApiClient):
         from snowplow_signals.models import (
             InterventionCriterion,
-            LinkEntity,
+            LinkAttributeKey,
             RuleIntervention,
         )
 
@@ -211,7 +211,7 @@ class TestRegistryClient:
                 operator=">",
                 value=5,
             ),
-            target_entities=[LinkEntity(name="user")],
+            target_entities=[LinkAttributeKey(name="user")],
         )
 
         delete_mock = respx_mock.delete(

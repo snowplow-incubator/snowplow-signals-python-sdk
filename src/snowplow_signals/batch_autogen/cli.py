@@ -235,9 +235,11 @@ def test_connection(
         if check_auth:
             logger.info("🔐 Testing authentication service...")
             try:
-                # Test auth by making a request to registry/views endpoint
+                # Test auth by making a request to registry/attribute_groups endpoint
                 api_client.make_request(
-                    method="GET", endpoint="registry/views/", params={"offline": True}
+                    method="GET",
+                    endpoint="registry/attribute_groups/",
+                    params={"offline": True},
                 )
                 auth_status = {"status": "ok", "message": "Authentication successful"}
                 logger.success("✅ Authentication service is healthy")

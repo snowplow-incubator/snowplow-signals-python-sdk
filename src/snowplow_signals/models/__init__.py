@@ -3,6 +3,11 @@ from .criterion_wrapper import Criterion
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
+    AttributeGroupReference,
+    AttributeGroupResponse,
+    AttributeKey,
+    AttributeKeyIdentifiers,
+    AttributeKeyReference,
     AttributeOutput,
     BatchSource,
     Criteria,
@@ -11,20 +16,17 @@ from .model import CriteriaAllInput as InterventionCriteriaAllInput
 from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
 from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
-    Entity,
-    EntityIdentifiers,
-    EntityReference,
     Event,
 )
 from .model import FieldModel as Field
 from .model import (
+    GetAttributeGroupAttributesRequest,
     GetServiceAttributesRequest,
-    GetViewAttributesRequest,
 )
 from .model import InterventionInstance as InterventionInstance
 from .model import (
     InterventionReference,
-    LinkEntity,
+    LinkAttributeKey,
     RuleInterventionInput,
     RuleInterventionOutput,
     SelectivePublishRequest,
@@ -34,10 +36,8 @@ from .model import (
     SignalsApiModelsInterventionCriterionCriterion as InterventionCriterion,
 )
 from .model import (
-    TestViewRequest,
+    TestAttributeGroupRequest,
     UnpublishRequest,
-    ViewReference,
-    ViewResponse,
 )
 from .service import Service
 from .view import BatchView, ExternalBatchView, StreamView, View
@@ -49,18 +49,18 @@ View
 StreamView
 BatchView
 ExternalBatchView
-ViewResponse
+AttributeGroupResponse
 Service
-Entity
-TestViewRequest
-GetViewAttributesRequest
+AttributeKey
+TestAttributeGroupRequest
+GetAttributeGroupAttributesRequest
 GetServiceAttributesRequest
 GetAttributesResponse
 BatchSource
 Attribute
 
 Field
-LinkEntity
+LinkAttributeKey
 Event
 # Interventions
 RuleIntervention
@@ -70,11 +70,11 @@ InterventionCriteriaAllInput
 InterventionCriteriaAnyInput
 InterventionCriteriaNoneInput
 InterventionCriterion
-EntityIdentifiers
+AttributeKeyIdentifiers
 
-ViewReference
+AttributeGroupReference
 ServiceReference
 InterventionReference
-EntityReference
+AttributeKeyReference
 SelectivePublishRequest
 UnpublishRequest

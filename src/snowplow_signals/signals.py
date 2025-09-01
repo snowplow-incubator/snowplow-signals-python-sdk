@@ -7,14 +7,14 @@ from .api_client import ApiClient
 from .attributes_client import AttributesClient
 from .interventions_client import InterventionsClient
 from .models import (
-    Entity,
-    EntityIdentifiers,
+    AttributeGroupResponse,
+    AttributeKey,
+    AttributeKeyIdentifiers,
     InterventionInstance,
     RuleIntervention,
     Service,
-    TestViewRequest,
+    TestAttributeGroupRequest,
     View,
-    ViewResponse,
 )
 from .registry_client import RegistryClient
 from .testing_client import TestingClient
@@ -35,8 +35,8 @@ class Signals:
         self.testing = TestingClient(api_client=self.api_client)
 
     def publish(
-        self, objects: list[View | Service | Entity | RuleIntervention]
-    ) -> list[View | Service | Entity | RuleIntervention]:
+        self, objects: list[View | Service | AttributeKey | RuleIntervention]
+    ) -> list[View | Service | AttributeKey | RuleIntervention]:
         """
         Creates or updates the provided objects in the Signals registry and publishes them to the compute engines.
 
@@ -53,8 +53,8 @@ class Signals:
         return updated_objects
 
     def unpublish(
-        self, objects: list[View | Service | Entity | RuleIntervention]
-    ) -> list[View | Service | Entity | RuleIntervention]:
+        self, objects: list[View | Service | AttributeKey | RuleIntervention]
+    ) -> list[View | Service | AttributeKey | RuleIntervention]:
         """
         Creates or updates the provided objects in the Signals registry and unpublishes them from the compute engines.
 
@@ -70,7 +70,9 @@ class Signals:
         updated_objects = self.registry.create_or_update(objects=to_update)
         return updated_objects
 
-    def delete(self, objects: list[View | Service | Entity | RuleIntervention]) -> None:
+    def delete(
+        self, objects: list[View | Service | AttributeKey | RuleIntervention]
+    ) -> None:
         """
         Deletes the provided objects from the Signals registry.
         Make sure to unpublish the objects first.
@@ -82,7 +84,7 @@ class Signals:
         """
         self.registry.delete(objects=objects)
 
-    def get_view(self, name: str, version: int | None = None) -> ViewResponse:
+    def get_view(self, name: str, version: int | None = None) -> AttributeGroupResponse:
         """
         Returns a View from the Signals registry by name.
         If no version is provided, returns the latest one.
@@ -158,16 +160,16 @@ class Signals:
             app_ids: The list of app ids to extract features for.
             window: The time window to extract features from.
         """
-        request = TestViewRequest(
-            view=view,
-            entity_ids=entity_ids,
+        request = TestAttributeGroupRequest(
+            attribute_group=view,
+            attribute_key_ids=entity_ids,
             window=window,
             app_ids=app_ids,
         )
         return self.testing.test_view(request=request)
 
     def push_intervention(
-        self, targets: EntityIdentifiers, intervention: InterventionInstance
+        self, targets: AttributeKeyIdentifiers, intervention: InterventionInstance
     ):
         """
         Publish the given intervention to any active subscribers for the given lists of Attribute Keys.
@@ -180,7 +182,7 @@ class Signals:
         """
         return self.interventions.publish(intervention, targets)
 
-    def pull_interventions(self, targets: EntityIdentifiers):
+    def pull_interventions(self, targets: AttributeKeyIdentifiers):
         """
         Return a subscription for interventions targeting the given Attribute Key targets.
 

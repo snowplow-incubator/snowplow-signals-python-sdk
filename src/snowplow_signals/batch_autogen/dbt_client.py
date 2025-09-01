@@ -328,9 +328,7 @@ class BatchAutogenClient:
         logger.info(f"🛠️ Registering batch_source for table {table_name}.")
 
         try:
-            view_update_endpoint = (
-                f"registry/views/{view_name}/versions/{view_version}/batch_source"
-            )
+            view_update_endpoint = f"registry/attribute_groups/{view_name}/versions/{view_version}/batch_source"
             data = batch_source_config.model_dump(mode="json", exclude_none=True)
             self.api_client.make_request(
                 method="PUT", endpoint=view_update_endpoint, data=data
