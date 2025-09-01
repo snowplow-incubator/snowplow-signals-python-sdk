@@ -103,9 +103,9 @@ export SNOWPLOW_REPO_PATH="./my_snowplow_repo"
 
 ```bash
 # Initialize a DBT project
-snowplow-batch-autogen init --repo-path=path/to/your/repo --target-type=snowflake [--project-name=your_project_name]
+snowplow-batch-engine init --repo-path=path/to/your/repo --target-type=snowflake [--project-name=your_project_name]
 
 # Generate DBT models
-snowplow-batch-autogen generate --repo-path=path/to/your/repo --target-type=bigquery [--project-name=your_project_name] [--update]
+snowplow-batch-engine generate --repo-path=path/to/your/repo --target-type=bigquery [--project-name=your_project_name] [--update]
 ```
 

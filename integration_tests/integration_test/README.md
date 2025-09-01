@@ -1,4 +1,4 @@
-# snowplow-batch-autogen-integration-tests
+# snowplow-batch-engine-integration-tests
 
 Integration test suite for batch autogen dbt models.
 

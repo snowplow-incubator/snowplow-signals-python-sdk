@@ -99,7 +99,7 @@ You can also use the CLI interface (after installing the SDK):
 
 ```sh
 # Initialize a dbt project
-poetry run snowplow-batch-autogen init \
+poetry run snowplow-batch-engine init \
     --api-url=http://localhost:8087 \
     --api-key=YOUR_API_KEY \
     --api-key-id=YOUR_API_KEY_ID \
@@ -110,7 +110,7 @@ poetry run snowplow-batch-autogen init \
     [--debug]
 
 # Generate dbt models
-poetry run snowplow-batch-autogen generate \
+poetry run snowplow-batch-engine generate \
     --api-url=http://localhost:8087 \
     --api-key=YOUR_API_KEY \
     --api-key-id=YOUR_API_KEY_ID \
@@ -137,20 +137,20 @@ The CLI commands support the following options:
 If you want to make use of your .env file to load your variables, wrap it around the command like this:
 
 ```sh
-poetry run dotenv run snowplow-batch-autogen materialize --view-name ecommerce_transaction_interactions_features --view-version 1
+poetry run dotenv run snowplow-batch-engine materialize --view-name ecommerce_transaction_interactions_features --view-version 1
 ```
 
 You can use the -f flag to specify a different file you have e.g .env.dev:
 
 ```sh
 # test connection
-poetry run dotenv -f .env.dev run snowplow-batch-autogen test-connection --verbose
+poetry run dotenv -f .env.dev run snowplow-batch-engine test-connection --verbose
 # initialize dbt project
-poetry run dotenv -f .env.dev run snowplow-batch-autogen init --repo-path local_testing --view-name test_batch_view --view-version 1 --target-type snowflake --verbose
+poetry run dotenv -f .env.dev run snowplow-batch-engine init --repo-path local_testing --view-name test_batch_view --view-version 1 --target-type snowflake --verbose
 # generate dbt project
-poetry run dotenv -f .env.dev run snowplow-batch-autogen generate --repo-path local_testing --project-name test_batch_view_1 --target-type snowflake --verbose 
+poetry run dotenv -f .env.dev run snowplow-batch-engine generate --repo-path local_testing --project-name test_batch_view_1 --target-type snowflake --verbose 
 # materialize table
-poetry run dotenv -f .env.dev run snowplow-batch-autogen materialize --view-name test_batch_view --view-version 1 --repo-path ./local_testing/ --verbose
+poetry run dotenv -f .env.dev run snowplow-batch-engine materialize --view-name test_batch_view --view-version 1 --repo-path ./local_testing/ --verbose
 ```
 
 ### 2. Testing all the CLI commands at once and run a full refresh of the generated package against a warehouse target
