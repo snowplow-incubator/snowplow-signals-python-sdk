@@ -85,7 +85,7 @@ def mock_successful_api_health(respx_mock: MockRouter):
 @pytest.fixture
 def mock_successful_registry_views(respx_mock: MockRouter):
     """Mock successful registry views response."""
-    respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/views/").mock(
+    respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/attribute_groups/").mock(
         return_value=httpx.Response(
             200,
             json={

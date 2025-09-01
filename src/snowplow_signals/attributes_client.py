@@ -18,7 +18,7 @@ class AttributesClient:
         name: str,
         version: int,
         attributes: list[str] | str,
-        entity: str,
+        attribute_key: str,
         identifier: str,
     ) -> dict[str, Any]:
         attributes = (
@@ -26,7 +26,7 @@ class AttributesClient:
             if isinstance(attributes, list)
             else [attributes]
         )
-        entity_identifiers = AttributeKeyIdentifiers(root={entity: [identifier]})
+        entity_identifiers = AttributeKeyIdentifiers(root={attribute_key: [identifier]})
 
         request = GetAttributeGroupAttributesRequest(
             attributes=attributes,
@@ -37,10 +37,10 @@ class AttributesClient:
     def get_service_attributes(
         self,
         name: str,
-        entity: str,
+        attribute_key: str,
         identifier: str,
     ) -> dict[str, Any]:
-        entity_identifiers = AttributeKeyIdentifiers(root={entity: [identifier]})
+        entity_identifiers = AttributeKeyIdentifiers(root={attribute_key: [identifier]})
 
         request = GetServiceAttributesRequest(
             service=name,

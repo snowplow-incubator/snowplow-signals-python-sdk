@@ -9,10 +9,11 @@ from snowplow_signals.batch_autogen.models.base_config_generator import (
 )
 from snowplow_signals.models import (
     AttributeGroupResponse,
-    AttributeOutput,
+    AttributeWithStringProperty,
     BatchSource,
-    Criteria,
+    CriteriaWithStringProperty,
     Criterion,
+    CriterionWithStringProperty,
     Event,
     LinkAttributeKey,
 )
@@ -23,7 +24,7 @@ def test_view_response():
     return AttributeGroupResponse(
         name="test_view",
         version=1,
-        entity=LinkAttributeKey(name="user"),
+        attribute_key=LinkAttributeKey(name="user"),
         ttl=timedelta(days=30),
         batch_source=BatchSource(
             name="test_source",
@@ -43,9 +44,10 @@ def test_view_response():
         feast_name="test_feast",
         offline=True,
         stream_source_name="test_stream",
-        entity_key="user_id",
+        attribute_key_or_name="user_id",
         attributes=[],
-        view_or_entity_ttl=timedelta(days=30),
+        attribute_group_or_attribute_key_ttl=timedelta(days=30),
+        full_name="test_view_1",
     )
 
 
@@ -62,7 +64,7 @@ class TestBaseConfigGenerator:
     def test_generate_column_name_basic(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
@@ -78,7 +80,7 @@ class TestBaseConfigGenerator:
     def test_generate_column_name_with_special_characters(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with special characters",
             type="int32",
@@ -94,7 +96,7 @@ class TestBaseConfigGenerator:
     def test_generate_column_name_with_numeric_start(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with numeric start",
             type="int32",
@@ -110,7 +112,7 @@ class TestBaseConfigGenerator:
     def test_generate_column_name_with_long_name(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with long name",
             type="int32",
@@ -126,7 +128,7 @@ class TestBaseConfigGenerator:
     def test_generate_column_name_with_property(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with property",
             type="float",
@@ -143,16 +145,16 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test generate_column_name with a single criteria"""
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with filter conditions",
             type="int32",
             events=[Event(vendor="com.test", name="test_event", version="1-0-0")],
             aggregation="counter",
             property=None,
-            criteria=Criteria(
+            criteria=CriteriaWithStringProperty(
                 all=[
-                    Criterion(
+                    CriterionWithStringProperty(
                         property="contexts_com_test_context_1[0].test_property",
                         operator="=",
                         value="test_value",
@@ -170,17 +172,19 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test generate_column_name with multiple criteria"""
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
             events=[Event(vendor="com.test", name="test_event", version="1-0-0")],
             aggregation="counter",
             property=None,
-            criteria=Criteria(
+            criteria=CriteriaWithStringProperty(
                 any=[
-                    Criterion(property="bar", operator=">", value=1),
-                    Criterion(property="baz", operator="=", value="x"),
+                    CriterionWithStringProperty(property="bar", operator=">", value=1),
+                    CriterionWithStringProperty(
+                        property="baz", operator="=", value="x"
+                    ),
                 ],
                 all=None,
             ),
@@ -192,7 +196,7 @@ class TestBaseConfigGenerator:
     def test_generate_column_name_with_multiple_events(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with multiple events",
             type="int32",
@@ -212,7 +216,7 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         # Create a valid attribute first
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with empty event name",
             type="int32",
@@ -235,7 +239,7 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test generate_column_name with basic case"""
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
@@ -253,7 +257,7 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test generate_column_name with property and multiple events"""
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
@@ -278,7 +282,7 @@ class TestBaseConfigGenerator:
         with pytest.raises(
             ValidationError, match="String should have at least 1 character"
         ):
-            attribute = AttributeOutput(
+            attribute = AttributeWithStringProperty(
                 name="test_attribute",
                 description="Test attribute",
                 type="int32",
@@ -290,7 +294,7 @@ class TestBaseConfigGenerator:
             )
 
         # Special characters in event name - only alphanumeric, hyphens, and underscores allowed
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
@@ -304,7 +308,7 @@ class TestBaseConfigGenerator:
         assert result == "count_test_event_123"  # Implementation removes hyphens
 
         # Multiple properties
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
@@ -469,7 +473,7 @@ class TestBaseConfigGenerator:
     def test_generate_modeling_steps_basic_counter(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
@@ -501,7 +505,7 @@ class TestBaseConfigGenerator:
     def test_generate_modeling_steps_first_aggregation(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with first aggregation",
             type="int32",
@@ -520,16 +524,16 @@ class TestBaseConfigGenerator:
     def test_generate_modeling_steps_with_filter_conditions(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with filter conditions",
             type="int32",
             events=[Event(vendor="com.test", name="test_event", version="1-0-0")],
             aggregation="counter",
             property=None,
-            criteria=Criteria(
+            criteria=CriteriaWithStringProperty(
                 all=[
-                    Criterion(
+                    CriterionWithStringProperty(
                         property="contexts_com_test_context_1[0].test_property",
                         operator="=",
                         value="test_value",
@@ -553,7 +557,7 @@ class TestBaseConfigGenerator:
     def test_generate_modeling_steps_with_period(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with period",
             type="int32",
@@ -575,7 +579,7 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         # Create a valid attribute first
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with unsupported aggregation",
             type="int32",
@@ -595,7 +599,7 @@ class TestBaseConfigGenerator:
     def test_generate_modeling_steps_first_without_property(
         self, base_config_generator: BaseConfigGenerator
     ):
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute with first aggregation but no property",
             type="int32",
@@ -615,7 +619,7 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test generate_modeling_steps with daily aggregation"""
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
@@ -636,7 +640,7 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test generate_modeling_steps with last aggregation"""
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
@@ -657,7 +661,7 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test generate_modeling_steps with unique_list aggregation"""
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="string",
@@ -680,7 +684,7 @@ class TestBaseConfigGenerator:
         """Test generate_modeling_steps with empty events list"""
         # The implementation requires at least one event
         with pytest.raises(ValueError, match="List should have at least 1 item"):
-            attribute = AttributeOutput(
+            attribute = AttributeWithStringProperty(
                 name="test_attribute",
                 description="Test attribute",
                 type="int32",
@@ -696,7 +700,7 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test generate_modeling_steps with invalid event name"""
-        attribute = AttributeOutput(
+        attribute = AttributeWithStringProperty(
             name="test_attribute",
             description="Test attribute",
             type="int32",
@@ -720,7 +724,10 @@ class TestBaseConfigGenerator:
         assert config.properties == []
         assert config.periods == []
         assert config.transformed_attributes == []
-        assert config.entity_key == base_config_generator.data.entity_key
+        assert (
+            config.attribute_key_or_name
+            == base_config_generator.data.attribute_key_or_name
+        )
 
     #
     def test_create_base_config_multiple_attributes(
@@ -728,7 +735,7 @@ class TestBaseConfigGenerator:
     ):
         """Test create_base_config with multiple attributes"""
         base_config_generator.data.attributes = [
-            AttributeOutput(
+            AttributeWithStringProperty(
                 name="first_attr",
                 description="First attribute",
                 type="int32",
@@ -738,7 +745,7 @@ class TestBaseConfigGenerator:
                 criteria=None,
                 period=None,
             ),
-            AttributeOutput(
+            AttributeWithStringProperty(
                 name="unique_attr",
                 description="Unique list attribute",
                 type="string",
@@ -754,7 +761,10 @@ class TestBaseConfigGenerator:
         assert len(config.properties) == 1
         assert len(config.periods) == 1
         assert len(config.transformed_attributes) == 2
-        assert config.entity_key == base_config_generator.data.entity_key
+        assert (
+            config.attribute_key_or_name
+            == base_config_generator.data.attribute_key_or_name
+        )
 
     def test_sorted_periods_filters_and_sorts(self, base_config_generator):
         base_config_generator.periods = {

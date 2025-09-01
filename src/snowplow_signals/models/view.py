@@ -23,12 +23,12 @@ def entity_to_link(entity: AttributeKey | LinkAttributeKey) -> LinkAttributeKey:
     return entity
 
 
-class View(AttributeGroupInput):
-    entity: Annotated[
+class AttributeGroup(AttributeGroupInput):
+    attribute_key: Annotated[
         AttributeKey | LinkAttributeKey, BeforeValidator(entity_to_link)
     ] = PydanticField(
         ...,
-        description="The entity that this view is associated with.",
+        description="The attribute key that this attribute group is associated with.",
     )  # type: ignore[assignment]
     owner: EmailStr = PydanticField(
         ...,
@@ -38,14 +38,14 @@ class View(AttributeGroupInput):
 
     def get_attributes(self, signals: "Signals", identifier: str):
         """
-        Retrieves the attributes for this view.
+        Retrieves the attributes for this attribute group.
 
         Args:
             signals: The Signals instance to use for retrieving attributes.
-            identifier: The entity identifier to retrieve attributes for.
+            identifier: The attribute key identifier to retrieve attributes for.
 
         Returns:
-            The attributes for the view.
+            The attributes for the attribute group.
         """
 
         return signals.get_view_attributes(
@@ -57,7 +57,7 @@ class View(AttributeGroupInput):
         )
 
 
-class StreamOrBatchView(View):
+class StreamOrBatchAttributeGroup(AttributeGroup):
     fields: Literal[None] = Field(
         default=None,
         description="Not applicable.",
@@ -69,7 +69,7 @@ class StreamOrBatchView(View):
     )
 
 
-class StreamView(StreamOrBatchView):
+class StreamAttributeGroup(StreamOrBatchAttributeGroup):
     """
     A stream view is a view that is calculated from events in real-time using the Signals streaming engine.
     """
@@ -86,7 +86,7 @@ class StreamView(StreamOrBatchView):
     )
 
 
-class BatchView(StreamOrBatchView):
+class BatchAttributeGroup(StreamOrBatchAttributeGroup):
     """
     A batch view is a view that is calculated from events in batch using the Signals batch engine.
     """
@@ -98,7 +98,7 @@ class BatchView(StreamOrBatchView):
     )
 
 
-class ExternalBatchView(View):
+class ExternalBatchAttributeGroup(AttributeGroup):
     """
     An external batch view is a view that is derived from an existing warehouse table.
     """

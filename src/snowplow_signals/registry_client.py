@@ -2,11 +2,11 @@ from pydantic import BaseModel
 
 from .api_client import ApiClient, SignalsAPIError
 from .models import (
+    AttributeGroup,
     AttributeGroupResponse,
     AttributeKey,
     RuleIntervention,
     Service,
-    View,
 )
 
 
@@ -15,9 +15,11 @@ class RegistryClient:
         self.api_client = api_client
 
     def create_or_update(
-        self, objects: list[View | Service | AttributeKey | RuleIntervention]
-    ) -> list[View | Service | AttributeKey | RuleIntervention]:
-        updated_objects: list[View | Service | AttributeKey | RuleIntervention] = []
+        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
+    ) -> list[AttributeGroup | Service | AttributeKey | RuleIntervention]:
+        updated_objects: list[
+            AttributeGroup | Service | AttributeKey | RuleIntervention
+        ] = []
 
         # First apply all entities in case they are dependencies of views
         for object in objects:
@@ -26,7 +28,7 @@ class RegistryClient:
 
         # Apply all views in case they are dependencies of services
         for object in objects:
-            if isinstance(object, View):
+            if isinstance(object, AttributeGroup):
                 updated_objects.append(self._create_or_update_view(view=object))
 
         for object in objects:
@@ -42,7 +44,7 @@ class RegistryClient:
         return updated_objects
 
     def delete(
-        self, objects: list[View | Service | AttributeKey | RuleIntervention]
+        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
     ) -> None:
         """
         Deletes the provided objects from the Signals registry.
@@ -56,7 +58,7 @@ class RegistryClient:
                 self._delete_service(service=object)
 
         for object in objects:
-            if isinstance(object, View):
+            if isinstance(object, AttributeGroup):
                 self._delete_view(view=object)
 
         for object in objects:
@@ -84,7 +86,7 @@ class RegistryClient:
         )
         return Service.model_validate(response)
 
-    def _create_or_update_view(self, view: View) -> View:
+    def _create_or_update_view(self, view: AttributeGroup) -> AttributeGroup:
         try:
             response = self.api_client.make_request(
                 method="POST",
@@ -103,7 +105,7 @@ class RegistryClient:
             else:
                 raise e
 
-        return View.model_validate(response)
+        return AttributeGroup.model_validate(response)
 
     def _create_or_update_service(self, service: Service) -> Service:
         try:
@@ -166,7 +168,8 @@ class RegistryClient:
 
         return AttributeKey.model_validate(response)
 
-    def _delete_view(self, view: View) -> None:
+    def _delete_view(self, view: AttributeGroup) -> None:
+
         self.api_client.make_request(
             method="DELETE",
             endpoint=(f"registry/attribute_groups/{view.name}/versions/{view.version}"),

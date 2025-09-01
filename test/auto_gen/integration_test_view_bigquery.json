@@ -3,7 +3,7 @@
         {
             "name": "ecommerce_transaction_interactions_features",
             "version": 1,
-            "entity": {
+            "attribute_key": {
                 "name": "user"
             },
             "ttl": null,
@@ -496,8 +496,9 @@
             "feast_name": "ecommerce_transaction_interactions_features_v1",
             "offline": true,
             "stream_source_name": "ecommerce_transaction_interactions_features_stream",
-            "entity_key": "domain_userid",
-            "view_or_entity_ttl": null
+            "attribute_key_or_name": "domain_userid",
+            "attribute_group_or_attribute_key_ttl": null,
+            "full_name": "ecommerce_transaction_interactions_features_v1"
         }
     ]
 }

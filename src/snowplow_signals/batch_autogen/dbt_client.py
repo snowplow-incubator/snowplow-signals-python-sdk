@@ -241,7 +241,9 @@ class BatchAutogenClient:
                 asset_subpath="",
                 filename="dbt_project",
                 asset_type="yml",
-                custom_context={"entity_key": base_config.entity_key},
+                custom_context={
+                    "attribute_key_or_name": base_config.attribute_key_or_name
+                },
             ),
             DbtAssetGenerator(
                 project_path=project_path,
@@ -262,7 +264,7 @@ class BatchAutogenClient:
                 asset_type="model",
                 custom_context={
                     **dbt_config.attributes.model_dump(),
-                    "entity_key": base_config.entity_key,
+                    "attribute_key_or_name": base_config.attribute_key_or_name,
                 },
             ),
             DbtAssetGenerator(

@@ -1,14 +1,15 @@
 from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
     Attribute,
+    AttributeGroup,
     AttributeKey,
     AttributeKeyIdentifiers,
+    BatchAttributeGroup,
     BatchSource,
-    BatchView,
-    Criteria,
+    CriteriaInput,
     Criterion,
     Event,
-    ExternalBatchView,
+    ExternalBatchAttributeGroup,
     Field,
 )
 from snowplow_signals.models import (
@@ -28,8 +29,7 @@ from snowplow_signals.models import (
     LinkAttributeKey,
     RuleIntervention,
     Service,
-    StreamView,
-    View,
+    StreamAttributeGroup,
 )
 from snowplow_signals.models.property_wrappers import (
     AtomicProperty,
@@ -51,13 +51,13 @@ from .definitions import (
 )
 
 Signals
-View
-ExternalBatchView
-StreamView
-BatchView
+AttributeGroup
+ExternalBatchAttributeGroup
+StreamAttributeGroup
+BatchAttributeGroup
 Service
 Attribute
-Criteria
+CriteriaInput
 Criterion
 Field
 BatchSource

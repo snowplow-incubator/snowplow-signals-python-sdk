@@ -98,10 +98,10 @@ class DbtProjectSetup:
 
         attribute_views = self._get_attribute_views()
         for attribute_view in attribute_views:
-            # Skip views that have no attributes (i.e., only materialize existing tables)
+            # Skip attribute groups that have no attributes (i.e., only materialize existing tables)
             if (not attribute_view.attributes) and attribute_view.fields:
                 logger.info(
-                    f"Skipping batch view '{attribute_view.name}_{attribute_view.version}' as it has no attributes and only fields."
+                    f"Skipping batch attribute group '{attribute_view.name}_{attribute_view.version}' as it has no attributes and only fields."
                 )
                 continue
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
@@ -124,13 +124,13 @@ class DbtProjectSetup:
         return [AttributeGroupResponse.model_validate(view) for view in attribute_views]
 
     def _get_attribute_views(self) -> list[AttributeGroupResponse]:
-        logger.info("🔗 Fetching attribute views from API")
+        logger.info("🔗 Fetching attribute groups from API")
         all_attribute_views = self._fetch_attribute_views()
         logger.debug(
             f"Received API response: {[view.model_dump_json() for view in all_attribute_views]}"
         )
         if len(all_attribute_views) == 0:
-            raise ValueError("No attribute views available.")
+            raise ValueError("No attribute groups available.")
         latest_views = filter_latest_model_version_by_name(all_attribute_views)
         # Filter by project name if specified
         if self.view_name:
@@ -140,7 +140,7 @@ class DbtProjectSetup:
                 ]
                 if not project_views:
                     raise ValueError(
-                        f"No project/attribute view found with name: {self.view_name}"
+                        f"No project/attribute group found with name: {self.view_name}"
                     )
                 return project_views
             else:
@@ -151,7 +151,7 @@ class DbtProjectSetup:
                 ]
                 if not project_views:
                     raise ValueError(
-                        f"No project/attribute view found with name: {self.view_name} and version: {self.view_version}"
+                        f"No project/attribute group found with name: {self.view_name} and version: {self.view_version}"
                     )
                 return project_views
         else:

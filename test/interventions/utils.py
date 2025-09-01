@@ -82,7 +82,7 @@ def get_intervention_stream() -> tuple[AttributeKeyIdentifiers, bytes]:
         intervention_id=str(uuid.uuid4()),
         name="test",
         version=1,
-        target_entity=dict(name="domain_userid", id="123"),
+        target_attribute_key=dict(name="domain_userid", id="123"),
         attributes={},
     )
 

@@ -111,7 +111,7 @@ def test_cli_test_connection_auth_fails(
     caplog.clear()
     with caplog.at_level("INFO"):
         # Mock failed registry views response
-        respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/views/").mock(
+        respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/attribute_groups/").mock(
             return_value=httpx.Response(401, json={"error": "Unauthorized"})
         )
 
@@ -170,7 +170,7 @@ def test_cli_test_connection_fails_with_exception(
     caplog.clear()
     with caplog.at_level("INFO"):
         # Mock connection error for auth endpoint
-        respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/views/").mock(
+        respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/attribute_groups/").mock(
             side_effect=httpx.ConnectError("Connection refused")
         )
 
@@ -196,7 +196,7 @@ def test_cli_test_connection_fails_with_non_200_status(
     caplog.clear()
     with caplog.at_level("INFO"):
         # Mock successful auth check
-        respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/views/").mock(
+        respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/attribute_groups/").mock(
             return_value=httpx.Response(200, json={"data": []})
         )
         # Mock non-200 health check response

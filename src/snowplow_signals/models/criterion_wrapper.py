@@ -7,6 +7,10 @@ from .property_wrappers.event import EventProperty
 class Criterion(SignalsApiModelsViewCriterionCriterion):
     """Wrapper for the Criterion model from the Signals API."""
 
+    property: str
+    operator: str
+    value: str | int | float | bool | list
+
     @classmethod
     def eq(
         cls,

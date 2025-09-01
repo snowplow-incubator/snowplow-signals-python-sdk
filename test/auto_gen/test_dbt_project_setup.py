@@ -15,7 +15,7 @@ def test_batch_setup_get_attribute_views_uses_all_views(
 ):
     mock_attribute_views_response = get_attribute_view_response()
     attribute_views_mock = respx_mock.get(
-        "http://localhost:8000/api/v1/registry/views/"
+        "http://localhost:8000/api/v1/registry/attribute_groups/"
     ).mock(return_value=httpx.Response(200, json=mock_attribute_views_response))
 
     dbt_project_setup = DbtProjectSetup(signals_client.api_client, "repo")
@@ -29,7 +29,7 @@ def test_batch_setup_get_attribute_views_uses_specified_view_name(
 ):
     mock_attribute_views_response = get_attribute_view_response()
     attribute_views_mock = respx_mock.get(
-        "http://localhost:8000/api/v1/registry/views/"
+        "http://localhost:8000/api/v1/registry/attribute_groups/"
     ).mock(return_value=httpx.Response(200, json=mock_attribute_views_response))
 
     dbt_project_setup = DbtProjectSetup(
@@ -47,7 +47,7 @@ def test_batch_setup_get_attribute_views_throws_on_empty_views(
     signals_client: Signals, respx_mock: MockRouter
 ):
     mock_attribute_views_response = get_attribute_view_response()
-    respx_mock.get("http://localhost:8000/api/v1/registry/views/").mock(
+    respx_mock.get("http://localhost:8000/api/v1/registry/attribute_groups/").mock(
         return_value=httpx.Response(200, json=mock_attribute_views_response)
     )
 
@@ -55,7 +55,7 @@ def test_batch_setup_get_attribute_views_throws_on_empty_views(
         signals_client.api_client, "repo", view_name="random_name"
     )
     with pytest.raises(
-        ValueError, match="No project/attribute view found with name: random_name"
+        ValueError, match="No project/attribute group found with name: random_name"
     ):
         dbt_project_setup._get_attribute_views()
 
@@ -72,7 +72,7 @@ def test_setup_all_projects_skips_views_with_no_attributes_and_fields(
         {
             "name": "with_attributes",
             "version": 1,
-            "entity": {"name": "user", "key": "user"},
+            "attribute_key": {"name": "user", "key": "user"},
             "attributes": [
                 {
                     "name": "attr1",
@@ -83,34 +83,37 @@ def test_setup_all_projects_skips_views_with_no_attributes_and_fields(
             ],
             "fields": [],
             "feast_name": "with_attributes_v1",
-            "entity_key": "user",
-            "view_or_entity_ttl": None,
+            "attribute_key_or_name": "user",
+            "attribute_group_or_attribute_key_ttl": None,
             "stream_source_name": None,
+            "full_name": "with_attributes_v1",
         },
         {
             "name": "empty_attributes_with_fields",
             "version": 1,
-            "entity": {"name": "user", "key": "user"},
+            "attribute_key": {"name": "user", "key": "user"},
             "attributes": [],
             "fields": [{"name": "f1", "type": "int32"}],
             "feast_name": "empty_attributes_with_fields_v1",
-            "entity_key": "user",
-            "view_or_entity_ttl": None,
+            "attribute_key_or_name": "user",
+            "attribute_group_or_attribute_key_ttl": None,
             "stream_source_name": None,
+            "full_name": "empty_attributes_with_fields_v1",
         },
         {
             "name": "none_attributes_with_fields",
             "version": 1,
-            "entity": {"name": "user", "key": "user"},
+            "attribute_key": {"name": "user", "key": "user"},
             "attributes": None,
             "fields": [{"name": "f2", "type": "int32"}],
             "feast_name": "none_attributes_with_fields_v1",
-            "entity_key": "user",
-            "view_or_entity_ttl": None,
+            "attribute_key_or_name": "user",
+            "attribute_group_or_attribute_key_ttl": None,
             "stream_source_name": None,
+            "full_name": "none_attributes_with_fields_v1",
         },
     ]
-    respx_mock.get("http://localhost:8000/api/v1/registry/views/").mock(
+    respx_mock.get("http://localhost:8000/api/v1/registry/attribute_groups/").mock(
         return_value=httpx.Response(200, json=mock_views)
     )
     dbt_project_setup = DbtProjectSetup(signals_client.api_client, "repo")

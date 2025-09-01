@@ -7,6 +7,7 @@ from .api_client import ApiClient
 from .attributes_client import AttributesClient
 from .interventions_client import InterventionsClient
 from .models import (
+    AttributeGroup,
     AttributeGroupResponse,
     AttributeKey,
     AttributeKeyIdentifiers,
@@ -14,7 +15,6 @@ from .models import (
     RuleIntervention,
     Service,
     TestAttributeGroupRequest,
-    View,
 )
 from .registry_client import RegistryClient
 from .testing_client import TestingClient
@@ -35,8 +35,8 @@ class Signals:
         self.testing = TestingClient(api_client=self.api_client)
 
     def publish(
-        self, objects: list[View | Service | AttributeKey | RuleIntervention]
-    ) -> list[View | Service | AttributeKey | RuleIntervention]:
+        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
+    ) -> list[AttributeGroup | Service | AttributeKey | RuleIntervention]:
         """
         Creates or updates the provided objects in the Signals registry and publishes them to the compute engines.
 
@@ -53,8 +53,8 @@ class Signals:
         return updated_objects
 
     def unpublish(
-        self, objects: list[View | Service | AttributeKey | RuleIntervention]
-    ) -> list[View | Service | AttributeKey | RuleIntervention]:
+        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
+    ) -> list[AttributeGroup | Service | AttributeKey | RuleIntervention]:
         """
         Creates or updates the provided objects in the Signals registry and unpublishes them from the compute engines.
 
@@ -71,7 +71,7 @@ class Signals:
         return updated_objects
 
     def delete(
-        self, objects: list[View | Service | AttributeKey | RuleIntervention]
+        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
     ) -> None:
         """
         Deletes the provided objects from the Signals registry.
@@ -86,14 +86,14 @@ class Signals:
 
     def get_view(self, name: str, version: int | None = None) -> AttributeGroupResponse:
         """
-        Returns a View from the Signals registry by name.
+        Returns an Attribute Group from the Signals registry by name.
         If no version is provided, returns the latest one.
 
         Args:
-            name: The name of the View.
-            version: The version of the View.
+            name: The name of the Attribute Group.
+            version: The version of the Attribute Group.
         Returns:
-            The View
+            The Attribute Group
         """
         view = self.registry.get_view(name, version)
         return view
@@ -103,16 +103,16 @@ class Signals:
         name: str,
         version: int,
         attributes: list[str] | str,
-        entity: str,
+        attribute_key: str,
         identifier: str,
     ) -> dict[str, Any]:
         """
         Retrieves the attributes for a given view by name and version.
 
         Args:
-            name: The name of the View.
-            version: The version of the View.
-            entity: The entity name to retrieve attributes for.
+            name: The name of the attribute group.
+            version: The version of the attribute group.
+            attribute_key: The attribute_key name to retrieve attributes for.
             identifier: The entity identifier to retrieve attributes for.
             attributes: The list of attributes to retrieve.
         """
@@ -120,14 +120,14 @@ class Signals:
             name=name,
             version=version,
             attributes=attributes,
-            entity=entity,
+            attribute_key=attribute_key,
             identifier=identifier,
         )
 
     def get_service_attributes(
         self,
         name: str,
-        entity: str,
+        attribute_key: str,
         identifier: str,
     ) -> dict[str, Any]:
         """
@@ -140,13 +140,13 @@ class Signals:
         """
         return self.attributes.get_service_attributes(
             name=name,
-            entity=entity,
+            attribute_key=attribute_key,
             identifier=identifier,
         )
 
     def test(
         self,
-        view: View,
+        view: AttributeGroup,
         entity_ids: list[str] = [],
         app_ids: list[str] = [],
         window: timedelta = timedelta(hours=1),

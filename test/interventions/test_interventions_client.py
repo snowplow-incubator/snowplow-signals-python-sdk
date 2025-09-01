@@ -96,9 +96,12 @@ class TestInterventionsClient:
             for intervention in sub:
                 some = True
                 assert intervention is not None
-                assert intervention.target_entity is not None
-                assert intervention.target_entity.name in targets.root
-                assert intervention.target_entity.id == targets.root["domain_userid"][0]
+                assert intervention.target_attribute_key is not None
+                assert intervention.target_attribute_key.name in targets.root
+                assert (
+                    intervention.target_attribute_key.id
+                    == targets.root["domain_userid"][0]
+                )
                 mock.assert_called_once_with(intervention)
 
             assert some

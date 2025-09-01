@@ -9,13 +9,18 @@ from .model import (
     AttributeKeyIdentifiers,
     AttributeKeyReference,
     AttributeOutput,
+    AttributeWithStringProperty,
     BatchSource,
-    Criteria,
 )
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
 from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
+from .model import (
+    CriteriaInput,
+)
 from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
+    CriteriaWithStringProperty,
+    CriterionWithStringProperty,
     Event,
 )
 from .model import FieldModel as Field
@@ -40,15 +45,20 @@ from .model import (
     UnpublishRequest,
 )
 from .service import Service
-from .view import BatchView, ExternalBatchView, StreamView, View
+from .view import (
+    AttributeGroup,
+    BatchAttributeGroup,
+    ExternalBatchAttributeGroup,
+    StreamAttributeGroup,
+)
 
 AttributeOutput
-Criteria
+CriteriaInput
 Criterion
-View
-StreamView
-BatchView
-ExternalBatchView
+AttributeGroup
+StreamAttributeGroup
+BatchAttributeGroup
+ExternalBatchAttributeGroup
 AttributeGroupResponse
 Service
 AttributeKey
@@ -78,3 +88,6 @@ InterventionReference
 AttributeKeyReference
 SelectivePublishRequest
 UnpublishRequest
+AttributeWithStringProperty
+CriteriaWithStringProperty
+CriterionWithStringProperty

@@ -17,7 +17,7 @@ from .utils import get_integration_test_view_response
 # Test constants
 TEST_VIEW_NAME = "ecommerce_transaction_interactions_features"
 TEST_PROJECT_NAME = "ecommerce_transaction_interactions_features_1"
-API_ENDPOINT = "http://localhost:8000/api/v1/registry/views/"
+API_ENDPOINT = "http://localhost:8000/api/v1/registry/attribute_groups/"
 
 
 def get_file_contents(directory: Path) -> dict:

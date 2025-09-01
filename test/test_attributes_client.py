@@ -24,8 +24,8 @@ class TestAttributesClient:
 
             body = json.loads(request.content)
             # Verify GetViewAttributesRequest structure
-            assert "entities" in body
-            assert body["entities"]["domain_userid"] == ["user-123"]
+            assert "attribute_keys" in body
+            assert body["attribute_keys"]["domain_userid"] == ["user-123"]
             assert "attributes" in body
             assert body["attributes"] == ["page_views_count"]
             # Should NOT have "service" field for view requests
@@ -39,7 +39,7 @@ class TestAttributesClient:
         response = attributes_client.get_view_attributes(
             name="my_view",
             version=1,
-            entity="domain_userid",
+            attribute_key="domain_userid",
             identifier=identifier,
             attributes="page_views_count",
         )
@@ -70,8 +70,8 @@ class TestAttributesClient:
 
             body = json.loads(request.content)
             # Verify GetServiceAttributesRequest structure with AttributeKeyIdentifiers wrapper
-            assert "entities" in body
-            assert body["entities"]["domain_userid"] == ["user-123"]
+            assert "attribute_keys" in body
+            assert body["attribute_keys"]["domain_userid"] == ["user-123"]
             assert "service" in body
             assert body["service"] == "my_service"
             # Should NOT have "attributes" field for service requests
@@ -84,7 +84,7 @@ class TestAttributesClient:
 
         response = attributes_client.get_service_attributes(
             name="my_service",
-            entity="domain_userid",
+            attribute_key="domain_userid",
             identifier=identifier,
         )
 
@@ -131,7 +131,7 @@ class TestAttributesClient:
         response = attributes_client.get_view_attributes(
             name="analytics",
             version=1,
-            entity="domain_userid",
+            attribute_key="domain_userid",
             identifier=identifier,
             attributes=["page_views", "session_duration", "bounce_rate"],
         )

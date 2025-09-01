@@ -800,7 +800,7 @@
                   }
               ]
           ],
-          "entity_key": "domain_userid"
+          "attribute_key_or_name": "domain_userid"
       }
     ''',
     'ecommerce_transaction_interactions_features_1/configs/batch_source_config.json': '''
@@ -1284,7 +1284,7 @@
       
       require-dbt-version: [">=1.6.0", "<2.0.0"]
       
-      profile: 'snowplow_autogen'
+      profile: 'snowplow_batch_engine'
       
       dispatch:
         - macro_namespace: dbt
@@ -1364,7 +1364,7 @@
           # PRIVATE VARS - DO NOT MODIFY
           snowplow__databricks_catalog: "hive_metastore"
           snowplow__events: "{{ source('atomic', 'events') }}"
-          snowplow__entity_key: 'domain_userid' # The entity key to use as grain for aggregations (e.g. domain_userid)
+          snowplow__entity_key: '' # The entity key to use as grain for aggregations (e.g. domain_userid)
       
       on-run-start:
         - "{{ snowplow_utils.snowplow_delete_from_manifest(var('models_to_remove',[])) }}"
@@ -1664,7 +1664,7 @@
       
       select
           
-        a.entity_key as domain_userid,
+        a.entity_key as ,
         {{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
         date({{ lower_limit }}) as lower_limit,
         date({{ upper_limit }}) as upper_limit
@@ -2060,7 +2060,7 @@
       {{
           config(
               materialized='table',
-              tags=['snowplow_autogen', 'dates_to_process'],
+              tags=['snowplow_batch_engine', 'dates_to_process'],
               sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
               post_hook=[
                   "{{ snowplow_utils.print_dates_to_process() }}"

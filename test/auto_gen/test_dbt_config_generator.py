@@ -37,7 +37,7 @@ def mock_base_config() -> DbtBaseConfig:
         properties=[{"geo_country": "geo_country"}],
         periods=["P7DT0H0M0.000000S"],
         transformed_attributes=[],
-        entity_key="domain_userid",
+        attribute_key_or_name="domain_userid",
     )
 
     return mock_base_config
