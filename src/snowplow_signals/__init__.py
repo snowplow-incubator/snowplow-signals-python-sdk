@@ -6,7 +6,7 @@ from snowplow_signals.models import (
     AttributeKeyIdentifiers,
     BatchAttributeGroup,
     BatchSource,
-    CriteriaInput,
+    Criteria,
     Criterion,
     Event,
     ExternalBatchAttributeGroup,
@@ -57,7 +57,7 @@ StreamAttributeGroup
 BatchAttributeGroup
 Service
 Attribute
-CriteriaInput
+Criteria
 Criterion
 Field
 BatchSource

@@ -603,7 +603,7 @@ class SignalsApiModelsViewCriterionCriterion(BaseModel):
     ] = Field(..., description="The value to compare the property to.", title="Value")
 
 
-class CriteriaInput(BaseModel):
+class Criteria(BaseModel):
     all: Optional[List[SignalsApiModelsViewCriterionCriterion]] = Field(
         default=None,
         description="An array of conditions used to filter the events. All conditions must be met.",
@@ -777,7 +777,7 @@ class AttributeInput(BaseModel):
         description="The path to the property on the event or entity you wish to use in the aggregation.",
         title="Property",
     )
-    criteria: Optional[CriteriaInput] = Field(
+    criteria: Optional[Criteria] = Field(
         default=None, description="An array of conditions used to filter the events."
     )
     period: Optional[timedelta] = Field(

@@ -3,7 +3,7 @@ import pytest
 from snowplow_signals import (
     AtomicProperty,
     Attribute,
-    CriteriaInput,
+    Criteria,
     Criterion,
     EntityProperty,
     Event,
@@ -27,7 +27,7 @@ class TestValidAttributes:
                 )
             ],
             aggregation="counter",
-            criteria=CriteriaInput(
+            criteria=Criteria(
                 all=[
                     Criterion(
                         property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -50,7 +50,7 @@ class TestValidAttributes:
             ],
             aggregation="max",
             property="contexts_com_snowplowanalytics_snowplow_ecommerce_cart_1[0].total_value",
-            criteria=CriteriaInput(
+            criteria=Criteria(
                 all=[
                     Criterion(
                         property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -72,7 +72,7 @@ class TestValidAttributes:
                     version="1-0-2",
                 )
             ],
-            criteria=CriteriaInput(
+            criteria=Criteria(
                 all=[
                     Criterion(
                         property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -106,7 +106,7 @@ class TestInvalidAttributes:
                     )
                 ],
                 aggregation="counter",
-                criteria=CriteriaInput(
+                criteria=Criteria(
                     all=[
                         Criterion(
                             property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -161,7 +161,7 @@ class TestInvalidAttributes:
                         version="1-0-2",
                     )
                 ],
-                criteria=CriteriaInput(
+                criteria=Criteria(
                     all=[
                         Criterion(
                             property="unstruct_event_com_snowplowanalytics_snowplow_ecommerce_snowplow_ecommerce_action_1:type",
@@ -277,7 +277,7 @@ class TestValidEventWrappers:
             events=[StructuredEvent()],
             aggregation="last",
             property=AtomicProperty(name="mkt_source"),
-            criteria=CriteriaInput(
+            criteria=Criteria(
                 all=[Criterion.eq(AtomicProperty(name="se_category"), "marketing")]
             ),
         )
