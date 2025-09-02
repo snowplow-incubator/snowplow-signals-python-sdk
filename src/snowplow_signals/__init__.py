@@ -1,5 +1,6 @@
 from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
+    AtomicProperty,
     Attribute,
     AttributeGroup,
     AttributeKey,
@@ -8,7 +9,9 @@ from snowplow_signals.models import (
     BatchSource,
     Criteria,
     Criterion,
+    EntityProperty,
     Event,
+    EventProperty,
     ExternalBatchAttributeGroup,
     Field,
 )
@@ -21,20 +24,13 @@ from snowplow_signals.models import (
 from snowplow_signals.models import (
     InterventionCriteriaNoneInput as InterventionCriteriaNone,
 )
-from snowplow_signals.models import (
-    InterventionCriterion,
-)
+from snowplow_signals.models import InterventionCriterion
 from snowplow_signals.models import InterventionInstance as InterventionInstance
 from snowplow_signals.models import (
     LinkAttributeKey,
     RuleIntervention,
     Service,
     StreamAttributeGroup,
-)
-from snowplow_signals.models.property_wrappers import (
-    AtomicProperty,
-    EntityProperty,
-    EventProperty,
 )
 from snowplow_signals.signals import Signals
 

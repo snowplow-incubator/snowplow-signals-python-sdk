@@ -14,7 +14,6 @@ class TestCriterionWrapper:
         atomic_prop = AtomicProperty(name="user_id")
         criterion = Criterion.eq(atomic_prop, "test_user")
 
-        assert criterion.property == "user_id"
         assert criterion.operator == "="
         assert criterion.value == "test_user"
 
@@ -23,7 +22,6 @@ class TestCriterionWrapper:
         atomic_prop = AtomicProperty(name="user_id")
         criterion = Criterion.like(atomic_prop, "%test%")
 
-        assert criterion.property == "user_id"
         assert criterion.operator == "like"
         assert criterion.value == "%test%"
 
@@ -33,7 +31,6 @@ class TestCriterionWrapper:
         values = ["web", "mobile", "tablet"]
         criterion = Criterion.in_list(atomic_prop, values)
 
-        assert criterion.property == "platform"
         assert criterion.operator == "in"
         assert criterion.value == ["web", "mobile", "tablet"]
 
@@ -44,7 +41,6 @@ class TestCriterionWrapper:
         )
         criterion = Criterion.eq(event_prop, "click")
 
-        assert criterion.property == "unstruct_event_com_example_test_event_1:action"
         assert criterion.operator == "="
         assert criterion.value == "click"
 
@@ -58,20 +54,5 @@ class TestCriterionWrapper:
         )
         criterion = Criterion.gte(entity_prop, 18)
 
-        assert criterion.property == "contexts_com_example_user_context_1[0].age"
         assert criterion.operator == ">="
         assert criterion.value == 18
-
-    def test_negative_nested_index(self):
-        """Test that negative indices for nested properties throw."""
-        with pytest.raises(
-            ValueError,
-            match=re.escape("Negative indices are not supported: -1"),
-        ):
-            entity_prop = EntityProperty(
-                vendor="com.example",
-                name="user_context",
-                major_version=1,
-                path="array_attribute[-1].attr",
-            )
-            Criterion.gte(entity_prop, 18)

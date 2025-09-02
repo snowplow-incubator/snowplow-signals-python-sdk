@@ -1,10 +1,9 @@
-from .attribute import Attribute
 from .criterion_wrapper import Criterion
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
+from .model import AtomicProperty, AttributeGroupReference, AttributeGroupResponse
+from .model import AttributeInput as Attribute
 from .model import (
-    AttributeGroupReference,
-    AttributeGroupResponse,
     AttributeKey,
     AttributeKeyIdentifiers,
     AttributeKeyReference,
@@ -19,13 +18,12 @@ from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
     CriteriaWithStringProperty,
     CriterionWithStringProperty,
+    EntityProperty,
     Event,
+    EventProperty,
 )
 from .model import FieldModel as Field
-from .model import (
-    GetAttributeGroupAttributesRequest,
-    GetServiceAttributesRequest,
-)
+from .model import GetAttributeGroupAttributesRequest, GetServiceAttributesRequest
 from .model import InterventionInstance as InterventionInstance
 from .model import (
     InterventionReference,
@@ -38,10 +36,7 @@ from .model import (
 from .model import (
     SignalsApiModelsInterventionCriterionCriterion as InterventionCriterion,
 )
-from .model import (
-    TestAttributeGroupRequest,
-    UnpublishRequest,
-)
+from .model import TestAttributeGroupRequest, UnpublishRequest
 from .service import Service
 from .view import (
     AttributeGroup,
@@ -89,3 +84,6 @@ UnpublishRequest
 AttributeWithStringProperty
 CriteriaWithStringProperty
 CriterionWithStringProperty
+AtomicProperty
+EventProperty
+EntityProperty

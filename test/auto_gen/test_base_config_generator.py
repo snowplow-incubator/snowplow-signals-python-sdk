@@ -8,6 +8,7 @@ from snowplow_signals.batch_autogen.models.base_config_generator import (
     BaseConfigGenerator,
 )
 from snowplow_signals.models import (
+    AtomicProperty,
     AttributeGroupResponse,
     AttributeWithStringProperty,
     BatchSource,
@@ -464,7 +465,9 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test get_filter_condition_name_component with mixed operators and special characters"""
-        filter_condition = Criterion(property="FooBar", operator="!=", value="A B.%/C")
+        filter_condition = Criterion.neq(
+            property=AtomicProperty(name="app_id"), value="A B.%/C"
+        )
         result = base_config_generator._get_filter_condition_name_component(
             filter_condition
         )
