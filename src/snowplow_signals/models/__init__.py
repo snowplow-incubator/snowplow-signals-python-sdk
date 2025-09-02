@@ -11,10 +11,10 @@ from .model import (
     AttributeOutput,
     AttributeWithStringProperty,
     BatchSource,
-    Criteria,
 )
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
 from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
+from .model import CriteriaInput as Criteria
 from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
     CriteriaWithStringProperty,
