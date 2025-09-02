@@ -84,7 +84,9 @@ class Signals:
         """
         self.registry.delete(objects=objects)
 
-    def get_view(self, name: str, version: int | None = None) -> AttributeGroupResponse:
+    def get_attribute_group(
+        self, name: str, version: int | None = None
+    ) -> AttributeGroupResponse:
         """
         Returns an Attribute Group from the Signals registry by name.
         If no version is provided, returns the latest one.
@@ -98,7 +100,7 @@ class Signals:
         view = self.registry.get_view(name, version)
         return view
 
-    def get_view_attributes(
+    def get_attribute_group_attributes(
         self,
         name: str,
         version: int,
@@ -107,7 +109,7 @@ class Signals:
         identifier: str,
     ) -> dict[str, Any]:
         """
-        Retrieves the attributes for a given view by name and version.
+        Retrieves the attributes for a given attribute group by name and version.
 
         Args:
             name: The name of the attribute group.
@@ -146,22 +148,22 @@ class Signals:
 
     def test(
         self,
-        view: AttributeGroup,
+        attribute_group: AttributeGroup,
         entity_ids: list[str] = [],
         app_ids: list[str] = [],
         window: timedelta = timedelta(hours=1),
     ) -> pd.DataFrame:
         """
-        Tests the view by extracting the features from the latest window of events in the atomic events table in warehouse.
+        Tests the attribute group by extracting the features from the latest window of events in the atomic events table in warehouse.
 
         Args:
-            view: The feature view to test.
+            attribute_group: The attribute group to test.
             entity_ids: The list of entity ids (e.g., domain_userid values) to extract features for. If empty, random 10 IDs will be used.
             app_ids: The list of app ids to extract features for.
             window: The time window to extract features from.
         """
         request = TestAttributeGroupRequest(
-            attribute_group=view,
+            attribute_group=attribute_group,
             attribute_key_ids=entity_ids,
             window=window,
             app_ids=app_ids,

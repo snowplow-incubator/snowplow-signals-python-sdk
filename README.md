@@ -45,7 +45,7 @@ view = StreamView(
 signals.publish([view])
 
 # Retrieve attributes
-response = signals.get_view_attributes(
+response = signals.get_attribute_group_attributes(
     name="my_view",
     version=1,
     entity="domain_sessionid",

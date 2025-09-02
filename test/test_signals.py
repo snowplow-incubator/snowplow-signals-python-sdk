@@ -294,7 +294,9 @@ class TestSignalsGetAttributes:
         assert response["domain_userid"] == "user-123"
         assert response["page_views_count"] == 10
 
-    def test_get_view_attributes(self, respx_mock: MockRouter, signals_client: Signals):
+    def test_get_attribute_group_attributes(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
         api_response = {
             "domain_userid": ["user-123"],
             "page_views_count": [10],
@@ -305,7 +307,7 @@ class TestSignalsGetAttributes:
             json__attributes=["my_view_v1:page_views_count"],
         ).mock(return_value=httpx.Response(200, json=api_response))
 
-        response = signals_client.get_view_attributes(
+        response = signals_client.get_attribute_group_attributes(
             name="my_view",
             version=1,
             attributes=["page_views_count"],

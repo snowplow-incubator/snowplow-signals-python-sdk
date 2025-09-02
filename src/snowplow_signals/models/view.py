@@ -48,7 +48,7 @@ class AttributeGroup(AttributeGroupInput):
             The attributes for the attribute group.
         """
 
-        return signals.get_view_attributes(
+        return signals.get_attribute_group_attributes(
             name=self.name,
             version=self.version,
             entity=self.entity.name,
