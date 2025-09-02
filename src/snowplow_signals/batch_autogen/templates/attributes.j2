@@ -9,7 +9,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {{
   config(
     materialized='table',
-    dist=var('snowplow__entity_key', 'domain_userid'),
+    dist=var('snowplow__attribute_key', 'domain_userid'),
     partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
       "field": "valid_at_tstamp",
       "data_type": "timestamp"
@@ -23,7 +23,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 with  aggregations as (
 
   select 
-    entity_key
+    attribute_key
     , min(1) --dummy value in case there are no aggregate values in the view definitions
 {% endraw %}
     {% for attribute in lifetime_aggregates %}
@@ -51,7 +51,7 @@ with  aggregations as (
   {% if has_period %}
     , filtered_data_{{ col }} as (
       select
-          entity_key,
+          attribute_key,
           {{ agg_col }}
       from {% raw %}{{ ref('{% endraw %}{{ project_name }}{% raw %}_daily_aggregates') }}
       where event_date >= {{ dbt.dateadd('day', -{% endraw %}{{ period }}, {% raw %}upper_limit) }}
@@ -60,7 +60,7 @@ with  aggregations as (
 
   , {{ col }}_flattened as (
     select
-        d.entity_key,
+        d.attribute_key,
         array_agg(distinct cast(f{%raw%}{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}){%endraw%} as {{ col }}
     from {{ filtered_table }} d,
          {%raw%}{% if target.type == 'snowflake' %}{% endraw %}
@@ -68,7 +68,7 @@ with  aggregations as (
          {%raw%}{% elif target.type == 'bigquery' %}{% endraw %}
            UNNEST(d.{{ col }}) AS f
          {%raw%}{% endif %}{% endraw %}
-    group by d.entity_key
+    group by d.attribute_key
   )
 {% endfor %}
 
@@ -77,17 +77,17 @@ with  aggregations as (
 , window_calculations as (
   
   select distinct
-    entity_key
+    attribute_key
 {% for attribute in first_value_attributes %}
   {% if attribute['period'] %}
     , first_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by entity_key
+                partition by attribute_key
                 order by last_event_tstamp ASC
                 ROWS BETWEEN {{ attribute['period'] }} PRECEDING AND CURRENT ROW
             ) as {{ attribute['column_name'] }}
   {% else %}
     , first_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by entity_key
+                partition by attribute_key
                 order by last_event_tstamp ASC
             ) as {{ attribute['column_name'] }}
   {% endif %}
@@ -95,13 +95,13 @@ with  aggregations as (
 {% for attribute in last_value_attributes %}
   {% if attribute['period'] %}
     , last_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by entity_key
+                partition by attribute_key
                 order by last_event_tstamp ASC
                 ROWS BETWEEN {{ attribute['period'] }} PRECEDING AND CURRENT ROW
             ) as {{ attribute['column_name'] }}
   {% else %}
     , last_value({{ attribute['daily_agg_column_name'] }}) over (
-                partition by entity_key
+                partition by attribute_key
                 order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
             ) as {{ attribute['column_name'] }}
   {% endif %}
@@ -115,7 +115,7 @@ with  aggregations as (
 
 select
     
-  a.entity_key as {{ entity_key }},
+  a.attribute_key as {{ attribute_key }},
   {% raw %}{{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
   date({{ lower_limit }}) as lower_limit,
   date({{ upper_limit }}) as upper_limit{% endraw %}
@@ -146,10 +146,10 @@ from aggregations as a
 
 {%- if first_value_attributes | length > 0 or last_value_attributes | length > 0 %}
 left join window_calculations as w
-on a.entity_key = w.entity_key
+on a.attribute_key = w.attribute_key
 {% endif %}
 
 {% for attribute in unique_list_attributes %}
   left join {{ attribute['column_name']}}_flattened as {{ attribute['column_name']}}_flattened
-  on a.entity_key = {{ attribute['column_name']}}_flattened.entity_key
+  on a.attribute_key = {{ attribute['column_name']}}_flattened.attribute_key
 {% endfor %}

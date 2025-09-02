@@ -8,12 +8,10 @@ from snowplow_signals.batch_autogen.models.base_config_generator import (
     BaseConfigGenerator,
 )
 from snowplow_signals.models import (
-    AtomicProperty,
     AttributeGroupResponse,
     AttributeWithStringProperty,
     BatchSource,
     CriteriaWithStringProperty,
-    Criterion,
     CriterionWithStringProperty,
     Event,
     LinkAttributeKey,
@@ -465,8 +463,8 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test get_filter_condition_name_component with mixed operators and special characters"""
-        filter_condition = Criterion.neq(
-            property=AtomicProperty(name="app_id"), value="A B.%/C"
+        filter_condition = CriterionWithStringProperty(
+            property="FooBar", operator="!=", value="A B.%/C"
         )
         result = base_config_generator._get_filter_condition_name_component(
             filter_condition
@@ -727,10 +725,7 @@ class TestBaseConfigGenerator:
         assert config.properties == []
         assert config.periods == []
         assert config.transformed_attributes == []
-        assert (
-            config.attribute_key_or_name
-            == base_config_generator.data.attribute_key_or_name
-        )
+        assert config.attribute_key == base_config_generator.data.attribute_key_or_name
 
     #
     def test_create_base_config_multiple_attributes(
@@ -764,10 +759,7 @@ class TestBaseConfigGenerator:
         assert len(config.properties) == 1
         assert len(config.periods) == 1
         assert len(config.transformed_attributes) == 2
-        assert (
-            config.attribute_key_or_name
-            == base_config_generator.data.attribute_key_or_name
-        )
+        assert config.attribute_key == base_config_generator.data.attribute_key_or_name
 
     def test_sorted_periods_filters_and_sorts(self, base_config_generator):
         base_config_generator.periods = {

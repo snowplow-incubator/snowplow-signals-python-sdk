@@ -3,9 +3,7 @@ import os
 from pathlib import Path
 from typing import Literal, Optional
 
-from snowplow_signals.batch_autogen.models.batch_source_config import (
-    BatchSourceConfig,
-)
+from snowplow_signals.batch_autogen.models.batch_source_config import BatchSourceConfig
 from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
 from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     DbtConfigGenerator,
@@ -241,9 +239,7 @@ class BatchAutogenClient:
                 asset_subpath="",
                 filename="dbt_project",
                 asset_type="yml",
-                custom_context={
-                    "attribute_key_or_name": base_config.attribute_key_or_name
-                },
+                custom_context={"attribute_key": base_config.attribute_key},
             ),
             DbtAssetGenerator(
                 project_path=project_path,
@@ -264,7 +260,7 @@ class BatchAutogenClient:
                 asset_type="model",
                 custom_context={
                     **dbt_config.attributes.model_dump(),
-                    "attribute_key_or_name": base_config.attribute_key_or_name,
+                    "attribute_key": base_config.attribute_key,
                 },
             ),
             DbtAssetGenerator(

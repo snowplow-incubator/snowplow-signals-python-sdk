@@ -151,7 +151,7 @@ def test_generate_models_single_project_success(
                 "properties": [],
                 "periods": [],
                 "transformed_attributes": [],
-                "attribute_key_or_name": "user_id",
+                "attribute_key": "user_id",
             },
             f,
         )
@@ -185,7 +185,7 @@ def test_generate_models_all_projects_success(
                     "properties": [],
                     "periods": [],
                     "transformed_attributes": [],
-                    "attribute_key_or_name": "user_id",
+                    "attribute_key": "user_id",
                 },
                 f,
             )
@@ -220,7 +220,7 @@ def test_generate_models_with_update_flag(
                 "properties": [],
                 "periods": [],
                 "transformed_attributes": [],
-                "attribute_key_or_name": "user_id",
+                "attribute_key": "user_id",
             },
             f,
         )

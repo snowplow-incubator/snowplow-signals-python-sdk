@@ -17,7 +17,7 @@ with prep as (
 
     select
         event_id,
-        {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key,
+        {{ var('snowplow__attribute_key', 'domain_userid') }} as attribute_key,
         derived_tstamp,
         date(derived_tstamp) as event_date,
         load_tstamp,
@@ -68,7 +68,7 @@ with prep as (
 
 select
     *,
-    {{ dbt_utils.generate_surrogate_key(['entity_key', 'event_date']) }} AS entity_key_date_id
+    {{ dbt_utils.generate_surrogate_key(['attribute_key', 'event_date']) }} AS attribute_key_date_id
 from prep
 {% endraw %}
     

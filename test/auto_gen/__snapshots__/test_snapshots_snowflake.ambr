@@ -800,7 +800,7 @@
                   }
               ]
           ],
-          "attribute_key_or_name": "domain_userid"
+          "attribute_key": "domain_userid"
       }
     ''',
     'ecommerce_transaction_interactions_features_1/configs/batch_source_config.json': '''
@@ -1364,7 +1364,7 @@
           # PRIVATE VARS - DO NOT MODIFY
           snowplow__databricks_catalog: "hive_metastore"
           snowplow__events: "{{ source('atomic', 'events') }}"
-          snowplow__entity_key: '' # The entity key to use as grain for aggregations (e.g. domain_userid)
+          snowplow__attribute_key: 'domain_userid' # The attribute key to use as grain for aggregations (e.g. domain_userid)
       
       on-run-start:
         - "{{ snowplow_utils.snowplow_delete_from_manifest(var('models_to_remove',[])) }}"
@@ -1485,7 +1485,7 @@
       {{
         config(
           materialized='table',
-          dist=var('snowplow__entity_key', 'domain_userid'),
+          dist=var('snowplow__attribute_key', 'domain_userid'),
           partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
             "field": "valid_at_tstamp",
             "data_type": "timestamp"
@@ -1499,7 +1499,7 @@
       with  aggregations as (
       
         select 
-          entity_key
+          attribute_key
           , min(1) --dummy value in case there are no aggregate values in the view definitions
       
           
@@ -1538,7 +1538,7 @@
       
         , op_systems_flattened as (
           select
-              d.entity_key,
+              d.attribute_key,
               array_agg(distinct cast(f{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}) as op_systems
           from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }} d,
                {% if target.type == 'snowflake' %}
@@ -1546,7 +1546,7 @@
                {% elif target.type == 'bigquery' %}
                  UNNEST(d.op_systems) AS f
                {% endif %}
-          group by d.entity_key
+          group by d.attribute_key
         )
       
         
@@ -1558,7 +1558,7 @@
         
           , filtered_data_op_systems_2 as (
             select
-                entity_key,
+                attribute_key,
                 op_systems_2
             from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }}
             where event_date >= {{ dbt.dateadd('day', -1, upper_limit) }}
@@ -1567,7 +1567,7 @@
       
         , op_systems_2_flattened as (
           select
-              d.entity_key,
+              d.attribute_key,
               array_agg(distinct cast(f{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}) as op_systems_2
           from filtered_data_op_systems_2 d,
                {% if target.type == 'snowflake' %}
@@ -1575,39 +1575,39 @@
                {% elif target.type == 'bigquery' %}
                  UNNEST(d.op_systems_2) AS f
                {% endif %}
-          group by d.entity_key
+          group by d.attribute_key
         )
       
       
       , window_calculations as (
         
         select distinct
-          entity_key
+          attribute_key
       
         
           , first_value(first_mkt_source) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC
                   ) as first_mkt_source
         
       
         
           , first_value(first_mkt_medium) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC
                   ) as first_mkt_medium
         
       
         
           , first_value(first_refr_source) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC
                   ) as first_referrer_source
         
       
         
           , first_value(first_refr_medium) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC
                   ) as first_referrer_medium
         
@@ -1615,42 +1615,42 @@
       
         
           , last_value(last_geo_country) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_geo_country
         
       
         
           , last_value(last_geo_timezone) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_timezone
         
       
         
           , last_value(last_operating_system_name) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_os
         
       
         
           , last_value(last_device_class) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_device_class
         
       
         
           , last_value(last_mkt_source) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_mkt_source
         
       
         
           , last_value(last_mkt_medium) over (
-                      partition by entity_key
+                      partition by attribute_key
                       order by last_event_tstamp ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
                   ) as last_mkt_medium
         
@@ -1664,7 +1664,7 @@
       
       select
           
-        a.entity_key as ,
+        a.attribute_key as domain_userid,
         {{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
         date({{ lower_limit }}) as lower_limit,
         date({{ upper_limit }}) as upper_limit
@@ -1709,15 +1709,15 @@
         , op_systems_2
       from aggregations as a
       left join window_calculations as w
-      on a.entity_key = w.entity_key
+      on a.attribute_key = w.attribute_key
       
       
       
         left join op_systems_flattened as op_systems_flattened
-        on a.entity_key = op_systems_flattened.entity_key
+        on a.attribute_key = op_systems_flattened.attribute_key
       
         left join op_systems_2_flattened as op_systems_2_flattened
-        on a.entity_key = op_systems_2_flattened.entity_key
+        on a.attribute_key = op_systems_2_flattened.attribute_key
   
     ''',
     'ecommerce_transaction_interactions_features_1/models/base/manifest/ecommerce_transaction_interactions_features_1_incremental_manifest.sql': '''
@@ -1839,16 +1839,16 @@
         config(
           materialized='incremental',
           sort='event_date',
-          dist='entity_key',
+          dist='attribute_key',
           partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
             "field": "event_date",
             "data_type": "date"
           }, databricks_val='event_date'),
-          unique_key='entity_key_date_id',
+          unique_key='attribute_key_date_id',
           upsert_date_key='event_date',
           tags=["derived"],
           on_schema_change='append_new_columns',
-          cluster_by=snowplow_utils.get_value_by_target_type(bigquery_val=["event_date","entity_key"], snowflake_val=["event_date"]),
+          cluster_by=snowplow_utils.get_value_by_target_type(bigquery_val=["event_date","attribute_key"], snowflake_val=["event_date"]),
           sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
           tblproperties={
             'delta.autoOptimize.optimizeWrite' : 'true',
@@ -1908,7 +1908,7 @@
               tags=["this_run"],
               materialized="table",
               sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
-              unique_key=['entity_key_date_id']
+              unique_key=['attribute_key_date_id']
           )
       }}
       
@@ -1922,8 +1922,8 @@
       , aggregations as (
         
         select
-          entity_key_date_id,
-          entity_key,
+          attribute_key_date_id,
+          attribute_key,
           event_date
           
           
@@ -1982,28 +1982,28 @@
         
         select
           *,
-          last_value(derived_tstamp) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_event_tstamp
+          last_value(derived_tstamp) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_event_tstamp
               
           
-            , first_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_mkt_source
-            , first_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_mkt_medium
-            , first_value(refr_source) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_refr_source
-            , first_value(refr_medium) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_refr_medium
+            , first_value(mkt_source) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_mkt_source
+            , first_value(mkt_medium) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_mkt_medium
+            , first_value(refr_source) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_refr_source
+            , first_value(refr_medium) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as first_refr_medium
           
-            , last_value(geo_country) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_geo_country
-            , last_value(geo_timezone) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_geo_timezone
-            , last_value(operating_system_name) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_operating_system_name
-            , last_value(device_class) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_device_class
-            , last_value(mkt_source) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_mkt_source
-            , last_value(mkt_medium) over (partition by entity_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_mkt_medium
+            , last_value(geo_country) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_geo_country
+            , last_value(geo_timezone) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_geo_timezone
+            , last_value(operating_system_name) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_operating_system_name
+            , last_value(device_class) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_device_class
+            , last_value(mkt_source) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_mkt_source
+            , last_value(mkt_medium) over (partition by attribute_key_date_id order by derived_tstamp ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_mkt_medium
         
         from events
         
       )
       
       select distinct
-        a.entity_key_date_id,
-        a.entity_key,
+        a.attribute_key_date_id,
+        a.attribute_key,
         a.event_date,
         w.last_event_tstamp
       
@@ -2044,7 +2044,7 @@
       from aggregations a
       
       left join window_calculations w
-      on w.entity_key_date_id = a.entity_key_date_id
+      on w.attribute_key_date_id = a.attribute_key_date_id
       
   
     ''',
@@ -2132,7 +2132,7 @@
       
           select
               event_id,
-              {{ var('snowplow__entity_key', 'domain_userid') }} as entity_key,
+              {{ var('snowplow__attribute_key', 'domain_userid') }} as attribute_key,
               derived_tstamp,
               date(derived_tstamp) as event_date,
               load_tstamp,
@@ -2327,7 +2327,7 @@
       
       select
           *,
-          {{ dbt_utils.generate_surrogate_key(['entity_key', 'event_date']) }} AS entity_key_date_id
+          {{ dbt_utils.generate_surrogate_key(['attribute_key', 'event_date']) }} AS attribute_key_date_id
       from prep
       
           

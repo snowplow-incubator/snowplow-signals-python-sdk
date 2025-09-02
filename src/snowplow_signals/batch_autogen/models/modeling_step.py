@@ -6,7 +6,7 @@ from pydantic import Field as PydanticField
 
 class FilterCondition(BaseModel):
     property: str = PydanticField(
-        description="The path to the property on the event or entity or the specific column in the upstream modelling aggregate layer you wish to filter."
+        description="The path to the property on the event or attribute or the specific column in the upstream modelling aggregate layer you wish to filter."
     )
     operator: Literal[
         "=",

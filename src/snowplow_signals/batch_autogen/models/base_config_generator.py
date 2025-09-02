@@ -10,14 +10,12 @@ from snowplow_signals.batch_autogen.models.modeling_step import (
     ModelingCriteria,
     ModelingStep,
 )
-from snowplow_signals.batch_autogen.utils.utils import (
-    WarehouseType,
-)
+from snowplow_signals.batch_autogen.utils.utils import WarehouseType
 
 from ...models import (
     AttributeGroupResponse,
     AttributeWithStringProperty,
-    Criterion,
+    CriterionWithStringProperty,
     Event,
 )
 from ..utils.utils import timedelta_isoformat
@@ -36,7 +34,7 @@ class DbtBaseConfig(BaseModel):
     properties: list[dict[str, str]]
     periods: list[str]
     transformed_attributes: list[list[ModelingStep]]
-    attribute_key_or_name: str
+    attribute_key: str
 
 
 class BaseConfigGenerator:
@@ -155,7 +153,9 @@ class BaseConfigGenerator:
         event_strings.sort()
         return event_strings
 
-    def _get_filter_condition_name_component(self, filter_condition: Criterion) -> str:
+    def _get_filter_condition_name_component(
+        self, filter_condition: CriterionWithStringProperty
+    ) -> str:
         """Generate a SQL-friendly name component from a filter condition"""
         if not filter_condition:
             return ""
@@ -406,5 +406,5 @@ class BaseConfigGenerator:
             properties=self.properties,
             periods=self.sorted_periods,
             transformed_attributes=transformed_attributes,
-            attribute_key_or_name=self.data.attribute_key_or_name,
+            attribute_key=self.data.attribute_key_or_name,
         )
