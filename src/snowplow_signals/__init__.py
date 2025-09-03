@@ -1,3 +1,4 @@
+from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
     Attribute,
     BatchSource,
@@ -5,10 +6,12 @@ from snowplow_signals.models import (
     Criteria,
     Criterion,
     Entity,
+)
+from snowplow_signals.models import EntityIdentifiers as EntityIdentifiers
+from snowplow_signals.models import (
     Event,
     ExternalBatchView,
     Field,
-    InterventionClearAttributeContext,
 )
 from snowplow_signals.models import (
     InterventionCriteriaAllInput as InterventionCriteriaAll,
@@ -21,7 +24,9 @@ from snowplow_signals.models import (
 )
 from snowplow_signals.models import (
     InterventionCriterion,
-    InterventionSetAttributeContext,
+)
+from snowplow_signals.models import InterventionInstance as InterventionInstance
+from snowplow_signals.models import (
     LinkEntity,
     RuleIntervention,
     Service,
@@ -76,9 +81,8 @@ StructuredEvent
 
 # Interventions
 RuleIntervention
-InterventionSetAttributeContext
-InterventionClearAttributeContext
 InterventionCriteriaAll
 InterventionCriteriaAny
 InterventionCriteriaNone
 InterventionCriterion
+SignalsAPIError

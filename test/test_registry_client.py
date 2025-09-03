@@ -59,7 +59,7 @@ class TestRegistryClient:
         ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
 
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.apply([view])
+        registry_client.create_or_update([view])
 
         assert view_mock.called
         assert "P1D" in str(view_mock.calls[0].request.content)
@@ -108,7 +108,7 @@ class TestRegistryClient:
         ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
 
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.apply([view])
+        registry_client.create_or_update([view])
 
         assert view_mock.called
         request_content = json.loads(view_mock.calls[0].request.content)
@@ -144,5 +144,81 @@ class TestRegistryClient:
             "http://localhost:8000/api/v1/registry/views/"
         ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.apply([view])
+        registry_client.create_or_update([view])
         assert view_mock.called
+
+    def test_delete_view(self, respx_mock: MockRouter, api_client: ApiClient):
+        view = View(
+            name="my_view",
+            entity=domain_userid,
+            owner="test@example.com",
+        )
+
+        delete_mock = respx_mock.delete(
+            "http://localhost:8000/api/v1/registry/views/my_view/versions/1"
+        ).mock(return_value=httpx.Response(200, json={}))
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.delete([view])
+
+        assert delete_mock.called
+
+    def test_delete_service(self, respx_mock: MockRouter, api_client: ApiClient):
+        from snowplow_signals import Service
+
+        service = Service(
+            name="my_service",
+            owner="test@example.com",
+        )
+
+        delete_mock = respx_mock.delete(
+            "http://localhost:8000/api/v1/registry/services/my_service"
+        ).mock(return_value=httpx.Response(200, json={}))
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.delete([service])
+
+        assert delete_mock.called
+
+    def test_delete_entity(self, respx_mock: MockRouter, api_client: ApiClient):
+        from snowplow_signals import Entity
+
+        entity = Entity(
+            name="my_entity",
+        )
+
+        delete_mock = respx_mock.delete(
+            "http://localhost:8000/api/v1/registry/entities/my_entity"
+        ).mock(return_value=httpx.Response(200, json={}))
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.delete([entity])
+
+        assert delete_mock.called
+
+    def test_delete_intervention(self, respx_mock: MockRouter, api_client: ApiClient):
+        from snowplow_signals.models import (
+            InterventionCriterion,
+            LinkEntity,
+            RuleIntervention,
+        )
+
+        intervention = RuleIntervention(
+            name="my_intervention",
+            owner="test@example.com",
+            criteria=InterventionCriterion(
+                attribute="my_view:my_attribute",
+                operator=">",
+                value=5,
+            ),
+            target_entities=[LinkEntity(name="user")],
+        )
+
+        delete_mock = respx_mock.delete(
+            "http://localhost:8000/api/v1/registry/interventions/my_intervention/versions/1"
+        ).mock(return_value=httpx.Response(200, json={}))
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.delete([intervention])
+
+        assert delete_mock.called

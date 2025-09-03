@@ -351,9 +351,9 @@ class BatchAutogenClient:
             logger.info(f"🛠️ Updating registry")
 
             response = self.api_client.make_request(
-                method="POST", endpoint="feature_store/apply"
+                method="POST", endpoint="engines/publish"
             )
-            if response.get("status") == "applied":
+            if response.get("status") == "published":
                 logger.success(f"✅ Successfully registered table {table_name}")
         except Exception as e:
             logger.error(f"\n⚠️ The table {table_name} couldn't be registered.")

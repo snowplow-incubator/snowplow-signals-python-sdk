@@ -5,9 +5,6 @@ from .interventions import RuleIntervention
 from .model import (
     AttributeOutput,
     BatchSource,
-)
-from .model import ClearAttributeContext as InterventionClearAttributeContext
-from .model import (
     Criteria,
 )
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
@@ -15,21 +12,31 @@ from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
 from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
     Entity,
+    EntityIdentifiers,
+    EntityReference,
     Event,
 )
 from .model import FieldModel as Field
 from .model import (
-    GetOnlineAttributesRequest,
+    GetServiceAttributesRequest,
+    GetViewAttributesRequest,
+)
+from .model import InterventionInstance as InterventionInstance
+from .model import (
+    InterventionReference,
     LinkEntity,
     RuleInterventionInput,
     RuleInterventionOutput,
+    SelectivePublishRequest,
+    ServiceReference,
 )
-from .model import SetAttributeContext as InterventionSetAttributeContext
 from .model import (
     SignalsApiModelsInterventionCriterionCriterion as InterventionCriterion,
 )
 from .model import (
     TestViewRequest,
+    UnpublishRequest,
+    ViewReference,
     ViewResponse,
 )
 from .service import Service
@@ -46,7 +53,8 @@ ViewResponse
 Service
 Entity
 TestViewRequest
-GetOnlineAttributesRequest
+GetViewAttributesRequest
+GetServiceAttributesRequest
 GetAttributesResponse
 BatchSource
 Attribute
@@ -58,9 +66,15 @@ Event
 RuleIntervention
 RuleInterventionOutput
 RuleInterventionInput
-InterventionSetAttributeContext
-InterventionClearAttributeContext
 InterventionCriteriaAllInput
 InterventionCriteriaAnyInput
 InterventionCriteriaNoneInput
 InterventionCriterion
+EntityIdentifiers
+
+ViewReference
+ServiceReference
+InterventionReference
+EntityReference
+SelectivePublishRequest
+UnpublishRequest

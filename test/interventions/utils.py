@@ -1,20 +1,16 @@
 from snowplow_signals import (
+    EntityIdentifiers,
     InterventionCriterion,
-    InterventionSetAttributeContext,
+    InterventionInstance,
+    LinkEntity,
     RuleIntervention,
 )
 
 example_intervention = {
     "name": "cycle_cart_count",
     "version": 1,
-    "method": "set_attribute",
     "target_agents": None,
     "script_uri": None,
-    "context": {
-        "attribute": "sample_ecommerce_stream_features:add_to_cart_events_count",
-        "value": 3,
-        "clear_history": True,
-    },
     "description": "Resets the number of add_to_cart events when it becomes more than three.",
     "tags": None,
     "owner": "peter@snowplowanalytics.com",
@@ -23,19 +19,14 @@ example_intervention = {
         "operator": ">",
         "value": 3,
     },
+    "target_entities": [{"name": "domain_sessionid"}],
 }
 
 another_intervention = {
     "name": "another_cycle_cart_count",
     "version": 2,
-    "method": "set_attribute",
     "target_agents": None,
     "script_uri": None,
-    "context": {
-        "attribute": "sample_ecommerce_stream_features:add_to_cart_events_count",
-        "value": 6,
-        "clear_history": False,
-    },
     "description": "Resets the number of add_to_cart events when it becomes more than three.",
     "tags": None,
     "owner": "peter@snowplowanalytics.com",
@@ -44,6 +35,7 @@ another_intervention = {
         "operator": ">",
         "value": 3,
     },
+    "target_entities": [{"name": "domain_sessionid"}],
 }
 
 
@@ -59,12 +51,6 @@ def get_example_intervention() -> RuleIntervention:
     return RuleIntervention(
         name=example_intervention["name"],
         version=example_intervention["version"],
-        method=example_intervention["method"],
-        context=InterventionSetAttributeContext(
-            attribute=example_intervention["context"]["attribute"],
-            value=example_intervention["context"]["value"],
-            clear_history=example_intervention["context"]["clear_history"],
-        ),
         description=example_intervention["description"],
         tags=example_intervention["tags"],
         owner=example_intervention["owner"],
@@ -73,4 +59,30 @@ def get_example_intervention() -> RuleIntervention:
             operator=example_intervention["criteria"]["operator"],
             value=example_intervention["criteria"]["value"],
         ),
+        target_entities=[
+            LinkEntity(name=e["name"]) for e in example_intervention["target_entities"]
+        ],
     )
+
+
+def get_publishable_intervention() -> tuple[EntityIdentifiers, InterventionInstance]:
+    return EntityIdentifiers({"domain_userid": ["123"]}), InterventionInstance(
+        name="test_intervention", version=1
+    )
+
+
+def get_intervention_stream() -> tuple[EntityIdentifiers, bytes]:
+    import json
+    import uuid
+
+    instance = dict(
+        intervention_id=str(uuid.uuid4()),
+        name="test",
+        version=1,
+        target_entity=dict(name="domain_userid", id="123"),
+        attributes={},
+    )
+
+    return EntityIdentifiers(
+        {"domain_userid": ["123"]}
+    ), f"data: {json.dumps(instance, indent=None)}\n\n".encode("utf8")

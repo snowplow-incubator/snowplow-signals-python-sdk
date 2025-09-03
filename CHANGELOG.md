@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.2.0] - 2025-09-01
+
+### Changed
+
+- Update models according to API 0.7 changes and add unpublish() and delete() functions (#90)
+- [AISP-583] Interventions pub/sub support (#91)
+
 # [0.1.5] - 2025-08-18
 
 ### Changed

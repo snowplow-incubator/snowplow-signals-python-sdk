@@ -1,27 +1,18 @@
+import json
+
 import httpx
 from respx import MockRouter
 
-from snowplow_signals import Entity, LinkEntity, Service, Signals, View, domain_userid
-from snowplow_signals.models import ViewResponse
+from snowplow_signals import Entity, Service, Signals, View, domain_userid
 
 
-class TestSignalsApply:
-    def test_apply_view_and_service(
+class TestSignalsPublish:
+    def test_publish_view_and_service(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
         view = View(
             name="my_view",
             entity=domain_userid,
-            owner="test@example.com",
-        )
-        view_output = ViewResponse(
-            name="my_view",
-            entity=LinkEntity(name="user"),
-            feast_name="my_view_v1",
-            offline=True,
-            stream_source_name="my_stream",
-            entity_key="user_id",
-            view_or_entity_ttl=None,
             owner="test@example.com",
         )
         service = Service(
@@ -30,29 +21,51 @@ class TestSignalsApply:
             owner="test@example.com",
         )
 
+        # Verify that publish() sets is_published=True in the request
+        def check_view_request(request):
+            body = json.loads(request.content)
+            assert body["is_published"] is True
+            # Return a view with is_published=True to verify end-to-end behavior
+            return httpx.Response(
+                200,
+                json={
+                    "name": "my_view",
+                    "entity": {"name": "user"},
+                    "owner": "test@example.com",
+                    "is_published": True,
+                },
+            )
+
+        def check_service_request(request):
+            body = json.loads(request.content)
+            assert body["is_published"] is True
+            return httpx.Response(
+                200,
+                json={
+                    "name": "my_service",
+                    "views": [{"name": "my_view"}],
+                    "owner": "test@example.com",
+                    "is_published": True,
+                },
+            )
+
         view_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/views/"
-        ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
+        ).mock(side_effect=check_view_request)
 
         service_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/services/"
-        ).mock(return_value=httpx.Response(201, json=service.model_dump()))
+        ).mock(side_effect=check_service_request)
 
-        apply_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/feature_store/apply"
-        ).mock(return_value=httpx.Response(200, json={}))
-
-        applied_objects = signals_client.apply(objects=[view, service])
+        applied_objects = signals_client.publish(objects=[view, service])
 
         assert view_mock.called
         assert service_mock.called
-        assert apply_mock.called
-
         assert len(applied_objects) == 2
-        assert applied_objects[0].name == "my_view"
-        assert applied_objects[1].name == "my_service"
+        assert applied_objects[0].is_published
+        assert applied_objects[1].is_published
 
-    def test_apply_entity_view_and_service(
+    def test_publish_entity_view_and_service(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
         custom_entity = Entity(
@@ -63,49 +76,69 @@ class TestSignalsApply:
             entity=custom_entity,
             owner="contact@mail.com",
         )
-        view_output = ViewResponse(
-            name="my_view",
-            entity=LinkEntity(name="custom_entity"),
-            feast_name="my_view_v1",
-            offline=True,
-            stream_source_name="my_stream",
-            entity_key="user_id",
-            view_or_entity_ttl=None,
-            owner="contact@mail.com",
-        )
         service = Service(
             name="my_service",
             views=[view],
             owner="contact@mail.com",
         )
 
+        # Verify all requests have is_published=True
+        def check_entity_request(request):
+            body = json.loads(request.content)
+            assert body["is_published"] is True
+            return httpx.Response(
+                200,
+                json={
+                    "name": "custom_entity",
+                    "is_published": True,
+                },
+            )
+
+        def check_view_request(request):
+            body = json.loads(request.content)
+            assert body["is_published"] is True
+            return httpx.Response(
+                200,
+                json={
+                    "name": "my_view",
+                    "entity": {"name": "custom_entity"},
+                    "owner": "contact@mail.com",
+                    "is_published": True,
+                },
+            )
+
+        def check_service_request(request):
+            body = json.loads(request.content)
+            assert body["is_published"] is True
+            return httpx.Response(
+                200,
+                json={
+                    "name": "my_service",
+                    "views": [{"name": "my_view"}],
+                    "owner": "contact@mail.com",
+                    "is_published": True,
+                },
+            )
+
         entity_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/entities/"
-        ).mock(return_value=httpx.Response(201, json=custom_entity.model_dump()))
+        ).mock(side_effect=check_entity_request)
 
         view_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/views/"
-        ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
+        ).mock(side_effect=check_view_request)
 
         service_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/services/"
-        ).mock(return_value=httpx.Response(201, json=service.model_dump()))
+        ).mock(side_effect=check_service_request)
 
-        apply_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/feature_store/apply"
-        ).mock(return_value=httpx.Response(200, json={}))
-
-        applied_objects = signals_client.apply(objects=[view, service, custom_entity])
+        applied_objects = signals_client.publish(objects=[view, service, custom_entity])
 
         assert entity_mock.called
         assert view_mock.called
         assert service_mock.called
-        assert apply_mock.called
-
         assert len(applied_objects) == 3
-        assert applied_objects[0].name == "custom_entity"
-        assert applied_objects[1].name == "my_view"
-        assert applied_objects[2].name == "my_service"
+        assert all(obj.is_published for obj in applied_objects)
 
     def test_already_existing_view(
         self, respx_mock: MockRouter, signals_client: Signals
@@ -115,34 +148,123 @@ class TestSignalsApply:
             entity=domain_userid,
             owner="test@example.com",
         )
-        view_output = ViewResponse(
-            name="my_view",
-            entity=LinkEntity(name="user"),
-            feast_name="my_view_v1",
-            offline=True,
-            stream_source_name="my_stream",
-            entity_key="user_id",
-            view_or_entity_ttl=None,
-            owner="test@example.com",
-        )
+
+        def check_publish_flag(request):
+            body = json.loads(request.content)
+            assert body["is_published"] is True
+            return httpx.Response(
+                200,
+                json={
+                    "name": "my_view",
+                    "entity": {"name": "user"},
+                    "owner": "test@example.com",
+                    "is_published": True,
+                },
+            )
 
         view_post_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/views/"
         ).mock(return_value=httpx.Response(400, json={}))
 
-        view_get_mock = respx_mock.put(
+        view_put_mock = respx_mock.put(
             "http://localhost:8000/api/v1/registry/views/my_view/versions/1"
-        ).mock(return_value=httpx.Response(200, json=view_output.model_dump()))
+        ).mock(side_effect=check_publish_flag)
 
-        apply_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/feature_store/apply"
-        ).mock(return_value=httpx.Response(200, json={}))
-
-        signals_client.apply(objects=[view])
+        signals_client.publish(objects=[view])
 
         assert view_post_mock.called
-        assert view_get_mock.called
-        assert apply_mock.called
+        assert view_put_mock.called
+
+
+class TestSignalsUnpublish:
+    def test_unpublish_view_and_service(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        view = View(
+            name="my_view",
+            entity=domain_userid,
+            owner="test@example.com",
+            is_published=True,  # Start as published
+        )
+        service = Service(
+            name="my_service",
+            views=[view],
+            owner="test@example.com",
+            is_published=True,  # Start as published
+        )
+
+        # Verify that unpublish() sets is_published=False in the request
+        def check_view_request(request):
+            body = json.loads(request.content)
+            assert body["is_published"] is False
+            return httpx.Response(
+                200,
+                json={
+                    "name": "my_view",
+                    "entity": {"name": "user"},
+                    "owner": "test@example.com",
+                    "is_published": False,
+                },
+            )
+
+        def check_service_request(request):
+            body = json.loads(request.content)
+            assert body["is_published"] is False
+            return httpx.Response(
+                200,
+                json={
+                    "name": "my_service",
+                    "views": [{"name": "my_view"}],
+                    "owner": "test@example.com",
+                    "is_published": False,
+                },
+            )
+
+        view_mock = respx_mock.post(
+            "http://localhost:8000/api/v1/registry/views/"
+        ).mock(side_effect=check_view_request)
+
+        service_mock = respx_mock.post(
+            "http://localhost:8000/api/v1/registry/services/"
+        ).mock(side_effect=check_service_request)
+
+        unpublished_objects = signals_client.unpublish(objects=[view, service])
+
+        assert view_mock.called
+        assert service_mock.called
+        assert len(unpublished_objects) == 2
+        assert not unpublished_objects[0].is_published
+        assert not unpublished_objects[1].is_published
+
+
+class TestSignalsDelete:
+    def test_delete_view_and_service(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        view = View(
+            name="my_view",
+            entity=domain_userid,
+            owner="test@example.com",
+        )
+        service = Service(
+            name="my_service",
+            views=[view],
+            owner="test@example.com",
+        )
+
+        view_delete_mock = respx_mock.delete(
+            "http://localhost:8000/api/v1/registry/views/my_view/versions/1"
+        ).mock(return_value=httpx.Response(200, json={}))
+
+        service_delete_mock = respx_mock.delete(
+            "http://localhost:8000/api/v1/registry/services/my_service"
+        ).mock(return_value=httpx.Response(200, json={}))
+
+        result = signals_client.delete(objects=[view, service])
+
+        assert view_delete_mock.called
+        assert service_delete_mock.called
+        assert result is None
 
 
 class TestSignalsGetAttributes:

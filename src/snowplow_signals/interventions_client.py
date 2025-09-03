@@ -1,5 +1,13 @@
+from typing import Literal
+
 from .api_client import ApiClient
-from .models import RuleInterventionInput, RuleInterventionOutput
+from .interventions_subscription import InterventionsSubscription
+from .models import (
+    EntityIdentifiers,
+    InterventionInstance,
+    RuleInterventionInput,
+    RuleInterventionOutput,
+)
 
 
 class InterventionsClient:
@@ -54,3 +62,22 @@ class InterventionsClient:
             ),
         )
         return RuleInterventionOutput(**response)
+
+    def publish(
+        self, intervention: InterventionInstance, targets: EntityIdentifiers
+    ) -> Literal["undelivered", "success", "failure"]:
+        response = self.api_client.make_request(
+            method="POST",
+            endpoint="interventions",
+            params=targets.root,
+            data=intervention.model_dump(
+                mode="json",
+                exclude_none=True,
+                by_alias=True,
+            ),
+        )
+
+        return response.get("status", "failure")
+
+    def subscribe(self, targets: EntityIdentifiers) -> InterventionsSubscription:
+        return InterventionsSubscription(self.api_client, targets)

@@ -2,8 +2,10 @@ from typing import Any
 
 from .api_client import ApiClient
 from .models import (
+    EntityIdentifiers,
     GetAttributesResponse,
-    GetOnlineAttributesRequest,
+    GetServiceAttributesRequest,
+    GetViewAttributesRequest,
 )
 
 
@@ -19,16 +21,16 @@ class AttributesClient:
         entity: str,
         identifier: str,
     ) -> dict[str, Any]:
-
         attributes = (
             [f"{name}_v{version}:{attribute}" for attribute in attributes]
             if isinstance(attributes, list)
             else [attributes]
         )
+        entity_identifiers = EntityIdentifiers(root={entity: [identifier]})
 
-        request = GetOnlineAttributesRequest(
+        request = GetViewAttributesRequest(
             attributes=attributes,
-            entities={entity: [identifier]},
+            entities=entity_identifiers,
         )
         return self._make_request(request)
 
@@ -38,14 +40,17 @@ class AttributesClient:
         entity: str,
         identifier: str,
     ) -> dict[str, Any]:
+        entity_identifiers = EntityIdentifiers(root={entity: [identifier]})
 
-        request = GetOnlineAttributesRequest(
+        request = GetServiceAttributesRequest(
             service=name,
-            entities={entity: [identifier]},
+            entities=entity_identifiers,
         )
         return self._make_request(request)
 
-    def _make_request(self, request: GetOnlineAttributesRequest) -> dict[str, Any]:
+    def _make_request(
+        self, request: GetViewAttributesRequest | GetServiceAttributesRequest
+    ) -> dict[str, Any]:
         response = self.api_client.make_request(
             method="POST",
             endpoint="get-online-attributes",
