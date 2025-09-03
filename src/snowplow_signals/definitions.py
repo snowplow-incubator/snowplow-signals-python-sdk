@@ -1,12 +1,12 @@
 from .models import AttributeKey, Event
 
 # Predefined entities
-user_entity = AttributeKey(
+user_attribute_key = AttributeKey(
     name="user",
     key="domain_userid",
     description="Deprecated: Use domain_userid instead.",
 )
-session_entity = AttributeKey(
+session_attribute_key = AttributeKey(
     name="session",
     key="domain_sessionid",
     description="Deprecated: Use domain_sessionid instead.",

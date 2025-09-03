@@ -48,8 +48,8 @@ class Service(ServiceInput):
 
         Args:
             signals: The Signals instance to use for retrieving attributes.
-            entity: The entity name to retrieve attributes for.
-            identifier: The entity identifier to retrieve attributes for.
+            entity: The attribute key to retrieve attributes for.
+            identifier: The attribute key identifier to retrieve attributes for.
 
         Returns:
             The attributes for the service.

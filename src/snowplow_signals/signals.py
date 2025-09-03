@@ -10,6 +10,7 @@ from .models import (
     AttributeGroup,
     AttributeGroupResponse,
     AttributeKey,
+    AttributeKeyId,
     AttributeKeyIdentifiers,
     InterventionInstance,
     RuleIntervention,
@@ -115,7 +116,7 @@ class Signals:
             name: The name of the attribute group.
             version: The version of the attribute group.
             attribute_key: The attribute_key name to retrieve attributes for.
-            identifier: The entity identifier to retrieve attributes for.
+            identifier: The attribute key identifier to retrieve attributes for.
             attributes: The list of attributes to retrieve.
         """
         return self.attributes.get_view_attributes(
@@ -137,8 +138,8 @@ class Signals:
 
         Args:
             name: The name of the Service.
-            entity: The entity name to retrieve attributes for.
-            identifier: The entity identifier to retrieve attributes for.
+            attribute_key: The attribute_key to retrieve attributes for.
+            identifier: The attribute key identifier to retrieve attributes for.
         """
         return self.attributes.get_service_attributes(
             name=name,
@@ -149,7 +150,7 @@ class Signals:
     def test(
         self,
         attribute_group: AttributeGroup,
-        entity_ids: list[str] = [],
+        attribute_key_ids: list[AttributeKeyId] = [],
         app_ids: list[str] = [],
         window: timedelta = timedelta(hours=1),
     ) -> pd.DataFrame:
@@ -158,13 +159,13 @@ class Signals:
 
         Args:
             attribute_group: The attribute group to test.
-            entity_ids: The list of entity ids (e.g., domain_userid values) to extract features for. If empty, random 10 IDs will be used.
+            attribute_key_ids: The list of attribute key ids (e.g., domain_userid values) to extract features for. If empty, random 10 IDs will be used.
             app_ids: The list of app ids to extract features for.
             window: The time window to extract features from.
         """
         request = TestAttributeGroupRequest(
             attribute_group=attribute_group,
-            attribute_key_ids=entity_ids,
+            attribute_key_ids=attribute_key_ids,
             window=window,
             app_ids=app_ids,
         )

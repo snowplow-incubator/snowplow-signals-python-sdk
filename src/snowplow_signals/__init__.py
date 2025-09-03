@@ -4,6 +4,7 @@ from snowplow_signals.models import (
     Attribute,
     AttributeGroup,
     AttributeKey,
+    AttributeKeyId,
     AttributeKeyIdentifiers,
     BatchAttributeGroup,
     BatchSource,
@@ -43,8 +44,8 @@ from .definitions import (
     domain_sessionid,
     domain_userid,
     network_userid,
-    session_entity,
-    user_entity,
+    session_attribute_key,
+    user_attribute_key,
     user_id,
 )
 
@@ -62,8 +63,8 @@ BatchSource
 AttributeKey
 LinkAttributeKey
 Event
-user_entity
-session_entity
+user_attribute_key
+session_attribute_key
 domain_userid
 domain_sessionid
 user_id
@@ -83,3 +84,4 @@ InterventionCriteriaNone
 InterventionCriterion
 SignalsAPIError
 AttributeKeyIdentifiers
+AttributeKeyId

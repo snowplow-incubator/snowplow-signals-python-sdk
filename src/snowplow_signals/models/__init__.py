@@ -9,6 +9,7 @@ from .model import (
 from .model import AttributeInput as Attribute
 from .model import (
     AttributeKey,
+    AttributeKeyId,
     AttributeKeyIdentifiers,
     AttributeKeyReference,
     AttributeOutput,
@@ -97,3 +98,4 @@ CriterionWithStringProperty
 AtomicProperty
 EventProperty
 EntityProperty
+AttributeKeyId
