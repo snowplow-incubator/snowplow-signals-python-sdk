@@ -66,7 +66,7 @@ with  aggregations as (
          {%raw%}{% if target.type == 'snowflake' %}{% endraw %}
            LATERAL FLATTEN(input => {{ agg_col }}) f
          {%raw%}{% elif target.type == 'bigquery' %}{% endraw %}
-           UNNEST(d.{{ col }}) AS f
+           UNNEST(d.{{ agg_col }}) AS f
          {%raw%}{% endif %}{% endraw %}
     group by d.attribute_key
   )
