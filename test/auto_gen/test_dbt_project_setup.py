@@ -24,7 +24,7 @@ def test_batch_setup_get_attribute_views_uses_all_views(
     assert attribute_views_mock.call_count == 1
 
 
-def test_batch_setup_get_attribute_views_uses_specified_view_name(
+def test_batch_setup_get_attribute_views_uses_specified_attribute_group_name(
     signals_client: Signals, respx_mock: MockRouter
 ):
     mock_attribute_views_response = get_attribute_view_response()
@@ -35,7 +35,7 @@ def test_batch_setup_get_attribute_views_uses_specified_view_name(
     dbt_project_setup = DbtProjectSetup(
         signals_client.api_client,
         "repo",
-        view_name=mock_attribute_views_response[0]["name"],
+        attribute_group_name=mock_attribute_views_response[0]["name"],
     )
     valid_attribute_views = dbt_project_setup._get_attribute_views()
     assert len(mock_attribute_views_response) == 2
@@ -52,7 +52,7 @@ def test_batch_setup_get_attribute_views_throws_on_empty_views(
     )
 
     dbt_project_setup = DbtProjectSetup(
-        signals_client.api_client, "repo", view_name="random_name"
+        signals_client.api_client, "repo", attribute_group_name="random_name"
     )
     with pytest.raises(
         ValueError, match="No project/attribute group found with name: random_name"

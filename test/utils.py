@@ -4,8 +4,8 @@ MOCK_ORG_ID = "1111-1111-1111-1111-1111"
 MOCK_API_URL = "http://localhost:8087"
 MOCK_API_KEY = "test-api-key"
 MOCK_API_KEY_ID = "test-key-id"
-MOCK_VIEW_NAME = "test_view"
-MOCK_VIEW_VERSION = 1
+MOCK_ATTRIBUTE_GROUP_NAME = "test_view"
+MOCK_ATTRIBUTE_GROUP_VERSION = 1
 
 
 def utc_timestamp() -> int:

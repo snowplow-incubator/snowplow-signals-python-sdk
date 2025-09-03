@@ -39,19 +39,19 @@ class BatchAutogenClient:
     def init_project(
         self,
         repo_path: str,
-        view_name: str | None = None,
-        view_version: int | None = None,
+        attribute_group_name: str | None = None,
+        attribute_group_version: int | None = None,
     ):
         """
         Initialize dbt project structure and base configuration.
 
         Args:
             repo_path: Path to the repository where projects will be stored
-            view_name: Optional name of a specific attribute view project to initialize.
+            attribute_group_name: Optional name of a specific attribute view project to initialize.
                          If None, all projects will be initialized.
-            view_version: Optional version of the attribute view to initialize.
+            attribute_group_version: Optional version of the attribute view to initialize.
                          If None, the latest version will be used.
-                         Only used if view_name is not None.
+                         Only used if attribute_group_name is not None.
             target_type: Target database type.
         """
 
@@ -59,8 +59,8 @@ class BatchAutogenClient:
         setup = DbtProjectSetup(
             api_client=self.api_client,
             repo_path=repo_path,
-            view_name=view_name,
-            view_version=view_version,
+            attribute_group_name=attribute_group_name,
+            attribute_group_version=attribute_group_version,
             target_type=self.target_type,
         )
 
@@ -288,8 +288,8 @@ class BatchAutogenClient:
     def materialize_model(
         self,
         project_path: str,
-        view_name: str,
-        view_version: int,
+        attribute_group_name: str,
+        attribute_group_version: int,
         verbose: bool = False,
     ):
         """
@@ -303,22 +303,25 @@ class BatchAutogenClient:
         setup_logging(verbose)
 
         config_path = Path(project_path) / "configs" / "batch_source_config.json"
-        table_name = f"{view_name}_{view_version}_attributes"
+        table_name = f"{attribute_group_name}_{attribute_group_version}_attributes"
 
         batch_source_config = batch_source_from_path(
             config_path=str(config_path), table_name=table_name
         )
 
         self._register_batch_source(
-            batch_source_config, view_name, view_version, table_name
+            batch_source_config,
+            attribute_group_name,
+            attribute_group_version,
+            table_name,
         )
         self._update_registry(table_name)
 
     def _register_batch_source(
         self,
         batch_source_config: BatchSourceConfig,
-        view_name: str,
-        view_version: int,
+        attribute_group_name: str,
+        attribute_group_version: int,
         table_name: str,
     ):
         """Register batch source for table in the view"""
@@ -326,14 +329,14 @@ class BatchAutogenClient:
         logger.info(f"🛠️ Registering batch_source for table {table_name}.")
 
         try:
-            view_update_endpoint = f"registry/attribute_groups/{view_name}/versions/{view_version}/batch_source"
+            view_update_endpoint = f"registry/attribute_groups/{attribute_group_name}/versions/{attribute_group_version}/batch_source"
             data = batch_source_config.model_dump(mode="json", exclude_none=True)
             self.api_client.make_request(
                 method="PUT", endpoint=view_update_endpoint, data=data
             )
 
             logger.success(
-                f"✅ Successfully added Batch Source information to view {view_name}_{view_version}"
+                f"✅ Successfully added Batch Source information to attribute group {attribute_group_name}_{attribute_group_version}"
             )
 
         except Exception as e:
@@ -350,7 +353,9 @@ class BatchAutogenClient:
                 method="POST", endpoint="engines/publish"
             )
             if response.get("status") == "published":
-                logger.success(f"✅ Successfully registered table {table_name}")
+                logger.success(
+                    f"✅ Successfully published attribute group. Syncing should now begin for attributes within table {table_name}"
+                )
         except Exception as e:
             logger.error(f"\n⚠️ The table {table_name} couldn't be registered.")
             raise e

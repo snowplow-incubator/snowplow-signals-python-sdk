@@ -33,13 +33,13 @@ class DbtProjectSetup:
         api_client: ApiClient,
         target_type: WarehouseType,
         repo_path: Annotated[str, typer.Option()] = "customer_repo",
-        view_name: str | None = None,
-        view_version: int | None = None,
+        attribute_group_name: str | None = None,
+        attribute_group_version: int | None = None,
     ):
         self.api_client = api_client
         self.repo_path = repo_path
-        self.view_name = view_name
-        self.view_version = view_version
+        self.attribute_group_name = attribute_group_name
+        self.attribute_group_version = attribute_group_version
         self.target_type = target_type
 
     def create_project_directories(
@@ -133,25 +133,28 @@ class DbtProjectSetup:
             raise ValueError("No attribute groups available.")
         latest_views = filter_latest_model_version_by_name(all_attribute_views)
         # Filter by project name if specified
-        if self.view_name:
-            if not self.view_version:
+        if self.attribute_group_name:
+            if not self.attribute_group_version:
                 project_views = [
-                    view for view in latest_views if view.name == self.view_name
+                    view
+                    for view in latest_views
+                    if view.name == self.attribute_group_name
                 ]
                 if not project_views:
                     raise ValueError(
-                        f"No project/attribute group found with name: {self.view_name}"
+                        f"No project/attribute group found with name: {self.attribute_group_name}"
                     )
                 return project_views
             else:
                 project_views = [
                     view
                     for view in all_attribute_views
-                    if view.name == self.view_name and view.version == self.view_version
+                    if view.name == self.attribute_group_name
+                    and view.version == self.attribute_group_version
                 ]
                 if not project_views:
                     raise ValueError(
-                        f"No project/attribute group found with name: {self.view_name} and version: {self.view_version}"
+                        f"No project/attribute group found with name: {self.attribute_group_name} and version: {self.attribute_group_version}"
                     )
                 return project_views
         else:

@@ -24,7 +24,9 @@ from snowplow_signals.models import (
 from snowplow_signals.models import (
     InterventionCriteriaNoneInput as InterventionCriteriaNone,
 )
-from snowplow_signals.models import InterventionCriterion
+from snowplow_signals.models import (
+    InterventionCriterion,
+)
 from snowplow_signals.models import InterventionInstance as InterventionInstance
 from snowplow_signals.models import (
     LinkAttributeKey,
