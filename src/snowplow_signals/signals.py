@@ -101,7 +101,7 @@ class Signals:
         view = self.registry.get_view(name, version)
         return view
 
-    def get_attribute_group_attributes(
+    def get_attributes(
         self,
         name: str,
         version: int,
@@ -167,7 +167,7 @@ class Signals:
             attribute_group=attribute_group,
             attribute_key_ids=attribute_key_ids,
             window=window,
-            app_ids=app_ids,
+            app_ids=app_ids,  # pyright: ignore[reportArgumentType] AppID is already a string, validation happens at runtime
         )
         return self.testing.test_view(request=request)
 

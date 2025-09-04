@@ -7,9 +7,7 @@ from snowplow_signals.models import GetAttributesResponse
 
 
 class TestAttributesClient:
-    def test_get_attribute_group_attributes(
-        self, respx_mock: MockRouter, api_client: ApiClient
-    ):
+    def test_get_attributes(self, respx_mock: MockRouter, api_client: ApiClient):
         attributes_client = AttributesClient(api_client=api_client)
         identifier = "user-123"
 
@@ -97,7 +95,7 @@ class TestAttributesClient:
 
         assert response == sdk_expected_response
 
-    def test_get_attribute_group_attributes_multiple_attributes(
+    def test_get_attributes_multiple_attributes(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
         """Test that multiple attributes are properly formatted in arribute group requests."""

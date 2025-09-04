@@ -1,3 +1,4 @@
+from .criteria_wrapper import Criteria
 from .criterion_wrapper import Criterion
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
@@ -18,7 +19,6 @@ from .model import (
 )
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
 from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
-from .model import CriteriaInput as Criteria
 from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
     CriteriaWithStringProperty,
