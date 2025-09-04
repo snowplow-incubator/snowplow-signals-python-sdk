@@ -177,7 +177,7 @@ def generate(
 
 
 @app.command()
-def materialize(
+def sync(
     api_url: API_URL,
     api_key: API_KEY,
     api_key_id: API_KEY_ID,
@@ -188,11 +188,11 @@ def materialize(
     target_type: TARGET_TYPE,
     verbose: VERBOSE = False,
 ) -> None:
-    """Registers the attribute table as a data source so that the materialization process can start."""
+    """Registers the attribute table as a data source so that the syncing process can start."""
     try:
         if attribute_group_name is None or attribute_group_version is None:
             logger.error(
-                "attribute_group_name and attribute_group_version must be provided for materialization."
+                "attribute_group_name and attribute_group_version must be provided for syncing."
             )
             raise typer.Exit(code=1)
 
@@ -203,7 +203,7 @@ def materialize(
         project_path = str(
             Path(repo_path) / f"{attribute_group_name}_{attribute_group_version}"
         )
-        client.materialize_model(
+        client.sync_model(
             project_path=project_path,
             attribute_group_name=attribute_group_name,
             attribute_group_version=attribute_group_version,
@@ -212,7 +212,7 @@ def materialize(
 
     except Exception as e:
         logger.error(
-            f"Error registering table {attribute_group_name}_{attribute_group_version}_attributes for materialization: {str(e)}"
+            f"Error registering table {attribute_group_name}_{attribute_group_version}_attributes for syncing: {str(e)}"
         )
         raise typer.Exit(code=1)
 

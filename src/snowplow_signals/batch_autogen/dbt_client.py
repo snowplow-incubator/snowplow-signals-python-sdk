@@ -285,7 +285,7 @@ class BatchAutogenClient:
         logger.success(f"✅ Finished generating models for {project_name}!")
         return True
 
-    def materialize_model(
+    def sync_model(
         self,
         project_path: str,
         attribute_group_name: str,
@@ -293,7 +293,7 @@ class BatchAutogenClient:
         verbose: bool = False,
     ):
         """
-        Registers the batch source for the attributes table through the API and updates Feast so that materialization can begin.
+        Registers the batch source for the attributes table through the API and updates Feast so that syncing can begin.
         Args:
             project_path: Path to the repository where the dbt project is where the config file is stored.
             project_name: Name of a specific project (same as the unique view name and version).

@@ -61,7 +61,7 @@ class ModelingCriteria(BaseModel):
 class ModelingStep(BaseModel):
     step_type: Literal["filtered_events", "daily_aggregation", "attribute_aggregation"]
     enabled: bool = (
-        True  # Whether the user would like to materialize that level of aggregation
+        True  # Whether the user would like to sync that level of aggregation
     )
     aggregation: (
         Literal["count", "sum", "min", "max", "avg", "first", "last", "unique_list"]

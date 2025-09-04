@@ -78,7 +78,7 @@ class DbtProjectSetup:
         self, attribute_view: AttributeGroupResponse
     ) -> BatchSourceConfig:
         """
-        Creates a pre-populated config file for users to fill out for materialization.
+        Creates a pre-populated config file for users to fill out for the sync.
         """
 
         return BatchSourceConfig(
@@ -98,7 +98,7 @@ class DbtProjectSetup:
 
         attribute_views = self._get_attribute_views()
         for attribute_view in attribute_views:
-            # Skip attribute groups that have no attributes (i.e., only materialize existing tables)
+            # Skip attribute groups that have no attributes (i.e., only sync existing tables)
             if (not attribute_view.attributes) and attribute_view.fields:
                 logger.info(
                     f"Skipping batch attribute group '{attribute_view.name}_{attribute_view.version}' as it has no attributes and only fields."

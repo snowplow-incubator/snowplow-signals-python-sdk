@@ -137,7 +137,7 @@ The CLI commands support the following options:
 If you want to make use of your .env file to load your variables, wrap it around the command like this:
 
 ```sh
-poetry run dotenv run snowplow-batch-engine materialize --attribute-group-name ecommerce_transaction_interactions_features --attribute-group-version 1
+poetry run dotenv run snowplow-batch-engine sync --attribute-group-name ecommerce_transaction_interactions_features --attribute-group-version 1
 ```
 
 You can use the -f flag to specify a different file you have e.g .env.dev:
@@ -149,8 +149,8 @@ poetry run dotenv -f .env.dev run snowplow-batch-engine test-connection --verbos
 poetry run dotenv -f .env.dev run snowplow-batch-engine init --repo-path local_testing --attribute-group-name test_batch_view --attribute-group-version 1 --target-type snowflake --verbose
 # generate dbt project
 poetry run dotenv -f .env.dev run snowplow-batch-engine generate --repo-path local_testing --project-name test_batch_view_1 --target-type snowflake --verbose 
-# materialize table
-poetry run dotenv -f .env.dev run snowplow-batch-engine materialize --attribute-group-name test_batch_view --attribute-group-version 1 --repo-path ./local_testing/ --target-type snowflake --verbose 
+# sync table
+poetry run dotenv -f .env.dev run snowplow-batch-engine sync --attribute-group-name test_batch_view --attribute-group-version 1 --repo-path ./local_testing/ --target-type snowflake --verbose 
 ```
 
 ### 2. Testing all the CLI commands at once and run a full refresh of the generated package against a warehouse target
