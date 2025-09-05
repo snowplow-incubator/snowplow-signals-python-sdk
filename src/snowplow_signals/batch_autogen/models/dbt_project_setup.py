@@ -15,7 +15,7 @@ from snowplow_signals.batch_autogen.models.batch_source_config import (
 from snowplow_signals.cli_logging import get_logger
 
 from ...api_client import ApiClient
-from ...models import ViewResponse
+from ...models import AttributeGroupResponse
 from ..utils.utils import WarehouseType, filter_latest_model_version_by_name
 
 logger = get_logger(__name__)
@@ -33,13 +33,13 @@ class DbtProjectSetup:
         api_client: ApiClient,
         target_type: WarehouseType,
         repo_path: Annotated[str, typer.Option()] = "customer_repo",
-        view_name: str | None = None,
-        view_version: int | None = None,
+        attribute_group_name: str | None = None,
+        attribute_group_version: int | None = None,
     ):
         self.api_client = api_client
         self.repo_path = repo_path
-        self.view_name = view_name
-        self.view_version = view_version
+        self.attribute_group_name = attribute_group_name
+        self.attribute_group_version = attribute_group_version
         self.target_type = target_type
 
     def create_project_directories(
@@ -67,7 +67,7 @@ class DbtProjectSetup:
 
     def _get_attribute_view_project_config(
         self,
-        attribute_view: ViewResponse,
+        attribute_view: AttributeGroupResponse,
     ) -> DbtBaseConfig:
         generator = BaseConfigGenerator(
             data=attribute_view, target_type=self.target_type
@@ -75,10 +75,10 @@ class DbtProjectSetup:
         return generator.create_base_config()
 
     def _get_default_batch_source_config(
-        self, attribute_view: ViewResponse
+        self, attribute_view: AttributeGroupResponse
     ) -> BatchSourceConfig:
         """
-        Creates a pre-populated config file for users to fill out for materialization.
+        Creates a pre-populated config file for users to fill out for the sync.
         """
 
         return BatchSourceConfig(
@@ -98,10 +98,10 @@ class DbtProjectSetup:
 
         attribute_views = self._get_attribute_views()
         for attribute_view in attribute_views:
-            # Skip views that have no attributes (i.e., only materialize existing tables)
+            # Skip attribute groups that have no attributes (i.e., only sync existing tables)
             if (not attribute_view.attributes) and attribute_view.fields:
                 logger.info(
-                    f"Skipping batch view '{attribute_view.name}_{attribute_view.version}' as it has no attributes and only fields."
+                    f"Skipping batch attribute group '{attribute_view.name}_{attribute_view.version}' as it has no attributes and only fields."
                 )
                 continue
             view_project_name = f"{attribute_view.name}_{attribute_view.version}"
@@ -115,43 +115,46 @@ class DbtProjectSetup:
 
         return True
 
-    def _fetch_attribute_views(self) -> list[ViewResponse]:
+    def _fetch_attribute_views(self) -> list[AttributeGroupResponse]:
         attribute_views = self.api_client.make_request(
             method="GET",
-            endpoint="registry/views/",
+            endpoint="registry/attribute_groups/",
             params={"offline": True, "property_syntax": self.target_type},
         )
-        return [ViewResponse.model_validate(view) for view in attribute_views]
+        return [AttributeGroupResponse.model_validate(view) for view in attribute_views]
 
-    def _get_attribute_views(self) -> list[ViewResponse]:
-        logger.info("🔗 Fetching attribute views from API")
+    def _get_attribute_views(self) -> list[AttributeGroupResponse]:
+        logger.info("🔗 Fetching attribute groups from API")
         all_attribute_views = self._fetch_attribute_views()
         logger.debug(
             f"Received API response: {[view.model_dump_json() for view in all_attribute_views]}"
         )
         if len(all_attribute_views) == 0:
-            raise ValueError("No attribute views available.")
+            raise ValueError("No attribute groups available.")
         latest_views = filter_latest_model_version_by_name(all_attribute_views)
         # Filter by project name if specified
-        if self.view_name:
-            if not self.view_version:
+        if self.attribute_group_name:
+            if not self.attribute_group_version:
                 project_views = [
-                    view for view in latest_views if view.name == self.view_name
+                    view
+                    for view in latest_views
+                    if view.name == self.attribute_group_name
                 ]
                 if not project_views:
                     raise ValueError(
-                        f"No project/attribute view found with name: {self.view_name}"
+                        f"No project/attribute group found with name: {self.attribute_group_name}"
                     )
                 return project_views
             else:
                 project_views = [
                     view
                     for view in all_attribute_views
-                    if view.name == self.view_name and view.version == self.view_version
+                    if view.name == self.attribute_group_name
+                    and view.version == self.attribute_group_version
                 ]
                 if not project_views:
                     raise ValueError(
-                        f"No project/attribute view found with name: {self.view_name} and version: {self.view_version}"
+                        f"No project/attribute group found with name: {self.attribute_group_name} and version: {self.attribute_group_version}"
                     )
                 return project_views
         else:

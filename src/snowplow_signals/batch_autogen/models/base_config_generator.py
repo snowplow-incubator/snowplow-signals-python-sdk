@@ -10,11 +10,14 @@ from snowplow_signals.batch_autogen.models.modeling_step import (
     ModelingCriteria,
     ModelingStep,
 )
-from snowplow_signals.batch_autogen.utils.utils import (
-    WarehouseType,
-)
+from snowplow_signals.batch_autogen.utils.utils import WarehouseType
 
-from ...models import AttributeOutput, Criterion, Event, ViewResponse
+from ...models import (
+    AttributeGroupResponse,
+    AttributeWithStringProperty,
+    CriterionWithStringProperty,
+    Event,
+)
 from ..utils.utils import timedelta_isoformat
 
 # FIXME can we extract from auto generated model attributes ?
@@ -31,19 +34,19 @@ class DbtBaseConfig(BaseModel):
     properties: list[dict[str, str]]
     periods: list[str]
     transformed_attributes: list[list[ModelingStep]]
-    entity_key: str
+    attribute_key: str
 
 
 class BaseConfigGenerator:
     events: list[str]
     properties: list[dict[str, str]]
     periods: Set[str]
-    data: ViewResponse
+    data: AttributeGroupResponse
     target_type: WarehouseType
 
     def __init__(
         self,
-        data: ViewResponse,
+        data: AttributeGroupResponse,
         target_type: WarehouseType,
     ):
         self.data = data
@@ -150,7 +153,9 @@ class BaseConfigGenerator:
         event_strings.sort()
         return event_strings
 
-    def _get_filter_condition_name_component(self, filter_condition: Criterion) -> str:
+    def _get_filter_condition_name_component(
+        self, filter_condition: CriterionWithStringProperty
+    ) -> str:
         """Generate a SQL-friendly name component from a filter condition"""
         if not filter_condition:
             return ""
@@ -185,7 +190,7 @@ class BaseConfigGenerator:
         return f"{property_name}_{operator}_{value}"
 
     def _generate_column_name(
-        self, attribute: AttributeOutput, agg_short_name: str
+        self, attribute: AttributeWithStringProperty, agg_short_name: str
     ) -> str:
         """Generate a unique SQL-friendly column name incorporating filter conditions"""
         name_components = []
@@ -238,7 +243,7 @@ class BaseConfigGenerator:
             return column_name
 
     def _generate_modeling_steps(
-        self, attribute: AttributeOutput
+        self, attribute: AttributeWithStringProperty
     ) -> list[ModelingStep]:
         """Generate 3 modeling steps based on attribute type and attributes defined as part of the JSON.
         Through looping through the attributes, events, properties and periods are also extracted.
@@ -401,5 +406,5 @@ class BaseConfigGenerator:
             properties=self.properties,
             periods=self.sorted_periods,
             transformed_attributes=transformed_attributes,
-            entity_key=self.data.entity_key,
+            attribute_key=self.data.attribute_key_or_name,
         )

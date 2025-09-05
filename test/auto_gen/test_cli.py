@@ -8,9 +8,9 @@ from test.utils import (
     MOCK_API_KEY,
     MOCK_API_KEY_ID,
     MOCK_API_URL,
+    MOCK_ATTRIBUTE_GROUP_NAME,
+    MOCK_ATTRIBUTE_GROUP_VERSION,
     MOCK_ORG_ID,
-    MOCK_VIEW_NAME,
-    MOCK_VIEW_VERSION,
 )
 from typing import Generator, List, cast
 from unittest.mock import MagicMock, create_autospec, patch
@@ -112,11 +112,13 @@ def test_cli_init_project_succeeds(
         )
     assert exc_info.value.code == 0
     cast(MagicMock, mock_dbt_client.init_project).assert_called_once_with(
-        repo_path=str(test_repo_dir), view_name=None, view_version=None
+        repo_path=str(test_repo_dir),
+        attribute_group_name=None,
+        attribute_group_version=None,
     )
 
 
-def test_cli_init_project_with_view_name_succeeds(
+def test_cli_init_project_with_attribute_group_name_succeeds(
     test_repo_dir: Path,
     mock_dbt_client: BatchAutogenClient,
     api_params: List[str],
@@ -134,18 +136,26 @@ def test_cli_init_project_with_view_name_succeeds(
 
     with pytest.raises(SystemExit) as exc_info:
         app(
-            ["init", "--repo-path", str(test_repo_dir), "--view-name", MOCK_VIEW_NAME]
+            [
+                "init",
+                "--repo-path",
+                str(test_repo_dir),
+                "--attribute-group-name",
+                MOCK_ATTRIBUTE_GROUP_NAME,
+            ]
             + api_params
             + ["--target-type", target_type]
         )
 
     assert exc_info.value.code == 0
     cast(MagicMock, mock_dbt_client.init_project).assert_called_once_with(
-        repo_path=str(test_repo_dir), view_name=MOCK_VIEW_NAME, view_version=None
+        repo_path=str(test_repo_dir),
+        attribute_group_name=MOCK_ATTRIBUTE_GROUP_NAME,
+        attribute_group_version=None,
     )
 
 
-def test_cli_init_project_with_view_name_and_version_succeeds(
+def test_cli_init_project_with_attribute_group_name_and_version_succeeds(
     test_repo_dir: Path,
     mock_dbt_client: BatchAutogenClient,
     api_params: List[str],
@@ -167,10 +177,10 @@ def test_cli_init_project_with_view_name_and_version_succeeds(
                 "init",
                 "--repo-path",
                 str(test_repo_dir),
-                "--view-name",
-                MOCK_VIEW_NAME,
-                "--view-version",
-                str(MOCK_VIEW_VERSION),
+                "--attribute-group-name",
+                MOCK_ATTRIBUTE_GROUP_NAME,
+                "--attribute-group-version",
+                str(MOCK_ATTRIBUTE_GROUP_VERSION),
             ]
             + api_params
             + ["--target-type", target_type]
@@ -179,8 +189,8 @@ def test_cli_init_project_with_view_name_and_version_succeeds(
     assert exc_info.value.code == 0
     cast(MagicMock, mock_dbt_client.init_project).assert_called_once_with(
         repo_path=str(test_repo_dir),
-        view_name=MOCK_VIEW_NAME,
-        view_version=MOCK_VIEW_VERSION,
+        attribute_group_name=MOCK_ATTRIBUTE_GROUP_NAME,
+        attribute_group_version=MOCK_ATTRIBUTE_GROUP_VERSION,
     )
 
 

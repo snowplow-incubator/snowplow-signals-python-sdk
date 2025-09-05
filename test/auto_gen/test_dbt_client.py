@@ -101,34 +101,34 @@ def test_init_project_success(
     mock_project_setup.assert_called_once()
 
 
-def test_init_project_with_view_name(
+def test_init_project_with_attribute_group_name(
     dbt_client: BatchAutogenClient, temp_repo_path: str, mock_project_setup: MagicMock
 ):
     """Test project initialization with specific view name"""
-    result = dbt_client.init_project(temp_repo_path, view_name="test_view")
+    result = dbt_client.init_project(temp_repo_path, attribute_group_name="test_view")
     assert result is True
     mock_project_setup.assert_called_once_with(
         api_client=dbt_client.api_client,
         repo_path=temp_repo_path,
-        view_name="test_view",
-        view_version=None,
+        attribute_group_name="test_view",
+        attribute_group_version=None,
         target_type=TargetType.snowflake,
     )
 
 
-def test_init_project_with_view_version(
+def test_init_project_with_attribute_group_version(
     dbt_client: BatchAutogenClient, temp_repo_path: str, mock_project_setup: MagicMock
 ):
     """Test project initialization with specific view version"""
     result = dbt_client.init_project(
-        temp_repo_path, view_name="test_view", view_version=1
+        temp_repo_path, attribute_group_name="test_view", attribute_group_version=1
     )
     assert result is True
     mock_project_setup.assert_called_once_with(
         api_client=dbt_client.api_client,
         repo_path=temp_repo_path,
-        view_name="test_view",
-        view_version=1,
+        attribute_group_name="test_view",
+        attribute_group_version=1,
         target_type=TargetType.snowflake,
     )
 
@@ -151,7 +151,7 @@ def test_generate_models_single_project_success(
                 "properties": [],
                 "periods": [],
                 "transformed_attributes": [],
-                "entity_key": "user_id",
+                "attribute_key": "user_id",
             },
             f,
         )
@@ -185,7 +185,7 @@ def test_generate_models_all_projects_success(
                     "properties": [],
                     "periods": [],
                     "transformed_attributes": [],
-                    "entity_key": "user_id",
+                    "attribute_key": "user_id",
                 },
                 f,
             )
@@ -220,7 +220,7 @@ def test_generate_models_with_update_flag(
                 "properties": [],
                 "periods": [],
                 "transformed_attributes": [],
-                "entity_key": "user_id",
+                "attribute_key": "user_id",
             },
             f,
         )

@@ -3,16 +3,22 @@ import json
 import httpx
 from respx import MockRouter
 
-from snowplow_signals import Entity, Service, Signals, View, domain_userid
+from snowplow_signals import (
+    AttributeGroup,
+    AttributeKey,
+    Service,
+    Signals,
+    domain_userid,
+)
 
 
 class TestSignalsPublish:
     def test_publish_view_and_service(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
-        view = View(
+        view = AttributeGroup(
             name="my_view",
-            entity=domain_userid,
+            attribute_key=domain_userid,
             owner="test@example.com",
         )
         service = Service(
@@ -30,7 +36,7 @@ class TestSignalsPublish:
                 200,
                 json={
                     "name": "my_view",
-                    "entity": {"name": "user"},
+                    "attribute_key": {"name": "user"},
                     "owner": "test@example.com",
                     "is_published": True,
                 },
@@ -50,7 +56,7 @@ class TestSignalsPublish:
             )
 
         view_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/registry/views/"
+            "http://localhost:8000/api/v1/registry/attribute_groups/"
         ).mock(side_effect=check_view_request)
 
         service_mock = respx_mock.post(
@@ -68,12 +74,12 @@ class TestSignalsPublish:
     def test_publish_entity_view_and_service(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
-        custom_entity = Entity(
+        custom_entity = AttributeKey(
             name="custom_entity",
         )
-        view = View(
+        view = AttributeGroup(
             name="my_view",
-            entity=custom_entity,
+            attribute_key=custom_entity,
             owner="contact@mail.com",
         )
         service = Service(
@@ -101,7 +107,7 @@ class TestSignalsPublish:
                 200,
                 json={
                     "name": "my_view",
-                    "entity": {"name": "custom_entity"},
+                    "attribute_key": {"name": "custom_entity"},
                     "owner": "contact@mail.com",
                     "is_published": True,
                 },
@@ -121,11 +127,11 @@ class TestSignalsPublish:
             )
 
         entity_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/registry/entities/"
+            "http://localhost:8000/api/v1/registry/attribute_keys/"
         ).mock(side_effect=check_entity_request)
 
         view_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/registry/views/"
+            "http://localhost:8000/api/v1/registry/attribute_groups/"
         ).mock(side_effect=check_view_request)
 
         service_mock = respx_mock.post(
@@ -143,9 +149,9 @@ class TestSignalsPublish:
     def test_already_existing_view(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
-        view = View(
+        view = AttributeGroup(
             name="my_view",
-            entity=domain_userid,
+            attribute_key=domain_userid,
             owner="test@example.com",
         )
 
@@ -156,18 +162,18 @@ class TestSignalsPublish:
                 200,
                 json={
                     "name": "my_view",
-                    "entity": {"name": "user"},
+                    "attribute_key": {"name": "user"},
                     "owner": "test@example.com",
                     "is_published": True,
                 },
             )
 
         view_post_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/registry/views/"
+            "http://localhost:8000/api/v1/registry/attribute_groups/"
         ).mock(return_value=httpx.Response(400, json={}))
 
         view_put_mock = respx_mock.put(
-            "http://localhost:8000/api/v1/registry/views/my_view/versions/1"
+            "http://localhost:8000/api/v1/registry/attribute_groups/my_view/versions/1"
         ).mock(side_effect=check_publish_flag)
 
         signals_client.publish(objects=[view])
@@ -180,9 +186,9 @@ class TestSignalsUnpublish:
     def test_unpublish_view_and_service(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
-        view = View(
+        view = AttributeGroup(
             name="my_view",
-            entity=domain_userid,
+            attribute_key=domain_userid,
             owner="test@example.com",
             is_published=True,  # Start as published
         )
@@ -201,7 +207,7 @@ class TestSignalsUnpublish:
                 200,
                 json={
                     "name": "my_view",
-                    "entity": {"name": "user"},
+                    "attribute_key": {"name": "user"},
                     "owner": "test@example.com",
                     "is_published": False,
                 },
@@ -221,7 +227,7 @@ class TestSignalsUnpublish:
             )
 
         view_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/registry/views/"
+            "http://localhost:8000/api/v1/registry/attribute_groups/"
         ).mock(side_effect=check_view_request)
 
         service_mock = respx_mock.post(
@@ -241,9 +247,9 @@ class TestSignalsDelete:
     def test_delete_view_and_service(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
-        view = View(
+        view = AttributeGroup(
             name="my_view",
-            entity=domain_userid,
+            attribute_key=domain_userid,
             owner="test@example.com",
         )
         service = Service(
@@ -253,7 +259,7 @@ class TestSignalsDelete:
         )
 
         view_delete_mock = respx_mock.delete(
-            "http://localhost:8000/api/v1/registry/views/my_view/versions/1"
+            "http://localhost:8000/api/v1/registry/attribute_groups/my_view/versions/1"
         ).mock(return_value=httpx.Response(200, json={}))
 
         service_delete_mock = respx_mock.delete(
@@ -278,34 +284,35 @@ class TestSignalsGetAttributes:
         respx_mock.post(
             "http://localhost:8000/api/v1/get-online-attributes",
             json__service="my_service",
-            json__entities={"domain_userid": ["user-123"]},
+            json__attribute_keys={"domain_userid": ["user-123"]},
         ).mock(return_value=httpx.Response(200, json=api_response))
 
         response = signals_client.get_service_attributes(
-            name="my_service", entity="domain_userid", identifier="user-123"
+            name="my_service", attribute_key="domain_userid", identifier="user-123"
         )
 
         assert response["domain_userid"] == "user-123"
         assert response["page_views_count"] == 10
 
-    def test_get_view_attributes(self, respx_mock: MockRouter, signals_client: Signals):
+    def test_get_group_attributes(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
         api_response = {
             "domain_userid": ["user-123"],
             "page_views_count": [10],
         }
         respx_mock.post(
             "http://localhost:8000/api/v1/get-online-attributes",
-            json__entities={"domain_userid": ["user-123"]},
+            json__attribute_keys={"domain_userid": ["user-123"]},
             json__attributes=["my_view_v1:page_views_count"],
         ).mock(return_value=httpx.Response(200, json=api_response))
 
-        response = signals_client.get_view_attributes(
+        response = signals_client.get_group_attributes(
             name="my_view",
             version=1,
             attributes=["page_views_count"],
-            entity="domain_userid",
+            attribute_key="domain_userid",
             identifier="user-123",
         )
-
         assert response["domain_userid"] == "user-123"
         assert response["page_views_count"] == 10

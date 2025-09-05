@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Literal
 MOCK_ECOMMERCE_VIEW = {
     "name": "ecommerce_transaction_interactions_features",
     "version": 1,
-    "entity": {"name": "user", "key": "user"},
+    "attribute_key": {"name": "user", "key": "user"},
     "ttl": None,
     "batch_source": {
         "name": "ecommerce_transaction_interactions_source",
@@ -53,14 +53,15 @@ MOCK_ECOMMERCE_VIEW = {
     "feast_name": "ecommerce_transaction_interactions_features_v1",
     "offline": True,
     "stream_source_name": "ecommerce_transaction_interactions_features_stream",
-    "entity_key": "user",
-    "view_or_entity_ttl": None,
+    "attribute_key_or_name": "user",
+    "attribute_group_or_attribute_key_ttl": None,
+    "full_name": "ecommerce_transaction_interactions_features_v1",
 }
 
 MOCK_USERS_VIEW = {
     "name": "unified_users_features",
     "version": 1,
-    "entity": {"name": "user"},
+    "attribute_key": {"name": "user"},
     "ttl": None,
     "batch_source": {
         "name": "snowplow_unified_users_source",
@@ -97,8 +98,9 @@ MOCK_USERS_VIEW = {
     "feast_name": "unified_users_features_v1",
     "offline": True,
     "stream_source_name": "unified_users_features_stream",
-    "entity_key": "user",
-    "view_or_entity_ttl": None,
+    "attribute_key_or_name": "user",
+    "attribute_group_or_attribute_key_ttl": None,
+    "full_name": "unified_users_features_v1",
 }
 
 MOCK_ATTRIBUTE_VIEWS = [MOCK_ECOMMERCE_VIEW, MOCK_USERS_VIEW]

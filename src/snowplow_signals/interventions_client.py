@@ -3,7 +3,7 @@ from typing import Literal
 from .api_client import ApiClient
 from .interventions_subscription import InterventionsSubscription
 from .models import (
-    EntityIdentifiers,
+    AttributeKeyIdentifiers,
     InterventionInstance,
     RuleInterventionInput,
     RuleInterventionOutput,
@@ -64,7 +64,7 @@ class InterventionsClient:
         return RuleInterventionOutput(**response)
 
     def publish(
-        self, intervention: InterventionInstance, targets: EntityIdentifiers
+        self, intervention: InterventionInstance, targets: AttributeKeyIdentifiers
     ) -> Literal["undelivered", "success", "failure"]:
         response = self.api_client.make_request(
             method="POST",
@@ -79,5 +79,5 @@ class InterventionsClient:
 
         return response.get("status", "failure")
 
-    def subscribe(self, targets: EntityIdentifiers) -> InterventionsSubscription:
+    def subscribe(self, targets: AttributeKeyIdentifiers) -> InterventionsSubscription:
         return InterventionsSubscription(self.api_client, targets)

@@ -35,7 +35,7 @@ semver = "^3.0.2"
 python-dotenv = { version = "^1.1.0", extras = ["cli"] }
 
 [tool.poetry.scripts]
-snowplow-batch-autogen = "snowplow_signals.batch_autogen.cli:app"
+snowplow-batch-engine = "snowplow_signals.batch_autogen.cli:app"
 
 [build-system]
 requires = ["poetry-core"]

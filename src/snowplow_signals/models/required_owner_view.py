@@ -1,11 +1,11 @@
 from pydantic import EmailStr, Field
 
-from .view import View
+from .view import AttributeGroup
 
 
-class RequiredOwnerView(View):
+class RequiredOwnerView(AttributeGroup):
     """
-    A View class that requires the owner field to be set.
+    An AttributeGroup class that requires the owner field to be set.
     This is used specifically for view creation to enforce owner attribution.
     """
 

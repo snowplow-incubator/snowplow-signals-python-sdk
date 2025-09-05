@@ -15,9 +15,9 @@ from snowplow_signals.batch_autogen.dbt_client import BatchAutogenClient
 from .utils import get_integration_test_view_response
 
 # Test constants
-TEST_VIEW_NAME = "ecommerce_transaction_interactions_features"
+TEST_ATTRIBUTE_GROUP_NAME = "ecommerce_transaction_interactions_features"
 TEST_PROJECT_NAME = "ecommerce_transaction_interactions_features_1"
-API_ENDPOINT = "http://localhost:8000/api/v1/registry/views/"
+API_ENDPOINT = "http://localhost:8000/api/v1/registry/attribute_groups/"
 
 
 def get_file_contents(directory: Path) -> dict:
@@ -53,7 +53,9 @@ def test_generated_files_bigquery(
 
     # Generate the files
     client = BatchAutogenClient(signals_client.api_client, target_type="bigquery")
-    client.init_project(repo_path=str(test_dir), view_name=TEST_VIEW_NAME)
+    client.init_project(
+        repo_path=str(test_dir), attribute_group_name=TEST_ATTRIBUTE_GROUP_NAME
+    )
     success = client.generate_models(
         repo_path=str(test_dir), project_name=TEST_PROJECT_NAME
     )

@@ -7,7 +7,7 @@ from typing import Self
 
 from .api_client import ApiClient
 from .models import (
-    EntityIdentifiers,
+    AttributeKeyIdentifiers,
     InterventionInstance,
 )
 
@@ -30,7 +30,7 @@ class InterventionsSubscription(AbstractContextManager, Iterable):
     instances: set[Self] = set()
 
     def __init__(
-        self, api_client: ApiClient, targets: EntityIdentifiers, buffer=True
+        self, api_client: ApiClient, targets: AttributeKeyIdentifiers, buffer=True
     ) -> None:
         self.targets = targets
         self.api_client = api_client

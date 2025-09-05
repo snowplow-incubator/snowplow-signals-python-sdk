@@ -1,7 +1,9 @@
-from .model import SignalsApiModelsViewCriterionCriterion
-from .property_wrappers.atomic import AtomicProperty
-from .property_wrappers.entity import EntityProperty
-from .property_wrappers.event import EventProperty
+from .model import (
+    AtomicProperty,
+    EntityProperty,
+    EventProperty,
+    SignalsApiModelsViewCriterionCriterion,
+)
 
 
 class Criterion(SignalsApiModelsViewCriterionCriterion):
@@ -20,7 +22,7 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
             property: The property to check.
             value: The value to compare against.
         """
-        return cls(property=property._to_api_property(), operator="=", value=value)
+        return cls(property=property, operator="=", value=value)
 
     @classmethod
     def neq(
@@ -35,7 +37,7 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
             property: The property to check.
             value: The value to compare against.
         """
-        return cls(property=property._to_api_property(), operator="!=", value=value)
+        return cls(property=property, operator="!=", value=value)
 
     @classmethod
     def gt(
@@ -50,7 +52,7 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
             property: The property to check.
             value: The value to compare against.
         """
-        return cls(property=property._to_api_property(), operator=">", value=value)
+        return cls(property=property, operator=">", value=value)
 
     @classmethod
     def gte(
@@ -68,7 +70,7 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
         Returns:
             A Criterion instance.
         """
-        return cls(property=property._to_api_property(), operator=">=", value=value)
+        return cls(property=property, operator=">=", value=value)
 
     @classmethod
     def lt(
@@ -83,7 +85,7 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
             property: The property to check.
             value: The value to compare against.
         """
-        return cls(property=property._to_api_property(), operator="<", value=value)
+        return cls(property=property, operator="<", value=value)
 
     @classmethod
     def lte(
@@ -98,7 +100,7 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
             property: The property to check.
             value: The value to compare against.
         """
-        return cls(property=property._to_api_property(), operator="<=", value=value)
+        return cls(property=property, operator="<=", value=value)
 
     @classmethod
     def like(
@@ -111,7 +113,7 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
             property: The property to check.
             value: The value to compare against.
         """
-        return cls(property=property._to_api_property(), operator="like", value=value)
+        return cls(property=property, operator="like", value=value)
 
     @classmethod
     def in_list(
@@ -124,4 +126,4 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
             property: The property to check.
             values: The list of values to compare against.
         """
-        return cls(property=property._to_api_property(), operator="in", value=values)
+        return cls(property=property, operator="in", value=values)

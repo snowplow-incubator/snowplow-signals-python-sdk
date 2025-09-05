@@ -6,14 +6,14 @@ from respx import MockRouter
 
 from snowplow_signals import (
     Attribute,
+    AttributeGroup,
     BatchSource,
     Event,
-    LinkEntity,
-    View,
+    LinkAttributeKey,
     domain_userid,
 )
 from snowplow_signals.api_client import ApiClient
-from snowplow_signals.models import ViewResponse
+from snowplow_signals.models import AttributeGroupResponse
 from snowplow_signals.registry_client import RegistryClient
 
 from .utils import MOCK_ORG_ID
@@ -23,9 +23,9 @@ class TestRegistryClient:
     def test_serializes_period_correctly_using_iso_format(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
-        view = View(
+        view = AttributeGroup(
             name="my_view",
-            entity=domain_userid,
+            attribute_key=domain_userid,
             owner="test@example.com",
             attributes=[
                 Attribute(
@@ -43,19 +43,20 @@ class TestRegistryClient:
                 )
             ],
         )
-        view_output = ViewResponse(
+        view_output = AttributeGroupResponse(
             name="my_view",
-            entity=LinkEntity(name="user"),
+            attribute_key=LinkAttributeKey(name="user"),
             feast_name="my_view_v1",
             offline=True,
             stream_source_name="my_stream",
-            entity_key="user_id",
-            view_or_entity_ttl=None,
+            attribute_key_or_name="user_id",
+            attribute_group_or_attribute_key_ttl=None,
             owner="test@example.com",
+            full_name="my_view_1",
         )
 
         view_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/registry/views/"
+            "http://localhost:8000/api/v1/registry/attribute_groups/"
         ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
 
         registry_client = RegistryClient(api_client=api_client)
@@ -67,9 +68,9 @@ class TestRegistryClient:
     def test_serializes_batch_source_correctly(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
-        view = View(
+        view = AttributeGroup(
             name="my_view",
-            entity=domain_userid,
+            attribute_key=domain_userid,
             owner="test@example.com",
             attributes=[
                 Attribute(
@@ -92,19 +93,20 @@ class TestRegistryClient:
                 table="my_table",
             ),
         )
-        view_output = ViewResponse(
+        view_output = AttributeGroupResponse(
             name="my_view",
-            entity=LinkEntity(name="user"),
+            attribute_key=LinkAttributeKey(name="user"),
             feast_name="my_view_v1",
             offline=True,
             stream_source_name="my_stream",
-            entity_key="user_id",
-            view_or_entity_ttl=None,
+            attribute_key_or_name="user_id",
+            attribute_group_or_attribute_key_ttl=None,
             owner="test@example.com",
+            full_name="my_view_1",
         )
 
         view_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/registry/views/"
+            "http://localhost:8000/api/v1/registry/attribute_groups/"
         ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
 
         registry_client = RegistryClient(api_client=api_client)
@@ -124,38 +126,39 @@ class TestRegistryClient:
             api_key_id="bar",
             org_id=MOCK_ORG_ID,
         )
-        view = View(
+        view = AttributeGroup(
             name="my_view",
-            entity=domain_userid,
+            attribute_key=domain_userid,
             owner="test@example.com",
             attributes=[],
         )
-        view_output = ViewResponse(
+        view_output = AttributeGroupResponse(
             name="my_view",
-            entity=LinkEntity(name="user"),
+            attribute_key=LinkAttributeKey(name="user"),
             feast_name="my_view_v1",
             offline=True,
             stream_source_name="my_stream",
-            entity_key="user_id",
-            view_or_entity_ttl=None,
+            attribute_key_or_name="user_id",
+            attribute_group_or_attribute_key_ttl=None,
             owner="test@example.com",
+            full_name="my_view_1",
         )
         view_mock = respx_mock.post(
-            "http://localhost:8000/api/v1/registry/views/"
+            "http://localhost:8000/api/v1/registry/attribute_groups/"
         ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
         registry_client = RegistryClient(api_client=api_client)
         registry_client.create_or_update([view])
         assert view_mock.called
 
     def test_delete_view(self, respx_mock: MockRouter, api_client: ApiClient):
-        view = View(
+        view = AttributeGroup(
             name="my_view",
-            entity=domain_userid,
+            attribute_key=domain_userid,
             owner="test@example.com",
         )
 
         delete_mock = respx_mock.delete(
-            "http://localhost:8000/api/v1/registry/views/my_view/versions/1"
+            "http://localhost:8000/api/v1/registry/attribute_groups/my_view/versions/1"
         ).mock(return_value=httpx.Response(200, json={}))
 
         registry_client = RegistryClient(api_client=api_client)
@@ -181,14 +184,14 @@ class TestRegistryClient:
         assert delete_mock.called
 
     def test_delete_entity(self, respx_mock: MockRouter, api_client: ApiClient):
-        from snowplow_signals import Entity
+        from snowplow_signals import AttributeKey
 
-        entity = Entity(
+        entity = AttributeKey(
             name="my_entity",
         )
 
         delete_mock = respx_mock.delete(
-            "http://localhost:8000/api/v1/registry/entities/my_entity"
+            "http://localhost:8000/api/v1/registry/attribute_keys/my_entity"
         ).mock(return_value=httpx.Response(200, json={}))
 
         registry_client = RegistryClient(api_client=api_client)
@@ -199,7 +202,7 @@ class TestRegistryClient:
     def test_delete_intervention(self, respx_mock: MockRouter, api_client: ApiClient):
         from snowplow_signals.models import (
             InterventionCriterion,
-            LinkEntity,
+            LinkAttributeKey,
             RuleIntervention,
         )
 
@@ -211,7 +214,7 @@ class TestRegistryClient:
                 operator=">",
                 value=5,
             ),
-            target_entities=[LinkEntity(name="user")],
+            target_entities=[LinkAttributeKey(name="user")],
         )
 
         delete_mock = respx_mock.delete(

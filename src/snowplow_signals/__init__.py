@@ -1,16 +1,19 @@
 from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
+    AtomicProperty,
     Attribute,
+    AttributeGroup,
+    AttributeKey,
+    AttributeKeyId,
+    AttributeKeyIdentifiers,
+    BatchAttributeGroup,
     BatchSource,
-    BatchView,
     Criteria,
     Criterion,
-    Entity,
-)
-from snowplow_signals.models import EntityIdentifiers as EntityIdentifiers
-from snowplow_signals.models import (
+    EntityProperty,
     Event,
-    ExternalBatchView,
+    EventProperty,
+    ExternalBatchAttributeGroup,
     Field,
 )
 from snowplow_signals.models import (
@@ -27,16 +30,10 @@ from snowplow_signals.models import (
 )
 from snowplow_signals.models import InterventionInstance as InterventionInstance
 from snowplow_signals.models import (
-    LinkEntity,
+    LinkAttributeKey,
     RuleIntervention,
     Service,
-    StreamView,
-    View,
-)
-from snowplow_signals.models.property_wrappers import (
-    AtomicProperty,
-    EntityProperty,
-    EventProperty,
+    StreamAttributeGroup,
 )
 from snowplow_signals.signals import Signals
 
@@ -47,27 +44,27 @@ from .definitions import (
     domain_sessionid,
     domain_userid,
     network_userid,
-    session_entity,
-    user_entity,
+    session_attribute_key,
+    user_attribute_key,
     user_id,
 )
 
 Signals
-View
-ExternalBatchView
-StreamView
-BatchView
+AttributeGroup
+ExternalBatchAttributeGroup
+StreamAttributeGroup
+BatchAttributeGroup
 Service
 Attribute
 Criteria
 Criterion
 Field
 BatchSource
-Entity
-LinkEntity
+AttributeKey
+LinkAttributeKey
 Event
-user_entity
-session_entity
+user_attribute_key
+session_attribute_key
 domain_userid
 domain_sessionid
 user_id
@@ -86,3 +83,5 @@ InterventionCriteriaAny
 InterventionCriteriaNone
 InterventionCriterion
 SignalsAPIError
+AttributeKeyIdentifiers
+AttributeKeyId

@@ -1,35 +1,35 @@
-from .models import Entity, Event
+from .models import AttributeKey, Event
 
 # Predefined entities
-user_entity = Entity(
+user_attribute_key = AttributeKey(
     name="user",
     key="domain_userid",
     description="Deprecated: Use domain_userid instead.",
 )
-session_entity = Entity(
+session_attribute_key = AttributeKey(
     name="session",
     key="domain_sessionid",
     description="Deprecated: Use domain_sessionid instead.",
 )
 
-domain_userid = Entity(
+domain_userid = AttributeKey(
     name="domain_userid",
     key="domain_userid",
     description="The domain user ID for the user.",
 )
-domain_sessionid = Entity(
+domain_sessionid = AttributeKey(
     name="domain_sessionid",
     key="domain_sessionid",
     description="The domain session ID for the session.",
 )
 
-user_id = Entity(
+user_id = AttributeKey(
     name="user_id",
     key="user_id",
     description="The user ID for the user.",
 )
 
-network_userid = Entity(
+network_userid = AttributeKey(
     name="network_userid",
     key="network_userid",
     description="The network user ID for the user.",

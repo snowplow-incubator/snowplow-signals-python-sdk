@@ -7,14 +7,15 @@ from .api_client import ApiClient
 from .attributes_client import AttributesClient
 from .interventions_client import InterventionsClient
 from .models import (
-    Entity,
-    EntityIdentifiers,
+    AttributeGroup,
+    AttributeGroupResponse,
+    AttributeKey,
+    AttributeKeyId,
+    AttributeKeyIdentifiers,
     InterventionInstance,
     RuleIntervention,
     Service,
-    TestViewRequest,
-    View,
-    ViewResponse,
+    TestAttributeGroupRequest,
 )
 from .registry_client import RegistryClient
 from .testing_client import TestingClient
@@ -35,8 +36,8 @@ class Signals:
         self.testing = TestingClient(api_client=self.api_client)
 
     def publish(
-        self, objects: list[View | Service | Entity | RuleIntervention]
-    ) -> list[View | Service | Entity | RuleIntervention]:
+        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
+    ) -> list[AttributeGroup | Service | AttributeKey | RuleIntervention]:
         """
         Creates or updates the provided objects in the Signals registry and publishes them to the compute engines.
 
@@ -53,8 +54,8 @@ class Signals:
         return updated_objects
 
     def unpublish(
-        self, objects: list[View | Service | Entity | RuleIntervention]
-    ) -> list[View | Service | Entity | RuleIntervention]:
+        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
+    ) -> list[AttributeGroup | Service | AttributeKey | RuleIntervention]:
         """
         Creates or updates the provided objects in the Signals registry and unpublishes them from the compute engines.
 
@@ -70,7 +71,9 @@ class Signals:
         updated_objects = self.registry.create_or_update(objects=to_update)
         return updated_objects
 
-    def delete(self, objects: list[View | Service | Entity | RuleIntervention]) -> None:
+    def delete(
+        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
+    ) -> None:
         """
         Deletes the provided objects from the Signals registry.
         Make sure to unpublish the objects first.
@@ -82,50 +85,52 @@ class Signals:
         """
         self.registry.delete(objects=objects)
 
-    def get_view(self, name: str, version: int | None = None) -> ViewResponse:
+    def get_attribute_group(
+        self, name: str, version: int | None = None
+    ) -> AttributeGroupResponse:
         """
-        Returns a View from the Signals registry by name.
+        Returns an Attribute Group from the Signals registry by name.
         If no version is provided, returns the latest one.
 
         Args:
-            name: The name of the View.
-            version: The version of the View.
+            name: The name of the Attribute Group.
+            version: The version of the Attribute Group.
         Returns:
-            The View
+            The Attribute Group
         """
         view = self.registry.get_view(name, version)
         return view
 
-    def get_view_attributes(
+    def get_group_attributes(
         self,
         name: str,
         version: int,
         attributes: list[str] | str,
-        entity: str,
+        attribute_key: str,
         identifier: str,
     ) -> dict[str, Any]:
         """
-        Retrieves the attributes for a given view by name and version.
+        Retrieves the attributes for a given attribute group by name and version.
 
         Args:
-            name: The name of the View.
-            version: The version of the View.
-            entity: The entity name to retrieve attributes for.
-            identifier: The entity identifier to retrieve attributes for.
+            name: The name of the attribute group.
+            version: The version of the attribute group.
+            attribute_key: The attribute_key name to retrieve attributes for.
+            identifier: The attribute key identifier to retrieve attributes for.
             attributes: The list of attributes to retrieve.
         """
         return self.attributes.get_view_attributes(
             name=name,
             version=version,
             attributes=attributes,
-            entity=entity,
+            attribute_key=attribute_key,
             identifier=identifier,
         )
 
     def get_service_attributes(
         self,
         name: str,
-        entity: str,
+        attribute_key: str,
         identifier: str,
     ) -> dict[str, Any]:
         """
@@ -133,41 +138,41 @@ class Signals:
 
         Args:
             name: The name of the Service.
-            entity: The entity name to retrieve attributes for.
-            identifier: The entity identifier to retrieve attributes for.
+            attribute_key: The attribute_key to retrieve attributes for.
+            identifier: The attribute key identifier to retrieve attributes for.
         """
         return self.attributes.get_service_attributes(
             name=name,
-            entity=entity,
+            attribute_key=attribute_key,
             identifier=identifier,
         )
 
     def test(
         self,
-        view: View,
-        entity_ids: list[str] = [],
+        attribute_group: AttributeGroup,
+        attribute_key_ids: list[AttributeKeyId] = [],
         app_ids: list[str] = [],
         window: timedelta = timedelta(hours=1),
     ) -> pd.DataFrame:
         """
-        Tests the view by extracting the features from the latest window of events in the atomic events table in warehouse.
+        Tests the attribute group by extracting the features from the latest window of events in the atomic events table in warehouse.
 
         Args:
-            view: The feature view to test.
-            entity_ids: The list of entity ids (e.g., domain_userid values) to extract features for. If empty, random 10 IDs will be used.
+            attribute_group: The attribute group to test.
+            attribute_key_ids: The list of attribute key ids (e.g., domain_userid values) to extract features for. If empty, random 10 IDs will be used.
             app_ids: The list of app ids to extract features for.
             window: The time window to extract features from.
         """
-        request = TestViewRequest(
-            view=view,
-            entity_ids=entity_ids,
+        request = TestAttributeGroupRequest(
+            attribute_group=attribute_group,
+            attribute_key_ids=attribute_key_ids,
             window=window,
-            app_ids=app_ids,
+            app_ids=app_ids,  # pyright: ignore[reportArgumentType] AppID is already a string, validation happens at runtime
         )
         return self.testing.test_view(request=request)
 
     def push_intervention(
-        self, targets: EntityIdentifiers, intervention: InterventionInstance
+        self, targets: AttributeKeyIdentifiers, intervention: InterventionInstance
     ):
         """
         Publish the given intervention to any active subscribers for the given lists of Attribute Keys.
@@ -180,7 +185,7 @@ class Signals:
         """
         return self.interventions.publish(intervention, targets)
 
-    def pull_interventions(self, targets: EntityIdentifiers):
+    def pull_interventions(self, targets: AttributeKeyIdentifiers):
         """
         Return a subscription for interventions targeting the given Attribute Key targets.
 

@@ -1,30 +1,41 @@
-from .attribute import Attribute
+from .criteria_wrapper import Criteria
 from .criterion_wrapper import Criterion
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
+    AtomicProperty,
+    AttributeGroupReference,
+    AttributeGroupResponse,
+)
+from .model import AttributeInput as Attribute
+from .model import (
+    AttributeKey,
+    AttributeKeyId,
+    AttributeKeyIdentifiers,
+    AttributeKeyReference,
     AttributeOutput,
+    AttributeWithStringProperty,
     BatchSource,
-    Criteria,
 )
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
 from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
 from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
-    Entity,
-    EntityIdentifiers,
-    EntityReference,
+    CriteriaWithStringProperty,
+    CriterionWithStringProperty,
+    EntityProperty,
     Event,
+    EventProperty,
 )
 from .model import FieldModel as Field
 from .model import (
+    GetAttributeGroupAttributesRequest,
     GetServiceAttributesRequest,
-    GetViewAttributesRequest,
 )
 from .model import InterventionInstance as InterventionInstance
 from .model import (
     InterventionReference,
-    LinkEntity,
+    LinkAttributeKey,
     RuleInterventionInput,
     RuleInterventionOutput,
     SelectivePublishRequest,
@@ -34,33 +45,36 @@ from .model import (
     SignalsApiModelsInterventionCriterionCriterion as InterventionCriterion,
 )
 from .model import (
-    TestViewRequest,
+    TestAttributeGroupRequest,
     UnpublishRequest,
-    ViewReference,
-    ViewResponse,
 )
 from .service import Service
-from .view import BatchView, ExternalBatchView, StreamView, View
+from .view import (
+    AttributeGroup,
+    BatchAttributeGroup,
+    ExternalBatchAttributeGroup,
+    StreamAttributeGroup,
+)
 
 AttributeOutput
 Criteria
 Criterion
-View
-StreamView
-BatchView
-ExternalBatchView
-ViewResponse
+AttributeGroup
+StreamAttributeGroup
+BatchAttributeGroup
+ExternalBatchAttributeGroup
+AttributeGroupResponse
 Service
-Entity
-TestViewRequest
-GetViewAttributesRequest
+AttributeKey
+TestAttributeGroupRequest
+GetAttributeGroupAttributesRequest
 GetServiceAttributesRequest
 GetAttributesResponse
 BatchSource
 Attribute
 
 Field
-LinkEntity
+LinkAttributeKey
 Event
 # Interventions
 RuleIntervention
@@ -70,11 +84,18 @@ InterventionCriteriaAllInput
 InterventionCriteriaAnyInput
 InterventionCriteriaNoneInput
 InterventionCriterion
-EntityIdentifiers
+AttributeKeyIdentifiers
 
-ViewReference
+AttributeGroupReference
 ServiceReference
 InterventionReference
-EntityReference
+AttributeKeyReference
 SelectivePublishRequest
 UnpublishRequest
+AttributeWithStringProperty
+CriteriaWithStringProperty
+CriterionWithStringProperty
+AtomicProperty
+EventProperty
+EntityProperty
+AttributeKeyId

@@ -16,6 +16,8 @@ from .cli_params import (
     API_KEY,
     API_KEY_ID,
     API_URL,
+    ATTRIBUTE_GROUP_NAME,
+    ATTRIBUTE_GROUP_VERSION,
     CHECK_API,
     CHECK_AUTH,
     ORG_ID,
@@ -24,8 +26,6 @@ from .cli_params import (
     TARGET_TYPE,
     UPDATE,
     VERBOSE,
-    VIEW_NAME,
-    VIEW_VERSION,
 )
 
 # Create the main Typer app with metadata
@@ -114,8 +114,8 @@ def init(
     org_id: ORG_ID,
     repo_path: REPO_PATH,
     target_type: TARGET_TYPE,
-    view_name: VIEW_NAME = None,
-    view_version: VIEW_VERSION = None,
+    attribute_group_name: ATTRIBUTE_GROUP_NAME = None,
+    attribute_group_version: ATTRIBUTE_GROUP_VERSION = None,
     verbose: VERBOSE = False,
 ) -> None:
     """Initialize dbt project structure and base configuration."""
@@ -129,8 +129,8 @@ def init(
         )
         success = client.init_project(
             repo_path=str(validated_path),
-            view_name=view_name,
-            view_version=view_version,
+            attribute_group_name=attribute_group_name,
+            attribute_group_version=attribute_group_version,
         )
         if not success:
             logger.error("Failed to initialize dbt project(s)")
@@ -177,22 +177,22 @@ def generate(
 
 
 @app.command()
-def materialize(
+def sync(
     api_url: API_URL,
     api_key: API_KEY,
     api_key_id: API_KEY_ID,
     org_id: ORG_ID,
-    view_name: VIEW_NAME,
-    view_version: VIEW_VERSION,
+    attribute_group_name: ATTRIBUTE_GROUP_NAME,
+    attribute_group_version: ATTRIBUTE_GROUP_VERSION,
     repo_path: REPO_PATH,
     target_type: TARGET_TYPE,
     verbose: VERBOSE = False,
 ) -> None:
-    """Registers the attribute table as a data source so that the materialization process can start."""
+    """Registers the attribute table as a data source so that the syncing process can start."""
     try:
-        if view_name is None or view_version is None:
+        if attribute_group_name is None or attribute_group_version is None:
             logger.error(
-                "view_name and view_version must be provided for materialization."
+                "attribute_group_name and attribute_group_version must be provided for syncing."
             )
             raise typer.Exit(code=1)
 
@@ -200,17 +200,19 @@ def materialize(
         client = BatchAutogenClient(
             api_client=api_client, target_type=target_type.value
         )
-        project_path = str(Path(repo_path) / f"{view_name}_{view_version}")
-        client.materialize_model(
+        project_path = str(
+            Path(repo_path) / f"{attribute_group_name}_{attribute_group_version}"
+        )
+        client.sync_model(
             project_path=project_path,
-            view_name=view_name,
-            view_version=view_version,
+            attribute_group_name=attribute_group_name,
+            attribute_group_version=attribute_group_version,
             verbose=verbose,
         )
 
     except Exception as e:
         logger.error(
-            f"Error registering table {view_name}_{view_version}_attributes for materialization: {str(e)}"
+            f"Error registering table {attribute_group_name}_{attribute_group_version}_attributes for syncing: {str(e)}"
         )
         raise typer.Exit(code=1)
 
@@ -235,9 +237,11 @@ def test_connection(
         if check_auth:
             logger.info("🔐 Testing authentication service...")
             try:
-                # Test auth by making a request to registry/views endpoint
+                # Test auth by making a request to registry/attribute_groups endpoint
                 api_client.make_request(
-                    method="GET", endpoint="registry/views/", params={"offline": True}
+                    method="GET",
+                    endpoint="registry/attribute_groups/",
+                    params={"offline": True},
                 )
                 auth_status = {"status": "ok", "message": "Authentication successful"}
                 logger.success("✅ Authentication service is healthy")

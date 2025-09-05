@@ -7,7 +7,7 @@ from snowplow_signals.models import GetAttributesResponse
 
 
 class TestAttributesClient:
-    def test_get_view_attributes(self, respx_mock: MockRouter, api_client: ApiClient):
+    def test_get_attributes(self, respx_mock: MockRouter, api_client: ApiClient):
         attributes_client = AttributesClient(api_client=api_client)
         identifier = "user-123"
 
@@ -24,8 +24,8 @@ class TestAttributesClient:
 
             body = json.loads(request.content)
             # Verify GetViewAttributesRequest structure
-            assert "entities" in body
-            assert body["entities"]["domain_userid"] == ["user-123"]
+            assert "attribute_keys" in body
+            assert body["attribute_keys"]["domain_userid"] == ["user-123"]
             assert "attributes" in body
             assert body["attributes"] == ["page_views_count"]
             # Should NOT have "service" field for view requests
@@ -39,7 +39,7 @@ class TestAttributesClient:
         response = attributes_client.get_view_attributes(
             name="my_view",
             version=1,
-            entity="domain_userid",
+            attribute_key="domain_userid",
             identifier=identifier,
             attributes="page_views_count",
         )
@@ -69,9 +69,9 @@ class TestAttributesClient:
             import json
 
             body = json.loads(request.content)
-            # Verify GetServiceAttributesRequest structure with EntityIdentifiers wrapper
-            assert "entities" in body
-            assert body["entities"]["domain_userid"] == ["user-123"]
+            # Verify GetServiceAttributesRequest structure with AttributeKeyIdentifiers wrapper
+            assert "attribute_keys" in body
+            assert body["attribute_keys"]["domain_userid"] == ["user-123"]
             assert "service" in body
             assert body["service"] == "my_service"
             # Should NOT have "attributes" field for service requests
@@ -84,7 +84,7 @@ class TestAttributesClient:
 
         response = attributes_client.get_service_attributes(
             name="my_service",
-            entity="domain_userid",
+            attribute_key="domain_userid",
             identifier=identifier,
         )
 
@@ -95,10 +95,10 @@ class TestAttributesClient:
 
         assert response == sdk_expected_response
 
-    def test_get_view_attributes_multiple_attributes(
+    def test_get_attributes_multiple_attributes(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
-        """Test that multiple attributes are properly formatted in view requests."""
+        """Test that multiple attributes are properly formatted in arribute group requests."""
         attributes_client = AttributesClient(api_client=api_client)
         identifier = "user-111"
 
@@ -131,7 +131,7 @@ class TestAttributesClient:
         response = attributes_client.get_view_attributes(
             name="analytics",
             version=1,
-            entity="domain_userid",
+            attribute_key="domain_userid",
             identifier=identifier,
             attributes=["page_views", "session_duration", "bounce_rate"],
         )

@@ -3,14 +3,14 @@ from pydantic import ValidationError
 
 from snowplow_signals.models import (
     Attribute,
+    AttributeGroup,
+    AttributeKey,
+    BatchAttributeGroup,
     BatchSource,
-    BatchView,
-    Entity,
     Event,
-    ExternalBatchView,
+    ExternalBatchAttributeGroup,
     Field,
-    StreamView,
-    View,
+    StreamAttributeGroup,
 )
 
 
@@ -18,18 +18,18 @@ def test_view_without_owner_raises_validation_error():
     """Test that a View without owner raises ValidationError."""
     with pytest.raises(ValidationError) as exc_info:
         # Create a View without owner
-        View(
+        AttributeGroup(
             name="test_view",
-            entity=Entity(name="test_entity"),
+            attribute_key=AttributeKey(name="test_entity"),
         )
     assert "owner" in str(exc_info.value)
 
 
 def test_view_with_owner_passes_validation():
     """Test that a View with owner passes validation."""
-    view_with_owner = View(
+    view_with_owner = AttributeGroup(
         name="test_view",
-        entity=Entity(name="test_entity"),
+        attribute_key=AttributeKey(name="test_entity"),
         owner="test@example.com",
     )
     assert view_with_owner.owner == "test@example.com"
@@ -37,9 +37,9 @@ def test_view_with_owner_passes_validation():
 
 def test_stream_view_passes_validation():
     """Test that a StreamView passes validation."""
-    stream_view = StreamView(
+    stream_view = StreamAttributeGroup(
         name="test_view",
-        entity=Entity(name="test_entity"),
+        attribute_key=AttributeKey(name="test_entity"),
         owner="test@example.com",
         attributes=[
             Attribute(
@@ -57,18 +57,18 @@ def test_stream_view_passes_validation():
 def test_stream_view_without_attributes_raises_validation_error():
     """Test that a StreamView without attributes raises ValidationError."""
     with pytest.raises(ValidationError):
-        StreamView(
+        StreamAttributeGroup(
             name="test_view",
-            entity=Entity(name="test_entity"),
+            attribute_key=AttributeKey(name="test_entity"),
             owner="test@example.com",
         )
 
 
 def test_batch_view_passes_validation():
     """Test that a BatchView passes validation."""
-    batch_view = BatchView(
+    batch_view = BatchAttributeGroup(
         name="test_view",
-        entity=Entity(name="test_entity"),
+        attribute_key=AttributeKey(name="test_entity"),
         owner="test@example.com",
         attributes=[
             Attribute(
@@ -85,18 +85,18 @@ def test_batch_view_passes_validation():
 def test_batch_view_without_attributes_raises_validation_error():
     """Test that a BatchView without attributes raises ValidationError."""
     with pytest.raises(ValidationError):
-        BatchView(
+        BatchAttributeGroup(
             name="test_view",
-            entity=Entity(name="test_entity"),
+            attribute_key=AttributeKey(name="test_entity"),
             owner="test@example.com",
         )
 
 
 def test_external_batch_view_passes_validation():
     """Test that a ExternalBatchView passes validation."""
-    external_batch_view = ExternalBatchView(
+    external_batch_view = ExternalBatchAttributeGroup(
         name="test_view",
-        entity=Entity(name="test_entity"),
+        attribute_key=AttributeKey(name="test_entity"),
         owner="test@example.com",
         fields=[
             Field(
@@ -117,9 +117,9 @@ def test_external_batch_view_passes_validation():
 def test_external_batch_view_without_fields_raises_validation_error():
     """Test that a ExternalBatchView without fields raises ValidationError."""
     with pytest.raises(ValidationError):
-        ExternalBatchView(
+        ExternalBatchAttributeGroup(
             name="test_view",
-            entity=Entity(name="test_entity"),
+            attribute_key=AttributeKey(name="test_entity"),
             owner="test@example.com",
             fields=[],
             batch_source=BatchSource(
@@ -134,9 +134,9 @@ def test_external_batch_view_without_fields_raises_validation_error():
 def test_external_batch_view_without_batch_source_raises_validation_error():
     """Test that a ExternalBatchView without batch_source raises ValidationError."""
     with pytest.raises(ValidationError):
-        ExternalBatchView(
+        ExternalBatchAttributeGroup(
             name="test_view",
-            entity=Entity(name="test_entity"),
+            attribute_key=AttributeKey(name="test_entity"),
             owner="test@example.com",
             fields=[
                 Field(
