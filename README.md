@@ -11,7 +11,7 @@ pip install snowplow-signals
 ## Quickstart
 
 ```python
-from snowplow_signals import Signals, Attribute, Event, View, domain_sessionid
+from snowplow_signals import Signals, Attribute, Event, StreamAttributeGroup, domain_sessionid
 
 # Initialize the SDK
 signals = Signals(
@@ -36,19 +36,19 @@ page_view_count = Attribute(
 )
 
 # Create and deploy a view
-view = StreamView(
-    name="my_view",
+stream_attribute_group = StreamAttributeGroup(
+    name="my_attribute_group",
     version=1,
-    entity=domain_sessionid,
+    attribute_key=domain_sessionid,
     attributes=[page_view_count],
 )
-signals.publish([view])
+signals.publish([stream_attribute_group])
 
 # Retrieve attributes
-response = signals.get_attribute_group_attributes(
-    name="my_view",
+response = signals.get_group_attributes(
+    name="my_attribute_group",
     version=1,
-    entity="domain_sessionid",
+    attribute_key="domain_sessionid",
     attributes=["page_view_count"],
     identifier="abc-123",
 )
@@ -57,8 +57,8 @@ response = signals.get_attribute_group_attributes(
 ## Key Features
 
 - Define attributes based on Snowplow events
-- Create views to group related attributes
-- Deploy views to the Profile API
+- Create attribute groups for related attributes
+- Deploy attribute groups to the Profile API
 - Retrieve real-time user attributes
 
 ### DBT Project Generation
@@ -108,4 +108,3 @@ snowplow-batch-engine init --repo-path=path/to/your/repo --target-type=snowflake
 # Generate DBT models
 snowplow-batch-engine generate --repo-path=path/to/your/repo --target-type=bigquery [--project-name=your_project_name] [--update]
 ```
-

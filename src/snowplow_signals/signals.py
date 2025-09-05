@@ -101,7 +101,7 @@ class Signals:
         view = self.registry.get_view(name, version)
         return view
 
-    def get_attributes(
+    def get_group_attributes(
         self,
         name: str,
         version: int,
