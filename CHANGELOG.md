@@ -1,5 +1,11 @@
 # Changelog
 
+# [0.3.0] - 2025-09-08
+
+### Changed
+
+- [AISP-643] Rename Signals concepts (#94)
+
 # [0.2.0] - 2025-09-01
 
 ### Changed
