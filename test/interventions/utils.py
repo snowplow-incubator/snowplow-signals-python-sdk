@@ -19,7 +19,7 @@ example_intervention = {
         "operator": ">",
         "value": 3,
     },
-    "target_entities": [{"name": "domain_sessionid"}],
+    "target_attribute_keys": [{"name": "domain_sessionid"}],
 }
 
 another_intervention = {
@@ -35,7 +35,7 @@ another_intervention = {
         "operator": ">",
         "value": 3,
     },
-    "target_entities": [{"name": "domain_sessionid"}],
+    "target_attribute_keys": [{"name": "domain_sessionid"}],
 }
 
 
@@ -59,9 +59,9 @@ def get_example_intervention() -> RuleIntervention:
             operator=example_intervention["criteria"]["operator"],
             value=example_intervention["criteria"]["value"],
         ),
-        target_entities=[
+        target_attribute_keys=[
             LinkAttributeKey(name=e["name"])
-            for e in example_intervention["target_entities"]
+            for e in example_intervention["target_attribute_keys"]
         ],
     )
 

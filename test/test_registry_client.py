@@ -23,8 +23,8 @@ class TestRegistryClient:
     def test_serializes_period_correctly_using_iso_format(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
-        view = AttributeGroup(
-            name="my_view",
+        attribute_group = AttributeGroup(
+            name="my_attribute_group",
             attribute_key=domain_userid,
             owner="test@example.com",
             attributes=[
@@ -43,33 +43,33 @@ class TestRegistryClient:
                 )
             ],
         )
-        view_output = AttributeGroupResponse(
-            name="my_view",
+        group_output = AttributeGroupResponse(
+            name="my_attribute_group",
             attribute_key=LinkAttributeKey(name="user"),
-            feast_name="my_view_v1",
+            feast_name="my_attribute_group_v1",
             offline=True,
             stream_source_name="my_stream",
             attribute_key_or_name="user_id",
             attribute_group_or_attribute_key_ttl=None,
             owner="test@example.com",
-            full_name="my_view_1",
+            full_name="my_attribute_group_1",
         )
 
-        view_mock = respx_mock.post(
+        group_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/attribute_groups/"
-        ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
+        ).mock(return_value=httpx.Response(201, json=group_output.model_dump()))
 
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.create_or_update([view])
+        registry_client.create_or_update([attribute_group])
 
-        assert view_mock.called
-        assert "P1D" in str(view_mock.calls[0].request.content)
+        assert group_mock.called
+        assert "P1D" in str(group_mock.calls[0].request.content)
 
     def test_serializes_batch_source_correctly(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
-        view = AttributeGroup(
-            name="my_view",
+        attribute_group = AttributeGroup(
+            name="my_attribute_group",
             attribute_key=domain_userid,
             owner="test@example.com",
             attributes=[
@@ -93,27 +93,27 @@ class TestRegistryClient:
                 table="my_table",
             ),
         )
-        view_output = AttributeGroupResponse(
-            name="my_view",
+        group_output = AttributeGroupResponse(
+            name="my_attribute_group",
             attribute_key=LinkAttributeKey(name="user"),
-            feast_name="my_view_v1",
+            feast_name="my_attribute_group_v1",
             offline=True,
             stream_source_name="my_stream",
             attribute_key_or_name="user_id",
             attribute_group_or_attribute_key_ttl=None,
             owner="test@example.com",
-            full_name="my_view_1",
+            full_name="my_attribute_group_1",
         )
 
-        view_mock = respx_mock.post(
+        group_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/attribute_groups/"
-        ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
+        ).mock(return_value=httpx.Response(201, json=group_output.model_dump()))
 
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.create_or_update([view])
+        registry_client.create_or_update([attribute_group])
 
-        assert view_mock.called
-        request_content = json.loads(view_mock.calls[0].request.content)
+        assert group_mock.called
+        request_content = json.loads(group_mock.calls[0].request.content)
         assert request_content["batch_source"]["database"] == "my_database"
         assert request_content["batch_source"]["table"] == "my_table"
         assert request_content["batch_source"]["schema"] == "my_schema"
@@ -126,43 +126,43 @@ class TestRegistryClient:
             api_key_id="bar",
             org_id=MOCK_ORG_ID,
         )
-        view = AttributeGroup(
-            name="my_view",
+        attribute_group = AttributeGroup(
+            name="my_attribute_group",
             attribute_key=domain_userid,
             owner="test@example.com",
             attributes=[],
         )
-        view_output = AttributeGroupResponse(
-            name="my_view",
+        group_output = AttributeGroupResponse(
+            name="my_attribute_group",
             attribute_key=LinkAttributeKey(name="user"),
-            feast_name="my_view_v1",
+            feast_name="my_attribute_group_v1",
             offline=True,
             stream_source_name="my_stream",
             attribute_key_or_name="user_id",
             attribute_group_or_attribute_key_ttl=None,
             owner="test@example.com",
-            full_name="my_view_1",
+            full_name="my_attribute_group_1",
         )
-        view_mock = respx_mock.post(
+        group_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/attribute_groups/"
-        ).mock(return_value=httpx.Response(201, json=view_output.model_dump()))
+        ).mock(return_value=httpx.Response(201, json=group_output.model_dump()))
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.create_or_update([view])
-        assert view_mock.called
+        registry_client.create_or_update([attribute_group])
+        assert group_mock.called
 
-    def test_delete_view(self, respx_mock: MockRouter, api_client: ApiClient):
-        view = AttributeGroup(
-            name="my_view",
+    def test_delete_attribute_group(self, respx_mock: MockRouter, api_client: ApiClient):
+        attribute_group = AttributeGroup(
+            name="my_attribute_group",
             attribute_key=domain_userid,
             owner="test@example.com",
         )
 
         delete_mock = respx_mock.delete(
-            "http://localhost:8000/api/v1/registry/attribute_groups/my_view/versions/1"
+            "http://localhost:8000/api/v1/registry/attribute_groups/my_attribute_group/versions/1"
         ).mock(return_value=httpx.Response(200, json={}))
 
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.delete([view])
+        registry_client.delete([attribute_group])
 
         assert delete_mock.called
 
@@ -183,19 +183,19 @@ class TestRegistryClient:
 
         assert delete_mock.called
 
-    def test_delete_entity(self, respx_mock: MockRouter, api_client: ApiClient):
+    def test_delete_attribute_key(self, respx_mock: MockRouter, api_client: ApiClient):
         from snowplow_signals import AttributeKey
 
-        entity = AttributeKey(
-            name="my_entity",
+        attribute_key = AttributeKey(
+            name="my_attribute_key",
         )
 
         delete_mock = respx_mock.delete(
-            "http://localhost:8000/api/v1/registry/attribute_keys/my_entity"
+            "http://localhost:8000/api/v1/registry/attribute_keys/my_attribute_key"
         ).mock(return_value=httpx.Response(200, json={}))
 
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.delete([entity])
+        registry_client.delete([attribute_key])
 
         assert delete_mock.called
 
@@ -210,11 +210,11 @@ class TestRegistryClient:
             name="my_intervention",
             owner="test@example.com",
             criteria=InterventionCriterion(
-                attribute="my_view:my_attribute",
+                attribute="my_attribute_group:my_attribute",
                 operator=">",
                 value=5,
             ),
-            target_entities=[LinkAttributeKey(name="user")],
+            target_attribute_keys=[LinkAttributeKey(name="user")],
         )
 
         delete_mock = respx_mock.delete(

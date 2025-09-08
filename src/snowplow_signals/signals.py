@@ -98,8 +98,8 @@ class Signals:
         Returns:
             The Attribute Group
         """
-        view = self.registry.get_view(name, version)
-        return view
+        attribute_group = self.registry.get_attribute_group(name, version)
+        return attribute_group
 
     def get_group_attributes(
         self,
@@ -119,7 +119,7 @@ class Signals:
             identifier: The attribute key identifier to retrieve attributes for.
             attributes: The list of attributes to retrieve.
         """
-        return self.attributes.get_view_attributes(
+        return self.attributes.get_group_attributes(
             name=name,
             version=version,
             attributes=attributes,
@@ -169,7 +169,7 @@ class Signals:
             window=window,
             app_ids=app_ids,  # pyright: ignore[reportArgumentType] AppID is already a string, validation happens at runtime
         )
-        return self.testing.test_view(request=request)
+        return self.testing.test_attribute_group(request=request)
 
     def push_intervention(
         self, targets: AttributeKeyIdentifiers, intervention: InterventionInstance

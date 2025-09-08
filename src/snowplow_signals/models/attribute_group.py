@@ -17,22 +17,22 @@ if TYPE_CHECKING:
     from snowplow_signals.signals import Signals
 
 
-def entity_to_link(entity: AttributeKey | LinkAttributeKey) -> LinkAttributeKey:
-    if isinstance(entity, AttributeKey):
-        return LinkAttributeKey(name=entity.name)
-    return entity
+def attribute_key_to_link(attribute_key: AttributeKey | LinkAttributeKey) -> LinkAttributeKey:
+    if isinstance(attribute_key, AttributeKey):
+        return LinkAttributeKey(name=attribute_key.name)
+    return attribute_key
 
 
 class AttributeGroup(AttributeGroupInput):
     attribute_key: Annotated[
-        AttributeKey | LinkAttributeKey, BeforeValidator(entity_to_link)
+        AttributeKey | LinkAttributeKey, BeforeValidator(attribute_key_to_link)
     ] = PydanticField(
         ...,
         description="The attribute key that this attribute group is associated with.",
     )  # type: ignore[assignment]
     owner: EmailStr = PydanticField(
         ...,
-        description="The owner of the view, typically the email of the primary maintainer. This field is required for view creation.",
+        description="The owner of the attribute group, typically the email of the primary maintainer. This field is required for attribute group creation.",
         title="Owner",
     )
 
@@ -63,7 +63,7 @@ class StreamOrBatchAttributeGroup(AttributeGroup):
         description="Not applicable.",
     )
     attributes: list[AttributeInput] = Field(
-        description="The list of attributes that will be calculated from events as part of this view.",
+        description="The list of attributes that will be calculated from events as part of this attribute group.",
         title="Attributes",
         min_length=1,
     )
@@ -71,7 +71,7 @@ class StreamOrBatchAttributeGroup(AttributeGroup):
 
 class StreamAttributeGroup(StreamOrBatchAttributeGroup):
     """
-    A stream view is a view that is calculated from events in real-time using the Signals streaming engine.
+    A stream attribute group is a attribute group that is calculated from events in real-time using the Signals streaming engine.
     """
 
     offline: Literal[False] = Field(
@@ -81,14 +81,14 @@ class StreamAttributeGroup(StreamOrBatchAttributeGroup):
     )
     batch_source: Literal[None] = Field(
         default=None,
-        description="Not applicable for stream views.",
+        description="Not applicable for stream attribute groups.",
         title="Batch Source",
     )
 
 
 class BatchAttributeGroup(StreamOrBatchAttributeGroup):
     """
-    A batch view is a view that is calculated from events in batch using the Signals batch engine.
+    A batch attribute group is a attribute group that is calculated from events in batch using the Signals batch engine.
     """
 
     offline: Literal[True] = Field(
@@ -100,7 +100,7 @@ class BatchAttributeGroup(StreamOrBatchAttributeGroup):
 
 class ExternalBatchAttributeGroup(AttributeGroup):
     """
-    An external batch view is a view that is derived from an existing warehouse table.
+    An external batch attribute group is a attribute group that is derived from an existing warehouse table.
     """
 
     offline: Literal[True] = Field(
@@ -109,7 +109,7 @@ class ExternalBatchAttributeGroup(AttributeGroup):
         title="Offline",
     )
     fields: list[FieldModel] = Field(
-        description="The list of table columns that are part of this view during materialization.",
+        description="The list of table columns that are part of this attribute group during materialization.",
         title="Fields",
         min_length=1,
     )
@@ -119,6 +119,6 @@ class ExternalBatchAttributeGroup(AttributeGroup):
         title="Attributes",
     )
     batch_source: BatchSource = Field(
-        description="The batch source for materializing this view from the warehouse.",
+        description="The batch source for materializing this attribute group from the warehouse.",
         title="Batch Source",
     )

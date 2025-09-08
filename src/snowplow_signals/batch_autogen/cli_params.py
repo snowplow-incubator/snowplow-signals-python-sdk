@@ -94,7 +94,7 @@ VERBOSE = Annotated[
 ATTRIBUTE_GROUP_NAME = Annotated[
     Optional[str],
     typer.Option(
-        help="Name of a specific attribute view",
+        help="Name of a specific attribute group",
         envvar="SNOWPLOW_ATTRIBUTE_GROUP_NAME",
     ),
 ]
@@ -102,7 +102,7 @@ ATTRIBUTE_GROUP_NAME = Annotated[
 ATTRIBUTE_GROUP_VERSION = Annotated[
     Optional[int],
     typer.Option(
-        help="Version of the attribute view",
+        help="Version of the attribute group",
         envvar="SNOWPLOW_ATTRIBUTE_GROUP_VERSION",
     ),
 ]
