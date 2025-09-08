@@ -810,7 +810,6 @@
           "table": "ecommerce_transaction_interactions_features_1_attributes",
           "name": "ecommerce_transaction_interactions_features_1_attributes",
           "timestamp_field": "valid_at_tstamp",
-          "created_timestamp_column": "lower_limit",
           "description": "Table containing attributes for ecommerce_transaction_interactions_features_1 attribute group",
           "tags": {},
           "owner": ""

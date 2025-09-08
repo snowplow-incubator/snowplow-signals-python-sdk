@@ -354,7 +354,6 @@ class BatchAutogenClient:
     ):
         try:
             logger.info(f"🛠️ Updating registry")
-
             response = self.api_client.make_request(
                 method="POST",
                 endpoint="engines/publish",
