@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Optional
 
 from snowplow_signals.batch_autogen.models.batch_source_config import BatchSourceConfig
 from snowplow_signals.batch_autogen.models.dbt_asset_generator import DbtAssetGenerator
@@ -315,7 +315,11 @@ class BatchAutogenClient:
             attribute_group_version,
             table_name,
         )
-        self._update_registry(table_name)
+        self._update_registry(
+            table_name=table_name,
+            attribute_group_name=attribute_group_name,
+            attribute_group_version=attribute_group_version,
+        )
 
     def _register_batch_source(
         self,
@@ -345,12 +349,23 @@ class BatchAutogenClient:
             )
             raise e
 
-    def _update_registry(self, table_name: str):
+    def _update_registry(
+        self, table_name: str, attribute_group_name: str, attribute_group_version: int
+    ):
         try:
             logger.info(f"🛠️ Updating registry")
 
             response = self.api_client.make_request(
-                method="POST", endpoint="engines/publish"
+                method="POST",
+                endpoint="engines/publish",
+                data={
+                    "attribute_groups": [
+                        {
+                            "name": attribute_group_name,
+                            "version": attribute_group_version,
+                        }
+                    ]
+                },
             )
             if response.get("status") == "published":
                 logger.success(
