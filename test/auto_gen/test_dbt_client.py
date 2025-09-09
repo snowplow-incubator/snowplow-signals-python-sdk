@@ -2,10 +2,12 @@
 
 import json
 import os
-from typing import Any, Generator, cast
+from typing import Generator, cast
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
+from respx import MockRouter
 
 from snowplow_signals.api_client import ApiClient
 from snowplow_signals.batch_autogen.cli_params import (
@@ -239,3 +241,81 @@ def test_generate_models_with_update_flag(
             DbtAssetGenerator, mock_dbt_asset_generator.return_value
         ).custom_context,
     )
+
+
+def test_sync_model_api_requests(
+    api_client: ApiClient, temp_repo_path: str, respx_mock: MockRouter
+):
+    """Test successful model synchronization with correct HTTP requests"""
+    attribute_group_name = "test_view"
+    attribute_group_version = 1
+    project_name = f"{attribute_group_name}_{attribute_group_version}"
+    project_path = os.path.join(temp_repo_path, project_name)
+    configs_path = os.path.join(project_path, "configs")
+    os.makedirs(configs_path, exist_ok=True)
+
+    batch_source_config = {
+        "database": "test_database",
+        "wh_schema": "test_schema",
+        "table": f"{attribute_group_name}_{attribute_group_version}_attributes",
+        "name": f"{attribute_group_name}_{attribute_group_version}_attributes",
+        "timestamp_field": "valid_at_tstamp",
+        "created_timestamp_column": "lower_limit",
+        "description": f"Table containing attributes for {attribute_group_name}_{attribute_group_version} view",
+        "tags": {"environment": "test"},
+        "owner": "test@example.com",
+    }
+
+    with open(os.path.join(configs_path, "batch_source_config.json"), "w") as f:
+        json.dump(batch_source_config, f)
+
+    batch_source_mock = respx_mock.put(
+        f"http://localhost:8000/api/v1/registry/attribute_groups/{attribute_group_name}/versions/{attribute_group_version}/batch_source"
+    ).mock(return_value=httpx.Response(200, json={}))
+
+    publish_mock = respx_mock.post("http://localhost:8000/api/v1/engines/publish").mock(
+        return_value=httpx.Response(200, json={"status": "published"})
+    )
+
+    dbt_client = BatchAutogenClient(api_client, target_type="snowflake")
+
+    dbt_client.sync_model(
+        project_path=project_path,
+        attribute_group_name=attribute_group_name,
+        attribute_group_version=attribute_group_version,
+        verbose=False,
+    )
+
+    assert batch_source_mock.called
+    batch_source_request = batch_source_mock.calls[0].request
+    assert batch_source_request.method == "PUT"
+
+    request_body = json.loads(batch_source_request.content)
+    assert request_body["database"] == "test_database"
+    assert request_body["wh_schema"] == "test_schema"
+    assert (
+        request_body["table"]
+        == f"{attribute_group_name}_{attribute_group_version}_attributes"
+    )
+    assert (
+        request_body["name"]
+        == f"{attribute_group_name}_{attribute_group_version}_attributes"
+    )
+    assert request_body["timestamp_field"] == "valid_at_tstamp"
+    assert request_body["created_timestamp_column"] == "lower_limit"
+    assert (
+        request_body["description"]
+        == f"Table containing attributes for {attribute_group_name}_{attribute_group_version} view"
+    )
+    assert request_body["tags"] == {"environment": "test"}
+    assert request_body["owner"] == "test@example.com"
+
+    assert publish_mock.called
+    publish_request = publish_mock.calls[0].request
+    assert publish_request.method == "POST"
+
+    publish_body = json.loads(publish_request.content)
+    assert "attribute_groups" in publish_body
+    assert len(publish_body["attribute_groups"]) == 1
+    assert publish_body["attribute_groups"][0]["name"] == attribute_group_name
+    assert publish_body["attribute_groups"][0]["version"] == attribute_group_version
