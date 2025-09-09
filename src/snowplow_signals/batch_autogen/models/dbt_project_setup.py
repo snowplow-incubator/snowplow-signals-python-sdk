@@ -87,7 +87,6 @@ class DbtProjectSetup:
             table=f"{attribute_group.name}_{attribute_group.version}_attributes",
             name=f"{attribute_group.name}_{attribute_group.version}_attributes",
             timestamp_field="valid_at_tstamp",
-            created_timestamp_column="lower_limit",
             description=f"Table containing attributes for {attribute_group.name}_{attribute_group.version} attribute group",
             tags={},
             owner="",
@@ -121,7 +120,9 @@ class DbtProjectSetup:
             endpoint="registry/attribute_groups/",
             params={"offline": True, "property_syntax": self.target_type},
         )
-        return [AttributeGroupResponse.model_validate(group) for group in attribute_groups]
+        return [
+            AttributeGroupResponse.model_validate(group) for group in attribute_groups
+        ]
 
     def _get_attribute_groups(self) -> list[AttributeGroupResponse]:
         logger.info("🔗 Fetching attribute groups from API")

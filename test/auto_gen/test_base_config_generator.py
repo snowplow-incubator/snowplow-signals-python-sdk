@@ -28,7 +28,6 @@ def test_view_response():
         batch_source=BatchSource(
             name="test_source",
             timestamp_field="event_time",
-            created_timestamp_column="created_at",
             description="Test batch source",
             owner="test_owner",
             date_partition_column="date",

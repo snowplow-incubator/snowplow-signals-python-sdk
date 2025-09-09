@@ -91,6 +91,7 @@ class TestRegistryClient:
                 database="my_database",
                 schema="my_schema",
                 table="my_table",
+                timestamp_field="timestamp_field",
             ),
         )
         group_output = AttributeGroupResponse(

@@ -10,7 +10,6 @@
             "batch_source": {
                 "name": "ecommerce_transaction_interactions_source",
                 "timestamp_field": "UPDATED_AT",
-                "created_timestamp_column": null,
                 "description": null,
                 "tags": null,
                 "owner": null,

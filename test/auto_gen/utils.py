@@ -16,7 +16,6 @@ MOCK_ECOMMERCE_VIEW = {
     "batch_source": {
         "name": "ecommerce_transaction_interactions_source",
         "timestamp_field": "UPDATED_AT",
-        "created_timestamp_column": None,
         "description": None,
         "tags": None,
         "owner": None,
@@ -66,7 +65,6 @@ MOCK_USERS_VIEW = {
     "batch_source": {
         "name": "snowplow_unified_users_source",
         "timestamp_field": "UPDATED_AT",
-        "created_timestamp_column": None,
         "description": None,
         "tags": None,
         "owner": None,

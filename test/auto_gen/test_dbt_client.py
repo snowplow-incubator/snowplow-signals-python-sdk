@@ -260,7 +260,6 @@ def test_sync_model_api_requests(
         "table": f"{attribute_group_name}_{attribute_group_version}_attributes",
         "name": f"{attribute_group_name}_{attribute_group_version}_attributes",
         "timestamp_field": "valid_at_tstamp",
-        "created_timestamp_column": "lower_limit",
         "description": f"Table containing attributes for {attribute_group_name}_{attribute_group_version} view",
         "tags": {"environment": "test"},
         "owner": "test@example.com",
@@ -302,7 +301,6 @@ def test_sync_model_api_requests(
         == f"{attribute_group_name}_{attribute_group_version}_attributes"
     )
     assert request_body["timestamp_field"] == "valid_at_tstamp"
-    assert request_body["created_timestamp_column"] == "lower_limit"
     assert (
         request_body["description"]
         == f"Table containing attributes for {attribute_group_name}_{attribute_group_version} view"
