@@ -16,7 +16,6 @@ MOCK_ECOMMERCE_VIEW = {
     "batch_source": {
         "name": "ecommerce_transaction_interactions_source",
         "timestamp_field": "UPDATED_AT",
-        "created_timestamp_column": None,
         "description": None,
         "tags": None,
         "owner": None,
@@ -66,7 +65,6 @@ MOCK_USERS_VIEW = {
     "batch_source": {
         "name": "snowplow_unified_users_source",
         "timestamp_field": "UPDATED_AT",
-        "created_timestamp_column": None,
         "description": None,
         "tags": None,
         "owner": None,
@@ -108,20 +106,20 @@ MOCK_ATTRIBUTE_VIEWS = [MOCK_ECOMMERCE_VIEW, MOCK_USERS_VIEW]
 
 def get_attribute_view_response() -> List[Dict[str, Any]]:
     """
-    Returns the mock attribute views data.
+    Returns the mock attribute groups data.
 
     Returns:
-        List[Dict[str, Any]]: List of mock attribute view configurations
+        List[Dict[str, Any]]: List of mock attribute group configurations
     """
     return MOCK_ATTRIBUTE_VIEWS
 
 
 def get_attribute_view_response_from_file() -> List[Dict[str, Any]]:
     """
-    Reads and returns mock attribute views from a JSON file.
+    Reads and returns mock attribute groups from a JSON file.
 
     Returns:
-        List[Dict[str, Any]]: List of mock attribute view configurations from file
+        List[Dict[str, Any]]: List of mock attribute group configurations from file
 
     Raises:
         FileNotFoundError: If the mock data file doesn't exist
@@ -137,10 +135,10 @@ def get_integration_test_view_response(
     warehouse: Literal["snowflake", "bigquery"],
 ) -> List[Dict[str, Any]]:
     """
-    Reads and returns mock attribute views from a JSON file.
+    Reads and returns mock attribute groups from a JSON file.
 
     Returns:
-        List[Dict[str, Any]]: List of mock attribute view configurations from file
+        List[Dict[str, Any]]: List of mock attribute group configurations from file
 
     Raises:
         FileNotFoundError: If the mock data file doesn't exist

@@ -49,7 +49,7 @@ from .model import (
     UnpublishRequest,
 )
 from .service import Service
-from .view import (
+from .attribute_group import (
     AttributeGroup,
     BatchAttributeGroup,
     ExternalBatchAttributeGroup,

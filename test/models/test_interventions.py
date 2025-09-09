@@ -19,7 +19,7 @@ def test_view_without_owner_raises_validation_error():
                 operator=">",
                 value=3,
             ),
-            target_entities=[LinkAttributeKey(name="domain_sessionid")],
+            target_attribute_keys=[LinkAttributeKey(name="domain_sessionid")],
         )
     assert "owner" in str(exc_info.value)
 
@@ -34,6 +34,6 @@ def test_view_with_owner_passes_validation():
             operator=">",
             value=3,
         ),
-        target_entities=[LinkAttributeKey(name="domain_sessionid")],
+        target_attribute_keys=[LinkAttributeKey(name="domain_sessionid")],
     )
     assert view_with_owner.owner == "test@example.com"

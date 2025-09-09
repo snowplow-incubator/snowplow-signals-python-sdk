@@ -10,7 +10,7 @@ class TestingClient:
     def __init__(self, api_client: ApiClient):
         self.api_client = api_client
 
-    def test_view(self, request: TestAttributeGroupRequest) -> pd.DataFrame:
+    def test_attribute_group(self, request: TestAttributeGroupRequest) -> pd.DataFrame:
         data = self.api_client.make_request(
             method="POST",
             endpoint="testing/attribute_groups/",

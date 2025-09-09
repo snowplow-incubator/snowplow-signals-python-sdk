@@ -13,7 +13,7 @@ class AttributesClient:
     def __init__(self, api_client: ApiClient):
         self.api_client = api_client
 
-    def get_view_attributes(
+    def get_group_attributes(
         self,
         name: str,
         version: int,
@@ -26,11 +26,11 @@ class AttributesClient:
             if isinstance(attributes, list)
             else [attributes]
         )
-        entity_identifiers = AttributeKeyIdentifiers(root={attribute_key: [identifier]})
+        attribute_key_identifiers = AttributeKeyIdentifiers(root={attribute_key: [identifier]})
 
         request = GetAttributeGroupAttributesRequest(
             attributes=attributes,
-            attribute_keys=entity_identifiers,
+            attribute_keys=attribute_key_identifiers,
         )
         return self._make_request(request)
 
@@ -40,11 +40,11 @@ class AttributesClient:
         attribute_key: str,
         identifier: str,
     ) -> dict[str, Any]:
-        entity_identifiers = AttributeKeyIdentifiers(root={attribute_key: [identifier]})
+        attribute_key_identifiers = AttributeKeyIdentifiers(root={attribute_key: [identifier]})
 
         request = GetServiceAttributesRequest(
             service=name,
-            attribute_keys=entity_identifiers,
+            attribute_keys=attribute_key_identifiers,
         )
         return self._make_request(request)
 

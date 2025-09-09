@@ -1,6 +1,6 @@
 from .models import AttributeKey, Event
 
-# Predefined entities
+# Predefined attribute keys
 user_attribute_key = AttributeKey(
     name="user",
     key="domain_userid",

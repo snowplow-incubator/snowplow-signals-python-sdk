@@ -109,6 +109,7 @@ def test_external_batch_view_passes_validation():
             database="test_database",
             schema="test_schema",
             table="test_table",
+            timestamp_field="timestamp_field",
         ),
     )
     assert external_batch_view.offline

@@ -65,17 +65,17 @@ class DbtProjectSetup:
             f"📄 Batch source config file generated for {setup_project_name}"
         )
 
-    def _get_attribute_view_project_config(
+    def _get_attribute_group_project_config(
         self,
-        attribute_view: AttributeGroupResponse,
+        attribute_group: AttributeGroupResponse,
     ) -> DbtBaseConfig:
         generator = BaseConfigGenerator(
-            data=attribute_view, target_type=self.target_type
+            data=attribute_group, target_type=self.target_type
         )
         return generator.create_base_config()
 
     def _get_default_batch_source_config(
-        self, attribute_view: AttributeGroupResponse
+        self, attribute_group: AttributeGroupResponse
     ) -> BatchSourceConfig:
         """
         Creates a pre-populated config file for users to fill out for the sync.
@@ -84,11 +84,10 @@ class DbtProjectSetup:
         return BatchSourceConfig(
             database="",
             wh_schema="",
-            table=f"{attribute_view.name}_{attribute_view.version}_attributes",
-            name=f"{attribute_view.name}_{attribute_view.version}_attributes",
+            table=f"{attribute_group.name}_{attribute_group.version}_attributes",
+            name=f"{attribute_group.name}_{attribute_group.version}_attributes",
             timestamp_field="valid_at_tstamp",
-            created_timestamp_column="lower_limit",
-            description=f"Table containing attributes for {attribute_view.name}_{attribute_view.version} view",
+            description=f"Table containing attributes for {attribute_group.name}_{attribute_group.version} attribute group",
             tags={},
             owner="",
         )
@@ -96,66 +95,68 @@ class DbtProjectSetup:
     def setup_all_projects(self):
         """Sets up dbt files for one or all projects."""
 
-        attribute_views = self._get_attribute_views()
-        for attribute_view in attribute_views:
+        attribute_groups = self._get_attribute_groups()
+        for attribute_group in attribute_groups:
             # Skip attribute groups that have no attributes (i.e., only sync existing tables)
-            if (not attribute_view.attributes) and attribute_view.fields:
+            if (not attribute_group.attributes) and attribute_group.fields:
                 logger.info(
-                    f"Skipping batch attribute group '{attribute_view.name}_{attribute_view.version}' as it has no attributes and only fields."
+                    f"Skipping batch attribute group '{attribute_group.name}_{attribute_group.version}' as it has no attributes and only fields."
                 )
                 continue
-            view_project_name = f"{attribute_view.name}_{attribute_view.version}"
-            project_config = self._get_attribute_view_project_config(attribute_view)
+            group_project_name = f"{attribute_group.name}_{attribute_group.version}"
+            project_config = self._get_attribute_group_project_config(attribute_group)
             batch_source_config = self._get_default_batch_source_config(
-                attribute_view
+                attribute_group
             ).model_dump(mode="json", exclude_none=True)
             self.create_project_directories(
-                view_project_name, project_config, batch_source_config
+                group_project_name, project_config, batch_source_config
             )
 
         return True
 
-    def _fetch_attribute_views(self) -> list[AttributeGroupResponse]:
-        attribute_views = self.api_client.make_request(
+    def _fetch_attribute_groups(self) -> list[AttributeGroupResponse]:
+        attribute_groups = self.api_client.make_request(
             method="GET",
             endpoint="registry/attribute_groups/",
             params={"offline": True, "property_syntax": self.target_type},
         )
-        return [AttributeGroupResponse.model_validate(view) for view in attribute_views]
+        return [
+            AttributeGroupResponse.model_validate(group) for group in attribute_groups
+        ]
 
-    def _get_attribute_views(self) -> list[AttributeGroupResponse]:
+    def _get_attribute_groups(self) -> list[AttributeGroupResponse]:
         logger.info("🔗 Fetching attribute groups from API")
-        all_attribute_views = self._fetch_attribute_views()
+        all_attribute_groups = self._fetch_attribute_groups()
         logger.debug(
-            f"Received API response: {[view.model_dump_json() for view in all_attribute_views]}"
+            f"Received API response: {[group.model_dump_json() for group in all_attribute_groups]}"
         )
-        if len(all_attribute_views) == 0:
+        if len(all_attribute_groups) == 0:
             raise ValueError("No attribute groups available.")
-        latest_views = filter_latest_model_version_by_name(all_attribute_views)
+        latest_groups = filter_latest_model_version_by_name(all_attribute_groups)
         # Filter by project name if specified
         if self.attribute_group_name:
             if not self.attribute_group_version:
-                project_views = [
-                    view
-                    for view in latest_views
-                    if view.name == self.attribute_group_name
+                project_groups = [
+                    group
+                    for group in latest_groups
+                    if group.name == self.attribute_group_name
                 ]
-                if not project_views:
+                if not project_groups:
                     raise ValueError(
                         f"No project/attribute group found with name: {self.attribute_group_name}"
                     )
-                return project_views
+                return project_groups
             else:
-                project_views = [
-                    view
-                    for view in all_attribute_views
-                    if view.name == self.attribute_group_name
-                    and view.version == self.attribute_group_version
+                project_groups = [
+                    group
+                    for group in all_attribute_groups
+                    if group.name == self.attribute_group_name
+                    and group.version == self.attribute_group_version
                 ]
-                if not project_views:
+                if not project_groups:
                     raise ValueError(
                         f"No project/attribute group found with name: {self.attribute_group_name} and version: {self.attribute_group_version}"
                     )
-                return project_views
+                return project_groups
         else:
-            return latest_views
+            return latest_groups
