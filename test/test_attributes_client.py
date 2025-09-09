@@ -19,7 +19,7 @@ class TestAttributesClient:
         )
 
         # Capture and verify the request structure uses new GetViewAttributesRequest model
-        def check_view_request(request):
+        def check_group_request(request):
             import json
 
             body = json.loads(request.content)
@@ -33,11 +33,11 @@ class TestAttributesClient:
             return httpx.Response(200, json=api_request_response.data)
 
         respx_mock.post("http://localhost:8000/api/v1/get-online-attributes").mock(
-            side_effect=check_view_request
+            side_effect=check_group_request
         )
 
-        response = attributes_client.get_view_attributes(
-            name="my_view",
+        response = attributes_client.get_group_attributes(
+            name="my_attribute_group",
             version=1,
             attribute_key="domain_userid",
             identifier=identifier,
@@ -128,7 +128,7 @@ class TestAttributesClient:
             side_effect=check_multiple_attributes
         )
 
-        response = attributes_client.get_view_attributes(
+        response = attributes_client.get_group_attributes(
             name="analytics",
             version=1,
             attribute_key="domain_userid",

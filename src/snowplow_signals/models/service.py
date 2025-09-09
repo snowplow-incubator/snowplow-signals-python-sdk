@@ -4,31 +4,31 @@ from pydantic import BeforeValidator, EmailStr, Field
 
 from .model import Service as ServiceInput
 from .model import VersionedLinkAttributeGroup
-from .view import AttributeGroup
+from .attribute_group import AttributeGroup
 
 if TYPE_CHECKING:
     from snowplow_signals.signals import Signals
 
 
-def view_to_link(
-    views: list[AttributeGroup | VersionedLinkAttributeGroup | dict] | None,
+def attribute_group_to_link(
+    attribute_groups: list[AttributeGroup | VersionedLinkAttributeGroup | dict] | None,
 ) -> list[VersionedLinkAttributeGroup | dict] | None:
-    if views:
-        views = [
+    if attribute_groups:
+        attribute_groups = [
             (
-                VersionedLinkAttributeGroup(name=view.name, version=view.version)
-                if isinstance(view, AttributeGroup)
-                else view
+                VersionedLinkAttributeGroup(name=attribute_group.name, version=attribute_group.version)
+                if isinstance(attribute_group, AttributeGroup)
+                else attribute_group
             )
-            for view in views
+            for attribute_group in attribute_groups
         ]
-    return views
+    return attribute_groups
 
 
 class Service(ServiceInput):
-    views: Annotated[
+    attribute_groups: Annotated[
         list[VersionedLinkAttributeGroup | AttributeGroup],
-        BeforeValidator(view_to_link),
+        BeforeValidator(attribute_group_to_link),
     ] = Field(
         None,
         description="A list containing Attribute Groups, representing the features in the service.",

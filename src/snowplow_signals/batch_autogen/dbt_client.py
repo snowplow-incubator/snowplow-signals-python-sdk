@@ -47,9 +47,9 @@ class BatchAutogenClient:
 
         Args:
             repo_path: Path to the repository where projects will be stored
-            attribute_group_name: Optional name of a specific attribute view project to initialize.
+            attribute_group_name: Optional name of a specific attribute group project to initialize.
                          If None, all projects will be initialized.
-            attribute_group_version: Optional version of the attribute view to initialize.
+            attribute_group_version: Optional version of the attribute group to initialize.
                          If None, the latest version will be used.
                          Only used if attribute_group_name is not None.
             target_type: Target database type.
@@ -113,7 +113,7 @@ class BatchAutogenClient:
                     success_count += 1
 
             logger.info(
-                f"✅ Processed {success_count} out of {len(project_dirs)} projects/attribute views"
+                f"✅ Processed {success_count} out of {len(project_dirs)} projects/attribute groups"
             )
             return success_count > 0
 
@@ -121,11 +121,11 @@ class BatchAutogenClient:
         self, repo_path: str, project_name: str, update: bool = False
     ):
         """
-        Generate dbt project assets for a specific project/attribute view.
+        Generate dbt project assets for a specific project/attribute group.
 
         Args:
             repo_path: Base repository path containing multiple projects
-            project_name: Project/attribute view directory name
+            project_name: Project/attribute group directory name
             update: Whether to update existing files
 
         Returns:
@@ -141,7 +141,7 @@ class BatchAutogenClient:
             )
             return False
 
-        logger.info(f"Processing project/attribute view: {project_name}")
+        logger.info(f"Processing project/attribute group: {project_name}")
 
         # Load base config and generate dbt config
         with open(base_config_path) as f:
@@ -296,7 +296,7 @@ class BatchAutogenClient:
         Registers the batch source for the attributes table through the API and updates Feast so that syncing can begin.
         Args:
             project_path: Path to the repository where the dbt project is where the config file is stored.
-            project_name: Name of a specific project (same as the unique view name and version).
+            project_name: Name of a specific project (same as the unique group name and version).
             verbose: Optional flag to enable verbose logging
         """
 
@@ -328,15 +328,15 @@ class BatchAutogenClient:
         attribute_group_version: int,
         table_name: str,
     ):
-        """Register batch source for table in the view"""
+        """Register batch source for table in the attribute group"""
 
         logger.info(f"🛠️ Registering batch_source for table {table_name}.")
 
         try:
-            view_update_endpoint = f"registry/attribute_groups/{attribute_group_name}/versions/{attribute_group_version}/batch_source"
+            group_update_endpoint = f"registry/attribute_groups/{attribute_group_name}/versions/{attribute_group_version}/batch_source"
             data = batch_source_config.model_dump(mode="json", exclude_none=True)
             self.api_client.make_request(
-                method="PUT", endpoint=view_update_endpoint, data=data
+                method="PUT", endpoint=group_update_endpoint, data=data
             )
 
             logger.success(

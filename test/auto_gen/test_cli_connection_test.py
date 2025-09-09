@@ -16,7 +16,7 @@ from snowplow_signals.batch_autogen.cli import app
 
 
 @pytest.mark.usefixtures(
-    "mock_successful_registry_views", "mock_successful_api_health", "mock_auth"
+    "mock_successful_registry_groups", "mock_successful_api_health", "mock_auth"
 )
 def test_cli_test_connection_succeeds(
     api_params: List[str],
@@ -39,7 +39,7 @@ def test_cli_test_connection_succeeds(
 
 
 @pytest.mark.usefixtures(
-    "mock_successful_registry_views", "mock_successful_api_health", "mock_auth"
+    "mock_successful_registry_groups", "mock_successful_api_health", "mock_auth"
 )
 def test_cli_test_connection_verbose(
     api_params: List[str],
@@ -62,7 +62,7 @@ def test_cli_test_connection_verbose(
         assert "Dependencies status:" in caplog.text
 
 
-@pytest.mark.usefixtures("mock_successful_registry_views", "mock_auth")
+@pytest.mark.usefixtures("mock_successful_registry_groups", "mock_auth")
 def test_cli_test_connection_auth_only(
     api_params: List[str],
     caplog: pytest.LogCaptureFixture,
@@ -110,7 +110,7 @@ def test_cli_test_connection_auth_fails(
     """Test connection when authentication fails with 401 Unauthorized."""
     caplog.clear()
     with caplog.at_level("INFO"):
-        # Mock failed registry views response
+        # Mock failed registry groups response
         respx_mock.get(f"{MOCK_API_URL}/api/v1/registry/attribute_groups/").mock(
             return_value=httpx.Response(401, json={"error": "Unauthorized"})
         )
@@ -128,7 +128,7 @@ def test_cli_test_connection_auth_fails(
         assert "⚠️ API service is not operational" in caplog.text
 
 
-@pytest.mark.usefixtures("mock_successful_registry_views", "mock_auth")
+@pytest.mark.usefixtures("mock_successful_registry_groups", "mock_auth")
 def test_cli_test_connection_fails_with_down_status(
     api_params: List[str],
     respx_mock: MockRouter,

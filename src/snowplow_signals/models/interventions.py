@@ -7,6 +7,6 @@ from .model import RuleInterventionInput
 class RuleIntervention(RuleInterventionInput):
     owner: EmailStr = PydanticField(
         ...,
-        description="The owner of the view, typically the email of the primary maintainer. This field is required for view creation.",
+        description="The owner of the intervention, typically the email of the primary maintainer. This field is required for intervention creation.",
         title="Owner",
     )

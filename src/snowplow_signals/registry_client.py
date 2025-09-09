@@ -21,15 +21,15 @@ class RegistryClient:
             AttributeGroup | Service | AttributeKey | RuleIntervention
         ] = []
 
-        # First apply all entities in case they are dependencies of views
+        # First publish all attribute keys in case they are dependencies of attribute groups
         for object in objects:
             if isinstance(object, AttributeKey):
-                updated_objects.append(self._create_or_update_entity(entity=object))
+                updated_objects.append(self._create_or_update_attribute_key(attribute_key=object))
 
-        # Apply all views in case they are dependencies of services
+        # Publish all attribute groups in case they are dependencies of services
         for object in objects:
             if isinstance(object, AttributeGroup):
-                updated_objects.append(self._create_or_update_view(view=object))
+                updated_objects.append(self._create_or_update_attribute_group(attribute_group=object))
 
         for object in objects:
             if isinstance(object, Service):
@@ -59,13 +59,13 @@ class RegistryClient:
 
         for object in objects:
             if isinstance(object, AttributeGroup):
-                self._delete_view(view=object)
+                self._delete_attribute_group(attribute_group=object)
 
         for object in objects:
             if isinstance(object, AttributeKey):
-                self._delete_entity(entity=object)
+                self._delete_attribute_key(attribute_key=object)
 
-    def get_view(self, name: str, version: int | None = None) -> AttributeGroupResponse:
+    def get_attribute_group(self, name: str, version: int | None = None) -> AttributeGroupResponse:
         if version is not None:
             response = self.api_client.make_request(
                 method="GET",
@@ -86,21 +86,21 @@ class RegistryClient:
         )
         return Service.model_validate(response)
 
-    def _create_or_update_view(self, view: AttributeGroup) -> AttributeGroup:
+    def _create_or_update_attribute_group(self, attribute_group: AttributeGroup) -> AttributeGroup:
         try:
             response = self.api_client.make_request(
                 method="POST",
                 endpoint="registry/attribute_groups/",
-                data=self._model_dump(view),
+                data=self._model_dump(attribute_group),
             )
         except SignalsAPIError as e:
             if e.status_code == 400:
                 response = self.api_client.make_request(
                     method="PUT",
                     endpoint=(
-                        f"registry/attribute_groups/{view.name}/versions/{view.version}"
+                        f"registry/attribute_groups/{attribute_group.name}/versions/{attribute_group.version}"
                     ),
-                    data=self._model_dump(view),
+                    data=self._model_dump(attribute_group),
                 )
             else:
                 raise e
@@ -149,30 +149,30 @@ class RegistryClient:
 
         return RuleIntervention.model_validate(response)
 
-    def _create_or_update_entity(self, entity: AttributeKey) -> AttributeKey:
+    def _create_or_update_attribute_key(self, attribute_key: AttributeKey) -> AttributeKey:
         try:
             response = self.api_client.make_request(
                 method="POST",
                 endpoint="registry/attribute_keys/",
-                data=self._model_dump(entity),
+                data=self._model_dump(attribute_key),
             )
         except SignalsAPIError as e:
             if e.status_code == 400:
                 response = self.api_client.make_request(
                     method="PUT",
-                    endpoint=(f"registry/attribute_keys/{entity.name}"),
-                    data=self._model_dump(entity),
+                    endpoint=(f"registry/attribute_keys/{attribute_key.name}"),
+                    data=self._model_dump(attribute_key),
                 )
             else:
                 raise e
 
         return AttributeKey.model_validate(response)
 
-    def _delete_view(self, view: AttributeGroup) -> None:
+    def _delete_attribute_group(self, attribute_group: AttributeGroup) -> None:
 
         self.api_client.make_request(
             method="DELETE",
-            endpoint=(f"registry/attribute_groups/{view.name}/versions/{view.version}"),
+            endpoint=(f"registry/attribute_groups/{attribute_group.name}/versions/{attribute_group.version}"),
         )
 
     def _delete_service(self, service: Service) -> None:
@@ -189,10 +189,10 @@ class RegistryClient:
             ),
         )
 
-    def _delete_entity(self, entity: AttributeKey) -> None:
+    def _delete_attribute_key(self, attribute_key: AttributeKey) -> None:
         self.api_client.make_request(
             method="DELETE",
-            endpoint=(f"registry/attribute_keys/{entity.name}"),
+            endpoint=(f"registry/attribute_keys/{attribute_key.name}"),
         )
 
     def _model_dump(self, model: BaseModel) -> dict:
