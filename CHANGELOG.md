@@ -1,5 +1,13 @@
 # Changelog
 
+# [0.3.1] - 2025-09-09
+
+### Changed
+
+- [AISP-709] Timestamp changes (#98)
+- Fix missing renaming for view to attribute group and entity to attribute key (#97)
+- [AISP-733] Fix request to the /engines/publish endpoint after updating batch source to contain the attribute group that should be published (#96)
+
 # [0.3.0] - 2025-09-08
 
 ### Changed
