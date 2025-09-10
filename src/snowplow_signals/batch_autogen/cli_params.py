@@ -5,17 +5,17 @@ import typer
 from typing_extensions import Annotated
 
 API_KEY = Annotated[
-    str,
+    Optional[str],
     typer.Option(
-        help="API key for authentication",
+        help="API key for authentication (required for bdp auth mode)",
         envvar="SNOWPLOW_API_KEY",
     ),
 ]
 
 API_KEY_ID = Annotated[
-    str,
+    Optional[str],
     typer.Option(
-        help="ID of the API key",
+        help="ID of the API key (required for bdp auth mode)",
         envvar="SNOWPLOW_API_KEY_ID",
     ),
 ]
@@ -45,11 +45,27 @@ CHECK_AUTH = Annotated[
 ]
 
 
-ORG_ID = Annotated[
+AUTH_MODE = Annotated[
     str,
     typer.Option(
-        help="Organization ID",
+        help="Authentication mode: 'bdp' or 'trial' (default: bdp)",
+        envvar="SNOWPLOW_AUTH_MODE",
+    ),
+]
+
+ORG_ID = Annotated[
+    Optional[str],
+    typer.Option(
+        help="Organization ID (required for bdp auth mode)",
         envvar="SNOWPLOW_ORG_ID",
+    ),
+]
+
+TRIAL_TOKEN = Annotated[
+    Optional[str],
+    typer.Option(
+        help="Trial token for authentication (required for trial auth mode)",
+        envvar="SNOWPLOW_TRIAL_TOKEN",
     ),
 ]
 

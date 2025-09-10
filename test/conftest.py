@@ -42,6 +42,15 @@ def signals_client() -> Signals:
 
 
 @pytest.fixture
+def signals_client_trial() -> Signals:
+    return Signals(
+        api_url="http://localhost:8000",
+        auth_mode="trial",
+        trial_token="test-trial-token",
+    )
+
+
+@pytest.fixture
 def access_jwt() -> str:
     """Creates a sample JWT claimset for use as a payload during tests"""
     return jwt.encode(
@@ -65,6 +74,15 @@ def api_client() -> ApiClient:
         api_key="foo",
         api_key_id="bar",
         org_id=MOCK_ORG_ID,
+    )
+
+
+@pytest.fixture
+def api_client_trial() -> ApiClient:
+    return ApiClient(
+        api_url="http://localhost:8000",
+        auth_mode="trial",
+        trial_token="test-trial-token",
     )
 
 

@@ -2,7 +2,7 @@ import json
 import os
 from collections.abc import Generator, Mapping
 from importlib.metadata import version
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 import httpx
 import jwt
@@ -13,12 +13,30 @@ X_SIGNALS_SDK_NAME = f"signals-py {version('snowplow-signals')}"
 
 
 class ApiClient:
-    def __init__(self, api_url: str, api_key: str, api_key_id: str, org_id: str):
+    def __init__(
+        self, 
+        api_url: str, 
+        api_key: str | None = None, 
+        api_key_id: str | None = None, 
+        org_id: str | None = None,
+        auth_mode: Literal["bdp", "trial"] = "bdp",
+        trial_token: str | None = None
+    ):
         self.api_url = api_url.rstrip("/")
+        self.auth_mode = auth_mode
         self.api_key = api_key
         self.api_key_id = api_key_id
         self.org_id = org_id
+        self.trial_token = trial_token
         self.token = None
+        
+        # Validate auth mode dependencies
+        if self.auth_mode == "trial":
+            if not self.trial_token:
+                raise ValueError("When auth_mode is 'trial' a non-empty trial_token must be provided")
+        else:  # bdp mode
+            if not all([self.api_key, self.api_key_id, self.org_id]):
+                raise ValueError("When auth_mode is 'bdp' api_key, api_key_id, and org_id must be provided")
 
     def _get_headers(self, token: str, custom: Optional[dict[str, str]] = None):
         return {
@@ -50,7 +68,10 @@ class ApiClient:
 
         return response["accessToken"]
 
-    def _check_token(self, token: str | None):
+    def _check_token(self, token: Union[str, None]):
+        if self.auth_mode == "trial":
+            return self.trial_token
+            
         if token is None:
             return self._fetch_token()
         else:

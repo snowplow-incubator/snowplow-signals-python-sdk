@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -24,10 +24,23 @@ from .testing_client import TestingClient
 class Signals:
     """Interface to interact with Snowplow Signals AI"""
 
-    def __init__(self, *, api_url: str, api_key: str, api_key_id: str, org_id: str):
-        # TODO, if not enough args raise and send to documentation ?
+    def __init__(
+        self, 
+        *, 
+        api_url: str, 
+        api_key: str | None = None, 
+        api_key_id: str | None = None, 
+        org_id: str | None = None,
+        auth_mode: Literal["bdp", "trial"] = "bdp",
+        trial_token: str | None = None
+    ):
         self.api_client = ApiClient(
-            api_url=api_url, api_key=api_key, api_key_id=api_key_id, org_id=org_id
+            api_url=api_url, 
+            api_key=api_key, 
+            api_key_id=api_key_id, 
+            org_id=org_id,
+            auth_mode=auth_mode,
+            trial_token=trial_token
         )
 
         self.interventions = InterventionsClient(api_client=self.api_client)

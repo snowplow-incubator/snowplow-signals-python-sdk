@@ -13,12 +13,19 @@ pip install snowplow-signals
 ```python
 from snowplow_signals import Signals, Attribute, Event, StreamAttributeGroup, domain_sessionid
 
-# Initialize the SDK
+# Initialize the SDK with BDP authentication (default)
 signals = Signals(
     api_url="API_URL",
     api_key="API_KEY",
     api_key_id="API_KEY_ID",
     org_id="ORG_ID",
+)
+
+# Or initialize with TRIAL authentication
+signals = Signals(
+    api_url="API_URL",
+    auth_mode="trial",
+    trial_token="YOUR_TRIAL_TOKEN",
 )
 
 # Define an attribute
@@ -94,10 +101,17 @@ signals.batch_autogen.generate_models(
 The SDK also includes a command-line interface for DBT project generation. To make your workflow smoother, you can set up your API credentials as environment variables. This way, you won't need to type them in every command:
 
 ```bash
+# For BDP authentication (default)
 export SNOWPLOW_API_URL="YOUR_API_URL"
 export SNOWPLOW_API_KEY="YOUR_API_KEY"
 export SNOWPLOW_API_KEY_ID="YOUR_API_KEY_ID"
 export SNOWPLOW_ORG_ID="YOUR_ORG_ID"
+export SNOWPLOW_REPO_PATH="./my_snowplow_repo"
+
+# For TRIAL authentication
+export SNOWPLOW_API_URL="YOUR_API_URL"
+export SNOWPLOW_AUTH_MODE="trial"
+export SNOWPLOW_TRIAL_TOKEN="YOUR_TRIAL_TOKEN"
 export SNOWPLOW_REPO_PATH="./my_snowplow_repo"
 ```
 
