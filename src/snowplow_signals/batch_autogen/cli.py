@@ -234,9 +234,11 @@ def sync(
 @app.command()
 def test_connection(
     api_url: API_URL,
-    api_key: API_KEY,
-    api_key_id: API_KEY_ID,
-    org_id: ORG_ID,
+    api_key: API_KEY = None,
+    api_key_id: API_KEY_ID = None,
+    org_id: ORG_ID = None,
+    auth_mode: AUTH_MODE = "bdp",
+    trial_token: TRIAL_TOKEN = None,
     check_auth: CHECK_AUTH = True,
     check_api: CHECK_API = True,
     verbose: VERBOSE = False,
@@ -244,7 +246,7 @@ def test_connection(
     """Test the connection to the authentication and API services."""
     try:
         setup_logging(verbose)
-        api_client = create_api_client(api_url, api_key, api_key_id, org_id)
+        api_client = create_api_client(api_url, api_key, api_key_id, org_id, auth_mode, trial_token)
         auth_status = None
         api_status = None
         # Check authentication service if requested
