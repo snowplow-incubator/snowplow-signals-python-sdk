@@ -261,7 +261,6 @@ def test_sync_model_api_requests(
         "name": f"{attribute_group_name}_{attribute_group_version}_attributes",
         "timestamp_field": "valid_at_tstamp",
         "description": f"Table containing attributes for {attribute_group_name}_{attribute_group_version} view",
-        "tags": {"environment": "test"},
         "owner": "test@example.com",
     }
 
@@ -305,7 +304,6 @@ def test_sync_model_api_requests(
         request_body["description"]
         == f"Table containing attributes for {attribute_group_name}_{attribute_group_version} view"
     )
-    assert request_body["tags"] == {"environment": "test"}
     assert request_body["owner"] == "test@example.com"
 
     assert publish_mock.called

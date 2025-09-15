@@ -11,7 +11,6 @@
                 "name": "ecommerce_transaction_interactions_source",
                 "timestamp_field": "UPDATED_AT",
                 "description": null,
-                "tags": null,
                 "owner": null,
                 "date_partition_column": null,
                 "database": "SNOWPLOW_DEV1",
@@ -20,7 +19,6 @@
             },
             "online": true,
             "description": null,
-            "tags": null,
             "owner": null,
             "attributes": [
                 {
