@@ -88,7 +88,6 @@ class DbtProjectSetup:
             name=f"{attribute_group.name}_{attribute_group.version}_attributes",
             timestamp_field="valid_at_tstamp",
             description=f"Table containing attributes for {attribute_group.name}_{attribute_group.version} attribute group",
-            tags={},
             owner="",
         )
 

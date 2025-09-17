@@ -12,7 +12,6 @@ example_intervention = {
     "target_agents": None,
     "script_uri": None,
     "description": "Resets the number of add_to_cart events when it becomes more than three.",
-    "tags": None,
     "owner": "peter@snowplowanalytics.com",
     "criteria": {
         "attribute": "sample_ecommerce_stream_features:add_to_cart_events_count",
@@ -28,7 +27,6 @@ another_intervention = {
     "target_agents": None,
     "script_uri": None,
     "description": "Resets the number of add_to_cart events when it becomes more than three.",
-    "tags": None,
     "owner": "peter@snowplowanalytics.com",
     "criteria": {
         "attribute": "sample_ecommerce_stream_features:add_to_cart_events_count",
@@ -52,7 +50,6 @@ def get_example_intervention() -> RuleIntervention:
         name=example_intervention["name"],
         version=example_intervention["version"],
         description=example_intervention["description"],
-        tags=example_intervention["tags"],
         owner=example_intervention["owner"],
         criteria=InterventionCriterion(
             attribute=example_intervention["criteria"]["attribute"],
