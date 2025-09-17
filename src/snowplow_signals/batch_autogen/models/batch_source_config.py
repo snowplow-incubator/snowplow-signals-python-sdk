@@ -12,5 +12,4 @@ class BatchSourceConfig(BaseModel):
     name: str
     timestamp_field: str
     description: str | None
-    tags: dict[str, str] | None
     owner: str | None
