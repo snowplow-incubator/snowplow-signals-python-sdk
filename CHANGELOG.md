@@ -1,5 +1,11 @@
 # Changelog
 
+# [0.3.2] - 2025-09-17
+
+### Changed
+
+- [AISP-763] Remove tags and make Service.attribute_groups required (#100)
+
 # [0.3.1] - 2025-09-09
 
 ### Changed
