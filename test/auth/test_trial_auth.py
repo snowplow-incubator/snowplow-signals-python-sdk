@@ -153,8 +153,8 @@ class TestSandboxAuthentication:
         assert client._check_token(None) == "test-sandbox-token"
         assert client._check_token("some-other-token") == "test-sandbox-token"
 
-    def test_sandbox_mode_backwards_compatibility(self):
-        """Test that default BDP mode still works for backwards compatibility"""
+    def test_bdp_auth_mode_compatibility(self):
+        """Test that default BDP mode still works"""
         # This should work without specifying auth_mode
         client = ApiClient(
             api_url="http://localhost:8000",
