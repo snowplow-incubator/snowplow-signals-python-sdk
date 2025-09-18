@@ -21,27 +21,15 @@ from .registry_client import RegistryClient
 from .testing_client import TestingClient
 
 
-class Signals:
-    """Interface to interact with Snowplow Signals AI"""
+class BaseSignalsWithApiClient:
+    """Internal base class for Signals clients that use an ApiClient"""
 
     def __init__(
-        self, 
-        *, 
-        api_url: str, 
-        api_key: str | None = None, 
-        api_key_id: str | None = None, 
-        org_id: str | None = None,
-        auth_mode: Literal["bdp", "sandbox"] = "bdp",
-        sandbox_token: str | None = None
+        self,
+        *,
+        api_client: ApiClient,
     ):
-        self.api_client = ApiClient(
-            api_url=api_url, 
-            api_key=api_key, 
-            api_key_id=api_key_id, 
-            org_id=org_id,
-            auth_mode=auth_mode,
-            sandbox_token=sandbox_token
-        )
+        self.api_client = api_client
 
         self.interventions = InterventionsClient(api_client=self.api_client)
         self.registry = RegistryClient(api_client=self.api_client)
@@ -208,3 +196,41 @@ class Signals:
             A subscription object that can be started or used as a context manager to receive interventions.
         """
         return self.interventions.subscribe(targets)
+
+
+class Signals(BaseSignalsWithApiClient):
+    """Interface to interact with Snowplow Signals AI"""
+
+    def __init__(
+        self,
+        *,
+        api_url: str,
+        api_key: str,
+        api_key_id: str,
+        org_id: str,
+    ):
+        super().__init__(
+            api_client=ApiClient(
+                api_url=api_url,
+                api_key=api_key,
+                api_key_id=api_key_id,
+                org_id=org_id,
+                auth_mode="bdp",
+            )
+        )
+
+
+class SignalsSandbox(BaseSignalsWithApiClient):
+    """Interface to interact with Snowplow Signals AI in SANDBOX mode"""
+
+    def __init__(
+        self,
+        *,
+        api_url: str,
+        sandbox_token: str,
+    ):
+        super().__init__(
+            api_client=ApiClient(
+                api_url=api_url, auth_mode="sandbox", sandbox_token=sandbox_token
+            )
+        )

@@ -4,7 +4,7 @@ import pytest
 from pytest import FixtureRequest
 from respx import MockRouter
 
-from snowplow_signals import Signals
+from snowplow_signals import Signals, SignalsSandbox
 from snowplow_signals.api_client import ApiClient
 
 from .utils import (
@@ -42,10 +42,9 @@ def signals_client() -> Signals:
 
 
 @pytest.fixture
-def signals_client_sandbox() -> Signals:
-    return Signals(
+def signals_client_sandbox() -> SignalsSandbox:
+    return SignalsSandbox(
         api_url="http://localhost:8000",
-        auth_mode="sandbox",
         sandbox_token="test-sandbox-token",
     )
 

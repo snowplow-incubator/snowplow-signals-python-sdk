@@ -2,7 +2,7 @@ import pytest
 import httpx
 from respx import MockRouter
 
-from snowplow_signals import Signals
+from snowplow_signals import SignalsSandbox
 from snowplow_signals.api_client import ApiClient
 
 
@@ -100,9 +100,8 @@ class TestSandboxAuthentication:
 
     def test_signals_sandbox_mode_initialization(self):
         """Test Signals initialization with SANDBOX mode"""
-        signals = Signals(
+        signals = SignalsSandbox(
             api_url="http://localhost:8000",
-            auth_mode="sandbox",
             sandbox_token="test-token",
         )
 
@@ -115,23 +114,15 @@ class TestSandboxAuthentication:
             ValueError,
             match="When auth_mode is 'sandbox' a non-empty sandbox_token must be provided",
         ):
-            Signals(
-                api_url="http://localhost:8000", auth_mode="sandbox", sandbox_token=None
+            SignalsSandbox(
+                api_url="http://localhost:8000",
+                sandbox_token=None,  # type: ignore
             )
-
-    def test_signals_bdp_mode_missing_credentials_raises_error(self):
-        """Test Signals initialization with BDP mode but missing credentials"""
-        with pytest.raises(
-            ValueError,
-            match="When auth_mode is 'bdp' api_key, api_key_id, and org_id must be provided",
-        ):
-            Signals(api_url="http://localhost:8000", auth_mode="bdp", api_key=None)
 
     def test_signals_sandbox_mode_api_calls(self, respx_mock: MockRouter):
         """Test that Signals with SANDBOX mode makes successful API calls"""
-        signals = Signals(
+        signals = SignalsSandbox(
             api_url="http://localhost:8000",
-            auth_mode="sandbox",
             sandbox_token="test-sandbox-token",
         )
 

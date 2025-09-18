@@ -11,7 +11,7 @@ pip install snowplow-signals
 ## Quickstart
 
 ```python
-from snowplow_signals import Signals, Attribute, Event, StreamAttributeGroup, domain_sessionid
+from snowplow_signals import Signals, SignalsSandbox, Attribute, Event, StreamAttributeGroup, domain_sessionid
 
 # Initialize the SDK with BDP authentication (default)
 signals = Signals(
@@ -22,9 +22,8 @@ signals = Signals(
 )
 
 # Or initialize with SANDBOX authentication
-signals = Signals(
+signals = SignalsSandbox(
     api_url="API_URL",
-    auth_mode="sandbox",
     sandbox_token="YOUR_SANDBOX_TOKEN",
 )
 
