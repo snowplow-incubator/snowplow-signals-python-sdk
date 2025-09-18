@@ -6,30 +6,30 @@ from snowplow_signals import Signals
 from snowplow_signals.api_client import ApiClient
 
 
-class TestTrialAuthentication:
-    """Test cases for TRIAL authentication mode"""
+class TestSandboxAuthentication:
+    """Test cases for SANDBOX authentication mode"""
 
-    def test_api_client_trial_mode_initialization(self):
-        """Test ApiClient initialization with TRIAL mode"""
+    def test_api_client_sandbox_mode_initialization(self):
+        """Test ApiClient initialization with SANDBOX mode"""
         client = ApiClient(
             api_url="http://localhost:8000",
-            auth_mode="trial",
-            trial_token="test-token"
+            auth_mode="sandbox",
+            sandbox_token="test-token"
         )
         
-        assert client.auth_mode == "trial"
-        assert client.trial_token == "test-token"
+        assert client.auth_mode == "sandbox"
+        assert client.sandbox_token == "test-token"
         assert client.api_key is None
         assert client.api_key_id is None
         assert client.org_id is None
 
-    def test_api_client_trial_mode_missing_token_raises_error(self):
-        """Test ApiClient initialization with TRIAL mode but missing token"""
-        with pytest.raises(ValueError, match="When auth_mode is 'trial' a non-empty trial_token must be provided"):
+    def test_api_client_sandbox_mode_missing_token_raises_error(self):
+        """Test ApiClient initialization with SANDBOX mode but missing token"""
+        with pytest.raises(ValueError, match="When auth_mode is 'sandbox' a non-empty sandbox_token must be provided"):
             ApiClient(
                 api_url="http://localhost:8000",
-                auth_mode="trial",
-                trial_token=None
+                auth_mode="sandbox",
+                sandbox_token=None
             )
 
     def test_api_client_bdp_mode_missing_credentials_raises_error(self):
@@ -43,12 +43,12 @@ class TestTrialAuthentication:
                 org_id="test"
             )
 
-    def test_api_client_trial_token_used_directly(self, respx_mock: MockRouter):
-        """Test that TRIAL mode uses the trial token directly without fetching"""
+    def test_api_client_sandbox_token_used_directly(self, respx_mock: MockRouter):
+        """Test that SANDBOX mode uses the sandbox token directly without fetching"""
         client = ApiClient(
             api_url="http://localhost:8000",
-            auth_mode="trial",
-            trial_token="test-trial-token"
+            auth_mode="sandbox",
+            sandbox_token="test-sandbox-token"
         )
         
         # Mock API endpoint
@@ -59,19 +59,19 @@ class TestTrialAuthentication:
         # Make request
         client.make_request("GET", "test")
         
-        # Verify request was made with trial token
+        # Verify request was made with sandbox token
         assert mock_request.called
         assert mock_request.call_count == 1
         auth_header = mock_request.calls[0].request.headers.get("Authorization")
-        assert auth_header == "Bearer test-trial-token"
+        assert auth_header == "Bearer test-sandbox-token"
 
     @pytest.mark.noauthmock
-    def test_api_client_trial_no_token_fetch_attempted(self, respx_mock: MockRouter):
-        """Test that TRIAL mode doesn't attempt to fetch tokens from console"""
+    def test_api_client_sandbox_no_token_fetch_attempted(self, respx_mock: MockRouter):
+        """Test that SANDBOX mode doesn't attempt to fetch tokens from console"""
         client = ApiClient(
             api_url="http://localhost:8000",
-            auth_mode="trial",
-            trial_token="test-trial-token"
+            auth_mode="sandbox",
+            sandbox_token="test-sandbox-token"
         )
         
         # Mock API endpoint
@@ -90,24 +90,24 @@ class TestTrialAuthentication:
         # Verify console endpoint was not called
         assert not console_mock.called
 
-    def test_signals_trial_mode_initialization(self):
-        """Test Signals initialization with TRIAL mode"""
+    def test_signals_sandbox_mode_initialization(self):
+        """Test Signals initialization with SANDBOX mode"""
         signals = Signals(
             api_url="http://localhost:8000",
-            auth_mode="trial",
-            trial_token="test-token"
+            auth_mode="sandbox",
+            sandbox_token="test-token"
         )
         
-        assert signals.api_client.auth_mode == "trial"
-        assert signals.api_client.trial_token == "test-token"
+        assert signals.api_client.auth_mode == "sandbox"
+        assert signals.api_client.sandbox_token == "test-token"
 
-    def test_signals_trial_mode_missing_token_raises_error(self):
-        """Test Signals initialization with TRIAL mode but missing token"""
-        with pytest.raises(ValueError, match="When auth_mode is 'trial' a non-empty trial_token must be provided"):
+    def test_signals_sandbox_mode_missing_token_raises_error(self):
+        """Test Signals initialization with SANDBOX mode but missing token"""
+        with pytest.raises(ValueError, match="When auth_mode is 'sandbox' a non-empty sandbox_token must be provided"):
             Signals(
                 api_url="http://localhost:8000",
-                auth_mode="trial",
-                trial_token=None
+                auth_mode="sandbox",
+                sandbox_token=None
             )
 
     def test_signals_bdp_mode_missing_credentials_raises_error(self):
@@ -119,12 +119,12 @@ class TestTrialAuthentication:
                 api_key=None
             )
 
-    def test_signals_trial_mode_api_calls(self, respx_mock: MockRouter):
-        """Test that Signals with TRIAL mode makes successful API calls"""
+    def test_signals_sandbox_mode_api_calls(self, respx_mock: MockRouter):
+        """Test that Signals with SANDBOX mode makes successful API calls"""
         signals = Signals(
             api_url="http://localhost:8000",
-            auth_mode="trial",
-            trial_token="test-trial-token"
+            auth_mode="sandbox",
+            sandbox_token="test-sandbox-token"
         )
         
         # Mock interventions endpoint
@@ -138,22 +138,22 @@ class TestTrialAuthentication:
         # Verify call was made with correct auth
         assert interventions_mock.called
         auth_header = interventions_mock.calls[0].request.headers.get("Authorization")
-        assert auth_header == "Bearer test-trial-token"
+        assert auth_header == "Bearer test-sandbox-token"
         assert result == []
 
-    def test_check_token_trial_mode_returns_trial_token(self):
-        """Test that _check_token returns trial token in TRIAL mode"""
+    def test_check_token_sandbox_mode_returns_sandbox_token(self):
+        """Test that _check_token returns sandbox token in SANDBOX mode"""
         client = ApiClient(
             api_url="http://localhost:8000",
-            auth_mode="trial",
-            trial_token="test-trial-token"
+            auth_mode="sandbox",
+            sandbox_token="test-sandbox-token"
         )
         
-        # Should return trial token regardless of input
-        assert client._check_token(None) == "test-trial-token"
-        assert client._check_token("some-other-token") == "test-trial-token"
+        # Should return sandbox token regardless of input
+        assert client._check_token(None) == "test-sandbox-token"
+        assert client._check_token("some-other-token") == "test-sandbox-token"
 
-    def test_trial_mode_backwards_compatibility(self):
+    def test_sandbox_mode_backwards_compatibility(self):
         """Test that default BDP mode still works for backwards compatibility"""
         # This should work without specifying auth_mode
         client = ApiClient(

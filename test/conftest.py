@@ -42,11 +42,11 @@ def signals_client() -> Signals:
 
 
 @pytest.fixture
-def signals_client_trial() -> Signals:
+def signals_client_sandbox() -> Signals:
     return Signals(
         api_url="http://localhost:8000",
-        auth_mode="trial",
-        trial_token="test-trial-token",
+        auth_mode="sandbox",
+        sandbox_token="test-sandbox-token",
     )
 
 
@@ -78,11 +78,11 @@ def api_client() -> ApiClient:
 
 
 @pytest.fixture
-def api_client_trial() -> ApiClient:
+def api_client_sandbox() -> ApiClient:
     return ApiClient(
         api_url="http://localhost:8000",
-        auth_mode="trial",
-        trial_token="test-trial-token",
+        auth_mode="sandbox",
+        sandbox_token="test-sandbox-token",
     )
 
 

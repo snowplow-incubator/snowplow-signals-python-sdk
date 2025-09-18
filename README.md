@@ -21,11 +21,11 @@ signals = Signals(
     org_id="ORG_ID",
 )
 
-# Or initialize with TRIAL authentication
+# Or initialize with SANDBOX authentication
 signals = Signals(
     api_url="API_URL",
-    auth_mode="trial",
-    trial_token="YOUR_TRIAL_TOKEN",
+    auth_mode="sandbox",
+    sandbox_token="YOUR_SANDBOX_TOKEN",
 )
 
 # Define an attribute
@@ -108,10 +108,10 @@ export SNOWPLOW_API_KEY_ID="YOUR_API_KEY_ID"
 export SNOWPLOW_ORG_ID="YOUR_ORG_ID"
 export SNOWPLOW_REPO_PATH="./my_snowplow_repo"
 
-# For TRIAL authentication
+# For SANDBOX authentication
 export SNOWPLOW_API_URL="YOUR_API_URL"
-export SNOWPLOW_AUTH_MODE="trial"
-export SNOWPLOW_TRIAL_TOKEN="YOUR_TRIAL_TOKEN"
+export SNOWPLOW_AUTH_MODE="sandbox"
+export SNOWPLOW_SANDBOX_TOKEN="YOUR_SANDBOX_TOKEN"
 export SNOWPLOW_REPO_PATH="./my_snowplow_repo"
 ```
 

@@ -48,7 +48,7 @@ CHECK_AUTH = Annotated[
 AUTH_MODE = Annotated[
     str,
     typer.Option(
-        help="Authentication mode: 'bdp' or 'trial' (default: bdp)",
+        help="Authentication mode: 'bdp' or 'sandbox' (default: bdp)",
         envvar="SNOWPLOW_AUTH_MODE",
     ),
 ]
@@ -61,11 +61,11 @@ ORG_ID = Annotated[
     ),
 ]
 
-TRIAL_TOKEN = Annotated[
+SANDBOX_TOKEN = Annotated[
     Optional[str],
     typer.Option(
-        help="Trial token for authentication (required for trial auth mode)",
-        envvar="SNOWPLOW_TRIAL_TOKEN",
+        help="Sandbox token for authentication (required for sandbox auth mode)",
+        envvar="SNOWPLOW_SANDBOX_TOKEN",
     ),
 ]
 

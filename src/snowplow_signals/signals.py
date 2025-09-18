@@ -31,8 +31,8 @@ class Signals:
         api_key: str | None = None, 
         api_key_id: str | None = None, 
         org_id: str | None = None,
-        auth_mode: Literal["bdp", "trial"] = "bdp",
-        trial_token: str | None = None
+        auth_mode: Literal["bdp", "sandbox"] = "bdp",
+        sandbox_token: str | None = None
     ):
         self.api_client = ApiClient(
             api_url=api_url, 
@@ -40,7 +40,7 @@ class Signals:
             api_key_id=api_key_id, 
             org_id=org_id,
             auth_mode=auth_mode,
-            trial_token=trial_token
+            sandbox_token=sandbox_token
         )
 
         self.interventions = InterventionsClient(api_client=self.api_client)

@@ -5,22 +5,22 @@ from typer.testing import CliRunner
 from snowplow_signals.batch_autogen.cli import app, create_api_client
 
 
-class TestCLITrialAuth:
-    """Test cases for CLI commands with TRIAL authentication"""
+class TestCLISandboxAuth:
+    """Test cases for CLI commands with SANDBOX authentication"""
 
-    def test_create_api_client_with_trial_auth(self):
-        """Test create_api_client function with TRIAL auth parameters"""
+    def test_create_api_client_with_sandbox_auth(self):
+        """Test create_api_client function with SANDBOX auth parameters"""
         client = create_api_client(
             api_url="http://localhost:8000",
             api_key=None,
             api_key_id=None,
             org_id=None,
-            auth_mode="trial",
-            trial_token="test-trial-token"
+            auth_mode="sandbox",
+            sandbox_token="test-sandbox-token"
         )
         
-        assert client.auth_mode == "trial"
-        assert client.trial_token == "test-trial-token"
+        assert client.auth_mode == "sandbox"
+        assert client.sandbox_token == "test-sandbox-token"
         assert client.api_key is None
         assert client.api_key_id is None
         assert client.org_id is None
@@ -33,18 +33,18 @@ class TestCLITrialAuth:
             api_key_id="test-key-id",
             org_id="test-org",
             auth_mode="bdp",
-            trial_token=None
+            sandbox_token=None
         )
         
         assert client.auth_mode == "bdp"
         assert client.api_key == "test-key"
         assert client.api_key_id == "test-key-id"
         assert client.org_id == "test-org"
-        assert client.trial_token is None
+        assert client.sandbox_token is None
 
     @patch('snowplow_signals.batch_autogen.cli.BatchAutogenClient')
-    def test_cli_init_with_trial_auth_env_vars(self, mock_client_class):
-        """Test CLI init command with TRIAL auth via environment variables"""
+    def test_cli_init_with_sandbox_auth_env_vars(self, mock_client_class):
+        """Test CLI init command with SANDBOX auth via environment variables"""
         runner = CliRunner()
         
         # Mock the client
@@ -54,8 +54,8 @@ class TestCLITrialAuth:
         
         with patch.dict('os.environ', {
             'SNOWPLOW_API_URL': 'http://localhost:8000',
-            'SNOWPLOW_AUTH_MODE': 'trial',
-            'SNOWPLOW_TRIAL_TOKEN': 'test-trial-token',
+            'SNOWPLOW_AUTH_MODE': 'sandbox',
+            'SNOWPLOW_SANDBOX_TOKEN': 'test-sandbox-token',
             'SNOWPLOW_REPO_PATH': '/tmp/test',
             'SNOWPLOW_TARGET_TYPE': 'snowflake'
         }):
@@ -69,12 +69,12 @@ class TestCLITrialAuth:
             mock_client_class.assert_called_once()
             call_args = mock_client_class.call_args
             api_client = call_args[1]['api_client']
-            assert api_client.auth_mode == "trial"
-            assert api_client.trial_token == "test-trial-token"
+            assert api_client.auth_mode == "sandbox"
+            assert api_client.sandbox_token == "test-sandbox-token"
 
     @patch('snowplow_signals.batch_autogen.cli.BatchAutogenClient')
-    def test_cli_init_with_trial_auth_flags(self, mock_client_class):
-        """Test CLI init command with TRIAL auth via command line flags"""
+    def test_cli_init_with_sandbox_auth_flags(self, mock_client_class):
+        """Test CLI init command with SANDBOX auth via command line flags"""
         runner = CliRunner()
         
         # Mock the client
@@ -85,8 +85,8 @@ class TestCLITrialAuth:
         result = runner.invoke(app, [
             'init',
             '--api-url', 'http://localhost:8000',
-            '--auth-mode', 'trial',
-            '--trial-token', 'test-trial-token',
+            '--auth-mode', 'sandbox',
+            '--sandbox-token', 'test-sandbox-token',
             '--repo-path', '/tmp/test',
             '--target-type', 'snowflake'
         ])
@@ -99,12 +99,12 @@ class TestCLITrialAuth:
         mock_client_class.assert_called_once()
         call_args = mock_client_class.call_args
         api_client = call_args[1]['api_client']
-        assert api_client.auth_mode == "trial"
-        assert api_client.trial_token == "test-trial-token"
+        assert api_client.auth_mode == "sandbox"
+        assert api_client.sandbox_token == "test-sandbox-token"
 
     @patch('snowplow_signals.batch_autogen.cli.BatchAutogenClient')
-    def test_cli_generate_with_trial_auth(self, mock_client_class):
-        """Test CLI generate command with TRIAL auth"""
+    def test_cli_generate_with_sandbox_auth(self, mock_client_class):
+        """Test CLI generate command with SANDBOX auth"""
         runner = CliRunner()
         
         # Mock the client
@@ -115,8 +115,8 @@ class TestCLITrialAuth:
         result = runner.invoke(app, [
             'generate',
             '--api-url', 'http://localhost:8000',
-            '--auth-mode', 'trial',
-            '--trial-token', 'test-trial-token',
+            '--auth-mode', 'sandbox',
+            '--sandbox-token', 'test-sandbox-token',
             '--repo-path', '/tmp/test',
             '--target-type', 'bigquery'
         ])
@@ -129,18 +129,18 @@ class TestCLITrialAuth:
         mock_client_class.assert_called_once()
         call_args = mock_client_class.call_args
         api_client = call_args[1]['api_client']
-        assert api_client.auth_mode == "trial"
-        assert api_client.trial_token == "test-trial-token"
+        assert api_client.auth_mode == "sandbox"
+        assert api_client.sandbox_token == "test-sandbox-token"
 
 
-    def test_cli_init_missing_trial_token_error(self):
-        """Test CLI init command fails when TRIAL mode is specified but token is missing"""
+    def test_cli_init_missing_sandbox_token_error(self):
+        """Test CLI init command fails when SANDBOX mode is specified but token is missing"""
         runner = CliRunner()
         
         result = runner.invoke(app, [
             'init',
             '--api-url', 'http://localhost:8000',
-            '--auth-mode', 'trial',
+            '--auth-mode', 'sandbox',
             '--repo-path', '/tmp/test',
             '--target-type', 'snowflake'
         ])
