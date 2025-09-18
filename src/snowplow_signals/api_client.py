@@ -68,8 +68,12 @@ class ApiClient:
 
         return response["accessToken"]
 
-    def _check_token(self, token: Union[str, None]):
+    def _check_token(self, token: Union[str, None]) -> str:
         if self.auth_mode == "sandbox":
+            if not self.sandbox_token:
+                raise ValueError(
+                    "When auth_mode is 'sandbox' a non-empty sandbox_token must be provided"
+                )
             return self.sandbox_token
             
         if token is None:
