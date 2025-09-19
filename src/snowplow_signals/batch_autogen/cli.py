@@ -3,6 +3,7 @@
 import os
 import sys
 from pathlib import Path
+from typing import Literal, cast
 
 import httpx
 import typer
@@ -18,12 +19,14 @@ from .cli_params import (
     API_URL,
     ATTRIBUTE_GROUP_NAME,
     ATTRIBUTE_GROUP_VERSION,
+    AUTH_MODE,
     CHECK_API,
     CHECK_AUTH,
     ORG_ID,
     PROJECT_NAME,
     REPO_PATH,
     TARGET_TYPE,
+    SANDBOX_TOKEN,
     UPDATE,
     VERBOSE,
 )
@@ -85,9 +88,11 @@ def validate_repo_path(repo_path: str) -> Path:
 
 def create_api_client(
     api_url: str,
-    api_key: str,
-    api_key_id: str,
-    org_id: str,
+    api_key: str | None = None,
+    api_key_id: str | None = None,
+    org_id: str | None = None,
+    auth_mode: Literal["bdp", "sandbox"] = "bdp",
+    sandbox_token: str | None = None,
 ) -> ApiClient:
     """Create an API client with the given credentials.
     Args:
@@ -95,6 +100,8 @@ def create_api_client(
         api_key: API key for authentication
         api_key_id: ID of the API key
         org_id: Organization ID
+        auth_mode: Authentication mode ('bdp' or 'sandbox')
+        sandbox_token: Sandbox token for authentication
     Returns:
         ApiClient: Configured API client
     """
@@ -103,27 +110,35 @@ def create_api_client(
         api_key=api_key,
         api_key_id=api_key_id,
         org_id=org_id,
+        auth_mode=auth_mode,
+        sandbox_token=sandbox_token,
     )
 
 
 @app.command()
 def init(
     api_url: API_URL,
-    api_key: API_KEY,
-    api_key_id: API_KEY_ID,
-    org_id: ORG_ID,
     repo_path: REPO_PATH,
     target_type: TARGET_TYPE,
     attribute_group_name: ATTRIBUTE_GROUP_NAME = None,
     attribute_group_version: ATTRIBUTE_GROUP_VERSION = None,
+    api_key: API_KEY = None,
+    api_key_id: API_KEY_ID = None,
+    org_id: ORG_ID = None,
+    auth_mode: AUTH_MODE = "bdp",
+    sandbox_token: SANDBOX_TOKEN = None,
     verbose: VERBOSE = False,
 ) -> None:
     """Initialize dbt project structure and base configuration."""
+    if auth_mode not in ["bdp", "sandbox"]:
+        raise typer.BadParameter("auth_mode must be either 'bdp' or 'sandbox'")
+    auth_mode = cast(Literal["bdp", "sandbox"], auth_mode)
+
     try:
         setup_logging(verbose)
         validated_path = validate_repo_path(repo_path)
         logger.info(f"Initializing dbt project(s) in {validated_path}")
-        api_client = create_api_client(api_url, api_key, api_key_id, org_id)
+        api_client = create_api_client(api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token)
         client = BatchAutogenClient(
             api_client=api_client, target_type=target_type.value
         )
@@ -144,11 +159,13 @@ def init(
 @app.command()
 def generate(
     api_url: API_URL,
-    api_key: API_KEY,
-    api_key_id: API_KEY_ID,
-    org_id: ORG_ID,
     repo_path: REPO_PATH,
     target_type: TARGET_TYPE,
+    api_key: API_KEY = None,
+    api_key_id: API_KEY_ID = None,
+    org_id: ORG_ID = None,
+    auth_mode: AUTH_MODE = "bdp",
+    sandbox_token: SANDBOX_TOKEN = None,
     project_name: PROJECT_NAME = None,
     update: UPDATE = False,
     verbose: VERBOSE = False,
@@ -158,7 +175,7 @@ def generate(
         setup_logging(verbose)
         validated_path = validate_repo_path(repo_path)
         logger.info(f"🛠️ Generating dbt models in {validated_path}")
-        api_client = create_api_client(api_url, api_key, api_key_id, org_id)
+        api_client = create_api_client(api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token)
         client = BatchAutogenClient(
             api_client=api_client, target_type=target_type.value
         )
@@ -179,13 +196,15 @@ def generate(
 @app.command()
 def sync(
     api_url: API_URL,
-    api_key: API_KEY,
-    api_key_id: API_KEY_ID,
-    org_id: ORG_ID,
     attribute_group_name: ATTRIBUTE_GROUP_NAME,
     attribute_group_version: ATTRIBUTE_GROUP_VERSION,
     repo_path: REPO_PATH,
     target_type: TARGET_TYPE,
+    api_key: API_KEY = None,
+    api_key_id: API_KEY_ID = None,
+    org_id: ORG_ID = None,
+    auth_mode: AUTH_MODE = "bdp",
+    sandbox_token: SANDBOX_TOKEN = None,
     verbose: VERBOSE = False,
 ) -> None:
     """Registers the attribute table as a data source so that the syncing process can start."""
@@ -196,7 +215,7 @@ def sync(
             )
             raise typer.Exit(code=1)
 
-        api_client = create_api_client(api_url, api_key, api_key_id, org_id)
+        api_client = create_api_client(api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token)
         client = BatchAutogenClient(
             api_client=api_client, target_type=target_type.value
         )
@@ -220,9 +239,11 @@ def sync(
 @app.command()
 def test_connection(
     api_url: API_URL,
-    api_key: API_KEY,
-    api_key_id: API_KEY_ID,
-    org_id: ORG_ID,
+    api_key: API_KEY = None,
+    api_key_id: API_KEY_ID = None,
+    org_id: ORG_ID = None,
+    auth_mode: AUTH_MODE = "bdp",
+    sandbox_token: SANDBOX_TOKEN = None,
     check_auth: CHECK_AUTH = True,
     check_api: CHECK_API = True,
     verbose: VERBOSE = False,
@@ -230,7 +251,7 @@ def test_connection(
     """Test the connection to the authentication and API services."""
     try:
         setup_logging(verbose)
-        api_client = create_api_client(api_url, api_key, api_key_id, org_id)
+        api_client = create_api_client(api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token)
         auth_status = None
         api_status = None
         # Check authentication service if requested

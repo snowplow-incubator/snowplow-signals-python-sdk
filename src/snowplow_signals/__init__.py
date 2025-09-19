@@ -35,7 +35,7 @@ from snowplow_signals.models import (
     Service,
     StreamAttributeGroup,
 )
-from snowplow_signals.signals import Signals
+from snowplow_signals.signals import Signals, SignalsSandbox
 
 from .definitions import (
     PagePing,
@@ -50,6 +50,7 @@ from .definitions import (
 )
 
 Signals
+SignalsSandbox
 AttributeGroup
 ExternalBatchAttributeGroup
 StreamAttributeGroup

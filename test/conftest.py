@@ -4,7 +4,7 @@ import pytest
 from pytest import FixtureRequest
 from respx import MockRouter
 
-from snowplow_signals import Signals
+from snowplow_signals import Signals, SignalsSandbox
 from snowplow_signals.api_client import ApiClient
 
 from .utils import (
@@ -42,6 +42,14 @@ def signals_client() -> Signals:
 
 
 @pytest.fixture
+def signals_client_sandbox() -> SignalsSandbox:
+    return SignalsSandbox(
+        api_url="http://localhost:8000",
+        sandbox_token="test-sandbox-token",
+    )
+
+
+@pytest.fixture
 def access_jwt() -> str:
     """Creates a sample JWT claimset for use as a payload during tests"""
     return jwt.encode(
@@ -65,6 +73,15 @@ def api_client() -> ApiClient:
         api_key="foo",
         api_key_id="bar",
         org_id=MOCK_ORG_ID,
+    )
+
+
+@pytest.fixture
+def api_client_sandbox() -> ApiClient:
+    return ApiClient(
+        api_url="http://localhost:8000",
+        auth_mode="sandbox",
+        sandbox_token="test-sandbox-token",
     )
 
 

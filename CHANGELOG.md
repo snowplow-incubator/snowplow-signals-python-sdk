@@ -1,5 +1,11 @@
 # Changelog
 
+# [0.3.3] - 2025-09-19
+
+### Changed
+
+- [AISP-716] Add support for sandbox auth mode (#102)
+
 # [0.3.2] - 2025-09-17
 
 ### Changed
