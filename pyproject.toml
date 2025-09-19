@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "snowplow-signals"
-version = "0.3.2"
+version = "0.3.3"
 description = ""
 authors = ["Snowplow <support@snowplow.io>"]
 readme = "README.md"
