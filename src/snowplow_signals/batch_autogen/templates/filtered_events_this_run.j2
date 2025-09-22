@@ -18,11 +18,23 @@ with prep as (
     select
         event_id,
         {{ var('snowplow__attribute_key', 'domain_userid') }} as attribute_key,
-        derived_tstamp,
-        date(derived_tstamp) as event_date,
-        load_tstamp,
-        event_name,
         {% endraw %}
+        
+        {%- if not properties | selectattr('alias', 'equalto', 'derived_tstamp') | list %}
+                derived_tstamp,
+                date(derived_tstamp) as event_date,
+        {%- else %}
+                date(derived_tstamp) as event_date,
+        {%- endif %}
+        
+        {%- if not properties | selectattr('alias', 'equalto', 'load_tstamp') | list %}
+                load_tstamp,
+        {%- endif %}
+        
+        {%- if not properties | selectattr('alias', 'equalto', 'event_name') | list %}
+                event_name,
+        {%- endif %}
+        
         {%- for prop in properties %}
             {% if prop.column_prefix %}
                 {% set required_field = prop.alias  %}
