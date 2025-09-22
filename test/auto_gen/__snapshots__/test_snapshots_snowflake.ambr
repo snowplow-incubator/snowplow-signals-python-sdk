@@ -2131,11 +2131,11 @@
           select
               event_id,
               {{ var('snowplow__attribute_key', 'domain_userid') }} as attribute_key,
-              derived_tstamp,
-              date(derived_tstamp) as event_date,
-              load_tstamp,
-              event_name,
               
+                      derived_tstamp,
+                      date(derived_tstamp) as event_date,
+                      load_tstamp,
+                      event_name,
                   
                       geo_country AS geo_country,
               
