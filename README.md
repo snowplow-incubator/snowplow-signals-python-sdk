@@ -1,6 +1,6 @@
-# Snowplow Signals SDK
+# Snowplow Signals Python SDK
 
-The Snowplow Signals SDK is a Python SDK that enables you to interact with the Snowplow Signals Profile API. It provides a simple interface to define, deploy, and retrieve user attributes for personalization.
+The Snowplow Signals Python SDK enables you to interact with the Snowplow Signals Profile API. It provides a simple interface to define, deploy, and retrieve user attributes for personalization.
 
 ## Installation
 
