@@ -2132,8 +2132,9 @@
               event_id,
               {{ var('snowplow__attribute_key', 'domain_userid') }} as attribute_key,
               
+              
+              date(derived_tstamp) as event_date,
                       derived_tstamp,
-                      date(derived_tstamp) as event_date,
                       load_tstamp,
                       event_name,
                   

@@ -20,18 +20,17 @@ with prep as (
         {{ var('snowplow__attribute_key', 'domain_userid') }} as attribute_key,
         {% endraw %}
         
-        {%- if not properties | selectattr('alias', 'equalto', 'derived_tstamp') | list %}
+        date(derived_tstamp) as event_date,
+        
+        {%- if not properties | selectattr('full_path', 'equalto', 'derived_tstamp') | list %}
                 derived_tstamp,
-                date(derived_tstamp) as event_date,
-        {%- else %}
-                date(derived_tstamp) as event_date,
         {%- endif %}
         
-        {%- if not properties | selectattr('alias', 'equalto', 'load_tstamp') | list %}
+        {%- if not properties | selectattr('full_path', 'equalto', 'load_tstamp') | list %}
                 load_tstamp,
         {%- endif %}
         
-        {%- if not properties | selectattr('alias', 'equalto', 'event_name') | list %}
+        {%- if not properties | selectattr('full_path', 'equalto', 'event_name') | list %}
                 event_name,
         {%- endif %}
         
