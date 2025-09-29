@@ -798,6 +798,88 @@
                           "any": []
                       }
                   }
+              ],
+              [
+                  {
+                      "step_type": "filtered_events",
+                      "enabled": false,
+                      "aggregation": null,
+                      "column_name": "revenue",
+                      "modeling_criteria": null
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "enabled": true,
+                      "aggregation": "min",
+                      "column_name": "min_revenue_snowplow_ecommerce_action",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "event_name",
+                                  "operator": "in",
+                                  "value": "'snowplow_ecommerce_action'"
+                              }
+                          ],
+                          "any": []
+                      }
+                  },
+                  {
+                      "step_type": "attribute_aggregation",
+                      "enabled": true,
+                      "aggregation": "min",
+                      "column_name": "min_revenue_last_7_days",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "period",
+                                  "operator": ">",
+                                  "value": 7
+                              }
+                          ],
+                          "any": []
+                      }
+                  }
+              ],
+              [
+                  {
+                      "step_type": "filtered_events",
+                      "enabled": false,
+                      "aggregation": null,
+                      "column_name": "revenue",
+                      "modeling_criteria": null
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "enabled": true,
+                      "aggregation": "max",
+                      "column_name": "max_revenue_snowplow_ecommerce_action",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "event_name",
+                                  "operator": "in",
+                                  "value": "'snowplow_ecommerce_action'"
+                              }
+                          ],
+                          "any": []
+                      }
+                  },
+                  {
+                      "step_type": "attribute_aggregation",
+                      "enabled": true,
+                      "aggregation": "max",
+                      "column_name": "max_revenue_last_7_days",
+                      "modeling_criteria": {
+                          "all": [
+                              {
+                                  "property": "period",
+                                  "operator": ">",
+                                  "value": 7
+                              }
+                          ],
+                          "any": []
+                      }
+                  }
               ]
           ],
           "attribute_key": "domain_userid"
@@ -1081,6 +1163,18 @@
                       "aggregation": "array_agg",
                       "column_name": "op_systems_2",
                       "condition_clause": "distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls"
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "aggregation": "min",
+                      "column_name": "min_revenue_snowplow_ecommerce_action",
+                      "condition_clause": "case when  event_name IN('snowplow_ecommerce_action') then revenue else null end"
+                  },
+                  {
+                      "step_type": "daily_aggregation",
+                      "aggregation": "max",
+                      "column_name": "max_revenue_snowplow_ecommerce_action",
+                      "condition_clause": "case when  event_name IN('snowplow_ecommerce_action') then revenue else null end"
                   }
               ],
               "daily_first_value_attributes": [
@@ -1192,6 +1286,18 @@
                       "column_name": "total_revenue_last_7_days",
                       "period": 7,
                       "aggregation_type": "sum"
+                  },
+                  {
+                      "daily_agg_column_name": "min_revenue_snowplow_ecommerce_action",
+                      "column_name": "min_revenue_last_7_days",
+                      "period": 7,
+                      "aggregation_type": "min"
+                  },
+                  {
+                      "daily_agg_column_name": "max_revenue_snowplow_ecommerce_action",
+                      "column_name": "max_revenue_last_7_days",
+                      "period": 7,
+                      "aggregation_type": "max"
                   }
               ],
               "first_value_attributes": [
@@ -1516,6 +1622,10 @@
           
             , sum(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then sum_revenue_snowplow_ecommerce_action end) as total_revenue_last_7_days
           
+            , min(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then min_revenue_snowplow_ecommerce_action end) as min_revenue_last_7_days
+          
+            , max(case when event_date >= {{snowplow_utils.add_days_to_date(-7, upper_limit)}} and event_date < {{ upper_limit }} then max_revenue_snowplow_ecommerce_action end) as max_revenue_last_7_days
+          
       
       
         from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates')}}
@@ -1687,6 +1797,10 @@
           , form_focus_change_event_count_last_7_days
         
           , total_revenue_last_7_days
+        
+          , min_revenue_last_7_days
+        
+          , max_revenue_last_7_days
         
           
         -- lifetime based attributes
@@ -1970,6 +2084,16 @@
             
               distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls) as op_systems_2
           
+            
+              , min(
+            
+              case when  event_name IN('snowplow_ecommerce_action') then revenue else null end) as min_revenue_snowplow_ecommerce_action
+          
+            
+              , max(
+            
+              case when  event_name IN('snowplow_ecommerce_action') then revenue else null end) as max_revenue_snowplow_ecommerce_action
+          
           
         from events
         group by 1,2,3
@@ -2023,6 +2147,10 @@
           , a.op_systems
         
           , a.op_systems_2
+        
+          , a.min_revenue_snowplow_ecommerce_action
+        
+          , a.max_revenue_snowplow_ecommerce_action
         
         
           
@@ -2146,7 +2274,7 @@
                       
                       
                       {{ snowplow_utils.combine_column_versions(
-                          relation=ref('snowplow_batch_autogen_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
+                          relation=ref('snowplow_batch_engine_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
                           column_prefix="contexts_nl_basjes_yauaa_context_1",
                           required_fields=[("operating_system_name","operating_system_name")],
                           include_field_alias=True
@@ -2158,7 +2286,7 @@
                       
                       
                       {{ snowplow_utils.combine_column_versions(
-                          relation=ref('snowplow_batch_autogen_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
+                          relation=ref('snowplow_batch_engine_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
                           column_prefix="contexts_nl_basjes_yauaa_context_1",
                           required_fields=[("device_class","device_class")],
                           include_field_alias=True
@@ -2185,7 +2313,7 @@
                       
                       
                       {{ snowplow_utils.combine_column_versions(
-                          relation=ref('snowplow_batch_autogen_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
+                          relation=ref('snowplow_batch_engine_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
                           column_prefix="contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1",
                           required_fields=[("revenue","revenue")],
                           include_field_alias=True

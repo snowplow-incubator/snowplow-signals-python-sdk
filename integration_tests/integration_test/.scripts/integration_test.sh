@@ -23,22 +23,22 @@ fi
 
 for db in ${DATABASES[@]}; do
 
-  echo "Snowplow batch autogen integration tests: Seeding data"
+  echo "Snowplow batch engine integration tests: Seeding data"
   eval "dbt seed --full-refresh --target $db" || exit 1;
 
-  echo "Snowplow batch autogen integration tests: Execute models - run 1/3"
+  echo "Snowplow batch engine integration tests: Execute models - run 1/3"
   eval "dbt run --full-refresh --vars '{snowplow__allow_refresh: true}' --target $db" || exit 1;
 
   for i in {2..3}
   do
-    echo "Snowplow batch autogen integration tests: Execute models - run $i/3"
+    echo "Snowplow batch engine integration tests: Execute models - run $i/3"
     eval "dbt run --target $db" || exit 1;
   done
 
-  echo "Snowplow batch autogen integration tests: Test models"
+  echo "Snowplow batch engine integration tests: Test models"
 
   eval "dbt test --store-failures --target $db" || exit 1;
 
-  echo "Snowplow batch autogen integration tests: All tests passed"
+  echo "Snowplow batch engine integration tests: All tests passed"
 
 done

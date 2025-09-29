@@ -479,6 +479,38 @@
                     },
                     "period": "P1D",
                     "default_value": null
+                },
+                {
+                    "name": "min_revenue_last_7_days",
+                    "type": "int64",
+                    "description": "Min of total revenue in the last 7 days",
+                    "events": [
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow.ecommerce",
+                            "name": "snowplow_ecommerce_action",
+                            "version": "1-0-0"
+                        }
+                    ],
+                    "aggregation": "min",
+                    "property": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[safe_offset(0)].revenue",
+                    "criteria": null,
+                    "period": "P7D"
+                },
+                {
+                    "name": "max_revenue_last_7_days",
+                    "type": "int64",
+                    "description": "Max of total revenue in the last 7 days",
+                    "events": [
+                        {
+                            "vendor": "com.snowplowanalytics.snowplow.ecommerce",
+                            "name": "snowplow_ecommerce_action",
+                            "version": "1-0-0"
+                        }
+                    ],
+                    "aggregation": "max",
+                    "property": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[safe_offset(0)].revenue",
+                    "criteria": null,
+                    "period": "P7D"
                 }
             ],
             "fields": [

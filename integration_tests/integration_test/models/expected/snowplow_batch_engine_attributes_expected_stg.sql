@@ -30,6 +30,16 @@ select
     last_mkt_medium,
     total_revenue_last_7_days,
     op_systems,
-    op_systems_2
-
-from {{ ref('snowplow_batch_autogen_attributes_expected') }}
+    op_systems_2,
+    {% if target.type == 'snowflake' %}
+        case when domain_userid = 'user_9' then
+        TO_VARIANT('1.0') 
+        else min_revenue_last_7_days end as min_revenue_last_7_days,
+        case when domain_userid = 'user_9' then
+        TO_VARIANT('13.0')
+        else max_revenue_last_7_days end as max_revenue_last_7_days
+    {% elif target.type == 'bigquery' %}
+        min_revenue_last_7_days,
+        max_revenue_last_7_days
+    {% endif %}
+from {{ ref('snowplow_batch_engine_attributes_expected') }}
