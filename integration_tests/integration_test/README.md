@@ -1,6 +1,6 @@
 # snowplow-batch-engine-integration-tests
 
-Integration test suite for batch autogen dbt models.
+Integration test suite for batch engine dbt models.
 
 To test locally, run this script from the root to create the repo:
 ```bash

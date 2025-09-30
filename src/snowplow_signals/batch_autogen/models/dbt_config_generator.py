@@ -334,7 +334,7 @@ class DbtConfigGenerator:
                                     or step.aggregation == "max"
                                 ):
                                     property_name = attribute[0].column_name
-                                    condition_clause = f"case when {condition_statement} then {property_name}) else null end"
+                                    condition_clause = f"case when {condition_statement} then {property_name} else null end"
 
                                 aggregate_attributes.append(
                                     {
