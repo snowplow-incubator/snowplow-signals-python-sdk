@@ -10,17 +10,18 @@ import jwt
 HTTP_METHODS = Literal["GET", "POST", "PUT", "DELETE"]
 
 X_SIGNALS_SDK_NAME = f"signals-py {version('snowplow-signals')}"
+DEFAULT_STREAM_CONNECT_TIMEOUT_SECONDS = 10.0
 
 
 class ApiClient:
     def __init__(
-        self, 
-        api_url: str, 
-        api_key: str | None = None, 
-        api_key_id: str | None = None, 
+        self,
+        api_url: str,
+        api_key: str | None = None,
+        api_key_id: str | None = None,
         org_id: str | None = None,
         auth_mode: Literal["bdp", "sandbox"] = "bdp",
-        sandbox_token: str | None = None
+        sandbox_token: str | None = None,
     ):
         self.api_url = api_url.rstrip("/")
         self.auth_mode = auth_mode
@@ -29,14 +30,18 @@ class ApiClient:
         self.org_id = org_id
         self.sandbox_token = sandbox_token
         self.token = None
-        
+
         # Validate auth mode dependencies
         if self.auth_mode == "sandbox":
             if not self.sandbox_token:
-                raise ValueError("When auth_mode is 'sandbox' a non-empty sandbox_token must be provided")
+                raise ValueError(
+                    "When auth_mode is 'sandbox' a non-empty sandbox_token must be provided"
+                )
         else:  # bdp mode
             if not all([self.api_key, self.api_key_id, self.org_id]):
-                raise ValueError("When auth_mode is 'bdp' api_key, api_key_id, and org_id must be provided")
+                raise ValueError(
+                    "When auth_mode is 'bdp' api_key, api_key_id, and org_id must be provided"
+                )
 
     def _get_headers(self, token: str, custom: Optional[dict[str, str]] = None):
         return {
@@ -75,7 +80,7 @@ class ApiClient:
                     "When auth_mode is 'sandbox' a non-empty sandbox_token must be provided"
                 )
             return self.sandbox_token
-            
+
         if token is None:
             return self._fetch_token()
         else:
@@ -129,6 +134,7 @@ class ApiClient:
         params: Optional[Mapping[str, str | list[str]]] = None,
         data: Optional[dict] = None,
         headers: Optional[dict[str, str]] = None,
+        connect_timeout: Optional[float] = DEFAULT_STREAM_CONNECT_TIMEOUT_SECONDS,
     ) -> Generator[str | None]:
         token = self._check_token(self.token)
         self.token = token
@@ -141,6 +147,7 @@ class ApiClient:
             headers=self._get_headers(token, headers),
             params=params,
             json=data,
+            timeout=(connect_timeout, None, None, None),
         ) as stream:
             if stream.status_code == 200:
                 gen = stream.iter_lines()
