@@ -1,5 +1,14 @@
 # Changelog
 
+# [0.4.0] - 2025-09-30
+
+- [AISP-824] Add required HTTPX timeout for stream request
+- Fix/min max batch engine (#107)
+- Fix AttributeGroup.get_attributes() to also consider the fields when constructing a request to retrieve attribute values (#104)
+- Update BatchSource.database regex pattern in accordance with the API changes (#106)
+- [AISP-749] Fix duplicate columns (#105)
+- Rename Snowplow Signals SDK to Snowplow Signals Python SDK in readme
+
 # [0.3.3] - 2025-09-19
 
 ### Changed
