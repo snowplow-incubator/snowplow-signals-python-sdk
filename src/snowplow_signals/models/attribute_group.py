@@ -48,12 +48,17 @@ class AttributeGroup(AttributeGroupInput):
             The attributes for the attribute group.
         """
 
+        attributes = [
+            attribute.name
+            for attribute in (self.attributes or []) + (self.fields or [])
+        ]
+
         return signals.get_group_attributes(
             name=self.name,
             version=self.version,
             attribute_key=self.attribute_key.name,
             identifier=identifier,
-            attributes=[attribute.name for attribute in self.attributes],
+            attributes=attributes,
         )
 
 

@@ -38,6 +38,8 @@ with prep as (
             op_systems,
             op_systems_2
         {% endif %}
+        , min_revenue_last_7_days,
+        max_revenue_last_7_days
     from {{ ref('ecommerce_transaction_interactions_features_1_attributes') }}
 )
 
@@ -65,6 +67,8 @@ with prep as (
         last_mkt_medium,
         total_revenue_last_7_days,
         {{ snowplow_utils.get_array_to_string('op_systems', 'p', ', ') }} as op_systems,
-        {{ snowplow_utils.get_array_to_string('op_systems_2', 'p', ', ') }} as op_systems_2
+        {{ snowplow_utils.get_array_to_string('op_systems_2', 'p', ', ') }} as op_systems_2,
+        min_revenue_last_7_days,
+        max_revenue_last_7_days
 
 from prep p

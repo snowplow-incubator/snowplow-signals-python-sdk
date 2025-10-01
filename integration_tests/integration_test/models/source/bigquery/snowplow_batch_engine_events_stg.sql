@@ -40,7 +40,7 @@ with prep as (
     JSON_EXTRACT_ARRAY(contexts_com_snowplowanalytics_mobile_screen_1_0_0) as contexts_com_snowplowanalytics_mobile_screen_1_0_0,
     JSON_EXTRACT_ARRAY(unstruct_event_com_snowplowanalytics_snowplow_application_error_1_0_0) as unstruct_event_com_snowplowanalytics_snowplow_application_error_1_0_0,
     JSON_EXTRACT_ARRAY(contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1_0_0) as contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1_0_0
-  from {{ ref('snowplow_batch_autogen_events') }}
+  from {{ ref('snowplow_batch_engine_events') }}
   )
 
   -- recreate repeated record field i.e. array of structs as is originally in BQ events table

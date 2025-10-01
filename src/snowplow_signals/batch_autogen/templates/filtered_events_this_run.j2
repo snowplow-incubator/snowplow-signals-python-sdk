@@ -39,7 +39,7 @@ with prep as (
                 {% set required_field = prop.alias  %}
                 {% raw %}
                 {{ snowplow_utils.combine_column_versions(
-                    relation=ref('snowplow_batch_autogen_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
+                    relation=ref('snowplow_batch_engine_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
                     column_prefix="{% endraw %}{{ prop.column_prefix }}{% raw %}",
                     required_fields=[("{% endraw %}{{ required_field }}{% raw %}","{% endraw %}{{ prop.alias }}{% raw %}")],
                     include_field_alias=True

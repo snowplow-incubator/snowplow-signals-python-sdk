@@ -24,7 +24,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
       parse_json(contexts_com_snowplowanalytics_mobile_screen_1_0_0) as contexts_com_snowplowanalytics_mobile_screen_1,
       parse_json(contexts_com_snowplowanalytics_snowplow_browser_context_1_0_0) as contexts_com_snowplowanalytics_snowplow_browser_context_1,
       parse_json(contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1_0_0) as contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1
-    from {{ ref('snowplow_batch_autogen_events') }}
+    from {{ ref('snowplow_batch_engine_events') }}
     )
 
   , flatten as (

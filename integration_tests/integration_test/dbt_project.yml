@@ -1,4 +1,4 @@
-name: 'snowplow_batch_autogen_integration_tests'
+name: 'snowplow_batch_engine_integration_tests'
 version: '0.0.1'
 config-version: 2
 
@@ -25,10 +25,10 @@ quoting:
   schema: false
 
 models:
-  snowplow_batch_autogen_integration_tests:
+  snowplow_batch_engine_integration_tests:
     +materialized: table
     bind: false
-    +schema: "snplw_batch_autogen_int_tests"
+    +schema: "snplw_batch_engine_int_tests"
     source:
       snowflake:
         +enabled: "{{ target.type == 'snowflake' | as_bool() }}"
@@ -36,9 +36,9 @@ models:
         +enabled: "{{ target.type == 'bigquery' | as_bool() }}"
 vars:
   ecommerce_transaction_interactions_features_1:
-    snowplow__atomic_schema: "{{target.schema ~ '_snplw_batch_autogen_int_tests'}}"
-    snowplow__events_table: snowplow_batch_autogen_events_stg
-    snowplow__events: "{{ ref('snowplow_batch_autogen_events_stg') }}"
+    snowplow__atomic_schema: "{{target.schema ~ '_snplw_batch_engine_int_tests'}}"
+    snowplow__events_table: snowplow_batch_engine_events_stg
+    snowplow__events: "{{ ref('snowplow_batch_engine_events_stg') }}"
     snowplow__start_date: '2025-01-01' 
     snowplow__app_id: ['basic_test']
     snowplow__backfill_limit_days: 3
@@ -51,10 +51,10 @@ vars:
 
 seeds:
   quote_columns: false
-  snowplow_batch_autogen_integration_tests:
-    +schema: "snplw_batch_autogen_int_tests"
+  snowplow_batch_engine_integration_tests:
+    +schema: "snplw_batch_engine_int_tests"
     source:
-      snowplow_batch_autogen_events:
+      snowplow_batch_engine_events:
         +column_types:
           app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
           etl_tstamp: timestamp
@@ -128,7 +128,7 @@ seeds:
           contexts_com_snowplowanalytics_snowplow_mobile_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar(65535)' }}"
           unstruct_event_com_snowplowanalytics_snowplow_application_error_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar(65535)' }}"
     expected:
-      snowplow_batch_autogen_attributes_expected:
+      snowplow_batch_engine_attributes_expected:
         +column_types:
           domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
           valid_at_tstamp: timestamp
