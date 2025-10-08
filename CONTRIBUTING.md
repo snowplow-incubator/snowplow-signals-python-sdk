@@ -28,7 +28,17 @@ poetry run pytest
 
 ```bash
 poetry run black .
+
 ```
+
+### Commits
+- Prefix your commit with the JIRA reference, where possible
+E.g. `[AISP-184] XYZ`
+
+## PRs
+- Make sure to name the PR starting with the JIRA reference:
+E.g. `[AISP-184] XYZ`
+
 
 ## Branching Strategy
 
@@ -38,6 +48,11 @@ main: Production ready code.
 ### Supporting branches
 feature/<name>: For new features.
 fix/<name>: For fixes to production.
+chore/<name>: For updates not affecting production code.
+release/<name>: For release PRs.
+
+Add the JIRA reference in the branch name, where relevant:
+E.g. `feature/aisp_184_<name>`
 
 ### Rules
 - Always branch off `main`.
@@ -60,7 +75,7 @@ We follow [Semantic Versioning](https://semver.org/):
 	- Update the CHANGELOG.md:
 		- Include relevant features and fixes
 		- Exclude under-the-hood changes (renames, CI tweaks, formatting-only changes).
-- Go through the PR template's `Release Checklist` making sure all items are ticked
+- Go through the `Release Checklist` making sure all items are ticked
 - Merge into `main` using a merge commit
 - Run the Release workflow -> it will create and push the latest tags and publishes the new version to PyPI
 - Create or update the GitHub Release for the new tag and include the relevant changelog entry
