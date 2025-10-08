@@ -52,7 +52,7 @@ chore/<name>: For updates not affecting production code.
 release/<name>: For release PRs.
 
 Add the JIRA reference in the branch name, where relevant:
-E.g. `feature/aisp_184_<name>`
+E.g. `feature/aisp-184-<name>`
 
 ### Rules
 - Always branch off `main`.
