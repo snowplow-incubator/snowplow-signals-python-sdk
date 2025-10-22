@@ -1,5 +1,10 @@
 # Changelog
 
+# [0.4.1] - 2025-10-22
+
+- [AISP-768] Update contributing with release process (#110)
+- Lower minimum version for the pydantic dependency to 2.10.6 instead of 2.11.4 (#111)
+
 # [0.4.0] - 2025-09-30
 
 - [AISP-824] Add required HTTPX timeout for stream request
