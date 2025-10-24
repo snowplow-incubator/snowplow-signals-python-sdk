@@ -38,7 +38,7 @@ select
         case when domain_userid = 'user_9' then
         TO_VARIANT('13.0')
         else max_revenue_last_7_days end as max_revenue_last_7_days
-    {% elif target.type == 'bigquery' %}
+    {% elif target.type in ['bigquery', 'databricks'] %}
         min_revenue_last_7_days,
         max_revenue_last_7_days
     {% endif %}

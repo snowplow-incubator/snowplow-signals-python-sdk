@@ -123,7 +123,7 @@ def get_attribute_view_response_from_file() -> List[Dict[str, Any]]:
 
 
 def get_integration_test_view_response(
-    warehouse: Literal["snowflake", "bigquery"],
+    warehouse: Literal["snowflake", "bigquery", "databricks"],
 ) -> List[Dict[str, Any]]:
     """
     Reads and returns mock attribute groups from a JSON file.
@@ -139,6 +139,8 @@ def get_integration_test_view_response(
         json_path = Path(__file__).parent / "integration_test_view_snowflake.json"
     elif warehouse == "bigquery":
         json_path = Path(__file__).parent / "integration_test_view_bigquery.json"
+    elif warehouse == "databricks":
+        json_path = Path(__file__).parent / "integration_test_view_databricks.json"
     else:
         raise ValueError(f"Unsupported warehouse: {warehouse}")
     with open(json_path, "r") as f:

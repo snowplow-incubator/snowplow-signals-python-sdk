@@ -24,6 +24,7 @@ Supported warehouses (should be the same as your target in your profile.yml):
 
 - snowflake
 - bigquery
+- databricks
 - all (iterates through all supported warehouses)
 
 Good to know:

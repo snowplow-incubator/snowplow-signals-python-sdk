@@ -31,6 +31,12 @@ with events as (
     {% for attribute in daily_aggregate_attributes %}
       {% if attribute['aggregation'] == 'count' %}
         , sum(
+      {% elif agg_func == 'array_agg' %}
+        {% if target.type == 'databricks' %}
+            , collect_set(
+        {% else %}
+            , array_agg(
+        {% endif %}
       {% else %}
         , {{ attribute['aggregation'] }}(
       {% endif %}
