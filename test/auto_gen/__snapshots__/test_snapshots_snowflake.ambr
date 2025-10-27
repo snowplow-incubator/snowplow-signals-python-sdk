@@ -2483,7 +2483,7 @@
     'ecommerce_transaction_interactions_features_1/packages.yml': '''
       
       packages:
-        - package: snowplow/snowplow_utils
+        - git: "https://github.com/snowplow/dbt-snowplow-utils.git"
           revision: "feature/databricks-support-tstamp"
   
     ''',
