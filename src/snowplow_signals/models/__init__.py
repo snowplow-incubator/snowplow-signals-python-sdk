@@ -1,3 +1,10 @@
+from .attribute_group import (
+    AttributeGroup,
+    BatchAttributeGroup,
+    ExternalBatchAttributeGroup,
+    StreamAttributeGroup,
+)
+from .attribute_key import AttributeKey
 from .criteria_wrapper import Criteria
 from .criterion_wrapper import Criterion
 from .get_attributes_response import GetAttributesResponse
@@ -9,7 +16,6 @@ from .model import (
 )
 from .model import AttributeInput as Attribute
 from .model import (
-    AttributeKey,
     AttributeKeyId,
     AttributeKeyIdentifiers,
     AttributeKeyReference,
@@ -49,12 +55,6 @@ from .model import (
     UnpublishRequest,
 )
 from .service import Service
-from .attribute_group import (
-    AttributeGroup,
-    BatchAttributeGroup,
-    ExternalBatchAttributeGroup,
-    StreamAttributeGroup,
-)
 
 AttributeOutput
 Criteria
