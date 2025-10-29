@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 from typing import Literal
 
-from snowplow_signals.batch_autogen.utils.utils import WarehouseType
+from snowplow_signals.batch_autogen.utils.utils import WarehouseType, get_condition_sql
 
 from .base_config_generator import DbtBaseConfig
 
@@ -14,8 +14,6 @@ ALLOWED_ATOMIC_PROPERTIES = {
     .split("\n")
     if line
 }
-
-from snowplow_signals.batch_autogen.utils.utils import get_condition_sql
 
 from .model import (
     ConfigAttributes,
