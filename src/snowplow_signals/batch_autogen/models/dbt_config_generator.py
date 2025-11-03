@@ -70,7 +70,7 @@ class DbtConfigGenerator:
                     event_vendor=vendor,
                     event_name=name,
                     event_format=format_type,
-                    event_version=version,
+                    event_version=version if version != "None" else None,
                 )
             )
 
