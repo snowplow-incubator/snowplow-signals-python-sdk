@@ -3,6 +3,7 @@ from typing import Dict, FrozenSet, Literal, Set
 
 from pydantic import BaseModel
 from sqlglot.dialects.bigquery import BigQuery
+from sqlglot.dialects.databricks import Databricks
 from sqlglot.dialects.snowflake import Snowflake
 
 from snowplow_signals.batch_autogen.models.modeling_step import (
@@ -87,11 +88,12 @@ class BaseConfigGenerator:
         Output: "device_class"
         """
 
-        reserved_words_dict = (
-            Snowflake.Tokenizer.KEYWORDS
-            if self.target_type == "snowflake"
-            else BigQuery.Tokenizer.KEYWORDS
-        )
+        if self.target_type == "snowflake":
+            reserved_words_dict = Snowflake.Tokenizer.KEYWORDS
+        elif self.target_type == "bigquery":
+            reserved_words_dict = BigQuery.Tokenizer.KEYWORDS
+        else:
+            reserved_words_dict = Databricks.Tokenizer.KEYWORDS
         sql_reserved_words = reserved_words_dict.keys()
         if ":" in property:
             suffix = property.split(":")[1]

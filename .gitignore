@@ -11,6 +11,7 @@ dist
 # Autogen
 local_testing/customer_repo_snowflake
 local_testing/customer_repo_bigquery
+local_testing/customer_repo_databricks
 
 /.vscode
 

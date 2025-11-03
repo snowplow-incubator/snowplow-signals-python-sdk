@@ -24,7 +24,9 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 ) }}
 
 select *
-    
+  {% if target.type in ['databricks', 'spark'] -%}
+  , DATE(derived_tstamp) as derived_tstamp_date
+  {%- endif %}
 from {{ ref('{% endraw %}{{ project_name }}{% raw %}_filtered_events_this_run') }}
 where {{ snowplow_utils.is_run_with_new_events("{% endraw %}{{ project_name }}{% raw %}"
         , new_event_limits_table="{% endraw %}{{ project_name }}{% raw %}_base_new_event_limits"

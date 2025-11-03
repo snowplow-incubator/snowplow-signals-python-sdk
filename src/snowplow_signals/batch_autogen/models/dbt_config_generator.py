@@ -2,9 +2,7 @@ import re
 from pathlib import Path
 from typing import Literal
 
-from snowplow_signals.batch_autogen.utils.utils import (
-    WarehouseType,
-)
+from snowplow_signals.batch_autogen.utils.utils import WarehouseType, get_condition_sql
 
 from .base_config_generator import DbtBaseConfig
 
@@ -16,10 +14,6 @@ ALLOWED_ATOMIC_PROPERTIES = {
     .split("\n")
     if line
 }
-
-from snowplow_signals.batch_autogen.utils.utils import (
-    get_condition_sql,
-)
 
 from .model import (
     ConfigAttributes,
@@ -196,7 +190,7 @@ class DbtConfigGenerator:
         property_references = []
         for property in self.base_config_data.properties:
             for key, value in property.items():
-                if self.target_type == "snowflake":
+                if self.target_type in ["snowflake", "databricks"]:
                     property_references.append(
                         FilteredEventsProperty(
                             type="direct",
@@ -310,6 +304,8 @@ class DbtConfigGenerator:
                                     condition_clause = f"distinct case when {condition_statement} then {property_name} else null end"
                                 elif self.target_type == "bigquery":
                                     condition_clause = f"distinct case when {condition_statement} then {property_name} else null end ignore nulls"
+                                elif self.target_type == "databricks":
+                                    condition_clause = f"case when {condition_statement} then {property_name} end"
                                 else:
                                     raise ValueError(
                                         f"Unsupported target type: {self.target_type}"

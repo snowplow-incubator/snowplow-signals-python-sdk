@@ -82,14 +82,14 @@ signals = Signals(api_url="https://your-api-url.com")
 # Initialize a DBT project
 signals.batch_autogen.init_project(
     repo_path="path/to/your/repo",
-    target_type="snowflake" # or bigquery
+    target_type="snowflake" # or bigquery / databricks
     project_name="your_project_name"  # Optional
 )
 
 # Generate DBT models
 signals.batch_autogen.generate_models(
     repo_path="path/to/your/repo",
-    target_type="snowflake" # or bigquery
+    target_type="snowflake" # or bigquery / databricks
     project_name="your_project_name",  # Optional
     update=True  # Whether to update existing files
 )
