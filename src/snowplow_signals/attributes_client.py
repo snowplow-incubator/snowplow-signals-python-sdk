@@ -26,7 +26,9 @@ class AttributesClient:
             if isinstance(attributes, list)
             else [attributes]
         )
-        attribute_key_identifiers = AttributeKeyIdentifiers(root={attribute_key: [identifier]})
+        attribute_key_identifiers = AttributeKeyIdentifiers(
+            root={attribute_key: [identifier]}
+        )
 
         request = GetAttributeGroupAttributesRequest(
             attributes=attributes,
@@ -40,7 +42,9 @@ class AttributesClient:
         attribute_key: str,
         identifier: str,
     ) -> dict[str, Any]:
-        attribute_key_identifiers = AttributeKeyIdentifiers(root={attribute_key: [identifier]})
+        attribute_key_identifiers = AttributeKeyIdentifiers(
+            root={attribute_key: [identifier]}
+        )
 
         request = GetServiceAttributesRequest(
             service=name,

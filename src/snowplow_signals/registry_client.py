@@ -24,12 +24,16 @@ class RegistryClient:
         # First publish all attribute keys in case they are dependencies of attribute groups
         for object in objects:
             if isinstance(object, AttributeKey):
-                updated_objects.append(self._create_or_update_attribute_key(attribute_key=object))
+                updated_objects.append(
+                    self._create_or_update_attribute_key(attribute_key=object)
+                )
 
         # Publish all attribute groups in case they are dependencies of services
         for object in objects:
             if isinstance(object, AttributeGroup):
-                updated_objects.append(self._create_or_update_attribute_group(attribute_group=object))
+                updated_objects.append(
+                    self._create_or_update_attribute_group(attribute_group=object)
+                )
 
         for object in objects:
             if isinstance(object, Service):
@@ -65,7 +69,9 @@ class RegistryClient:
             if isinstance(object, AttributeKey):
                 self._delete_attribute_key(attribute_key=object)
 
-    def get_attribute_group(self, name: str, version: int | None = None) -> AttributeGroupResponse:
+    def get_attribute_group(
+        self, name: str, version: int | None = None
+    ) -> AttributeGroupResponse:
         if version is not None:
             response = self.api_client.make_request(
                 method="GET",
@@ -86,7 +92,9 @@ class RegistryClient:
         )
         return Service.model_validate(response)
 
-    def _create_or_update_attribute_group(self, attribute_group: AttributeGroup) -> AttributeGroup:
+    def _create_or_update_attribute_group(
+        self, attribute_group: AttributeGroup
+    ) -> AttributeGroup:
         try:
             response = self.api_client.make_request(
                 method="POST",
@@ -149,7 +157,9 @@ class RegistryClient:
 
         return RuleIntervention.model_validate(response)
 
-    def _create_or_update_attribute_key(self, attribute_key: AttributeKey) -> AttributeKey:
+    def _create_or_update_attribute_key(
+        self, attribute_key: AttributeKey
+    ) -> AttributeKey:
         try:
             response = self.api_client.make_request(
                 method="POST",
@@ -172,7 +182,9 @@ class RegistryClient:
 
         self.api_client.make_request(
             method="DELETE",
-            endpoint=(f"registry/attribute_groups/{attribute_group.name}/versions/{attribute_group.version}"),
+            endpoint=(
+                f"registry/attribute_groups/{attribute_group.name}/versions/{attribute_group.version}"
+            ),
         )
 
     def _delete_service(self, service: Service) -> None:

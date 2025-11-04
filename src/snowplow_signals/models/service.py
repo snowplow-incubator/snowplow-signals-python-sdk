@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING, Annotated
 
 from pydantic import BeforeValidator, EmailStr, Field
 
+from .attribute_group import AttributeGroup
 from .model import Service as ServiceInput
 from .model import VersionedLinkAttributeGroup
-from .attribute_group import AttributeGroup
 
 if TYPE_CHECKING:
     from snowplow_signals.signals import Signals
@@ -16,7 +16,9 @@ def attribute_group_to_link(
     if attribute_groups:
         attribute_groups = [
             (
-                VersionedLinkAttributeGroup(name=attribute_group.name, version=attribute_group.version)
+                VersionedLinkAttributeGroup(
+                    name=attribute_group.name, version=attribute_group.version
+                )
                 if isinstance(attribute_group, AttributeGroup)
                 else attribute_group
             )
