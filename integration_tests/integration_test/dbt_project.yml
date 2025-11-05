@@ -133,9 +133,6 @@ seeds:
       snowplow_batch_engine_attributes_expected:
         +column_types:
           domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-          valid_at_tstamp: timestamp
-          lower_limit: date
-          upper_limit: date
           first_mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
           first_mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
           first_referrer_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"

@@ -84,9 +84,9 @@ class DbtProjectSetup:
         return BatchSourceConfig(
             database="",
             wh_schema="",
-            table=f"{attribute_group.name}_{attribute_group.version}_attributes",
+            table=f"{attribute_group.name}_{attribute_group.version}_attributes_snapshot",
             name=f"{attribute_group.name}_{attribute_group.version}_attributes",
-            timestamp_field="valid_at_tstamp",
+            timestamp_field="dbt_valid_from",
             description=f"Table containing attributes for {attribute_group.name}_{attribute_group.version} attribute group",
             owner="",
         )

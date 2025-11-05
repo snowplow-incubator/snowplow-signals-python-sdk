@@ -257,9 +257,9 @@ def test_sync_model_api_requests(
     batch_source_config = {
         "database": "test_database",
         "wh_schema": "test_schema",
-        "table": f"{attribute_group_name}_{attribute_group_version}_attributes",
+        "table": f"{attribute_group_name}_{attribute_group_version}_attributes_snapshot",
         "name": f"{attribute_group_name}_{attribute_group_version}_attributes",
-        "timestamp_field": "valid_at_tstamp",
+        "timestamp_field": "dbt_valid_from",
         "description": f"Table containing attributes for {attribute_group_name}_{attribute_group_version} view",
         "owner": "test@example.com",
     }
@@ -293,13 +293,13 @@ def test_sync_model_api_requests(
     assert request_body["wh_schema"] == "test_schema"
     assert (
         request_body["table"]
-        == f"{attribute_group_name}_{attribute_group_version}_attributes"
+        == f"{attribute_group_name}_{attribute_group_version}_attributes_snapshot"
     )
     assert (
         request_body["name"]
         == f"{attribute_group_name}_{attribute_group_version}_attributes"
     )
-    assert request_body["timestamp_field"] == "valid_at_tstamp"
+    assert request_body["timestamp_field"] == "dbt_valid_from"
     assert (
         request_body["description"]
         == f"Table containing attributes for {attribute_group_name}_{attribute_group_version} view"

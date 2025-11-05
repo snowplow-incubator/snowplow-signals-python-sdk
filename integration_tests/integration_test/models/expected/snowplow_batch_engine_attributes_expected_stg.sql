@@ -9,9 +9,6 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 select
 
     domain_userid,
-    -- valid_at_tstamp,
-    lower_limit,
-    upper_limit,
     first_mkt_source,
     first_mkt_medium,
     first_referrer_source,

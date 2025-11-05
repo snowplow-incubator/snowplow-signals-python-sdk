@@ -1,0 +1,18 @@
+{% raw %}
+
+{% snapshot {% endraw %}{{ project_name }}{% raw %}_attributes_snapshot %}
+
+{{
+    config(
+      unique_key='{% endraw %}{{ attribute_key }}{% raw %}',
+      strategy='check',
+      check_cols='all',
+      target_schema=target.schema ~ '_derived'
+    )
+}}
+
+select * from {{ ref('{% endraw %}{{ project_name }}{% raw %}_attributes')}}
+
+{% endsnapshot %}
+
+{% endraw %}
