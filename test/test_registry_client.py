@@ -151,7 +151,9 @@ class TestRegistryClient:
         registry_client.create_or_update([attribute_group])
         assert group_mock.called
 
-    def test_delete_attribute_group(self, respx_mock: MockRouter, api_client: ApiClient):
+    def test_delete_attribute_group(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
         attribute_group = AttributeGroup(
             name="my_attribute_group",
             attribute_key=domain_userid,

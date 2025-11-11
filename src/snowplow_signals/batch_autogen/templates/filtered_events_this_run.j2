@@ -61,7 +61,7 @@ with prep as (
             and event_vendor = '{{ event["event_vendor"] }}'
         {%- endif %}
         
-        {%- if event["event_version"] and event["event_version"] != "" %}
+        {% if event.get("event_version") %}
             and event_version = '{{ event["event_version"] }}'
         {%- endif %}
         )

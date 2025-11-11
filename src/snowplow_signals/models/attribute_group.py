@@ -17,7 +17,9 @@ if TYPE_CHECKING:
     from snowplow_signals.signals import Signals
 
 
-def attribute_key_to_link(attribute_key: AttributeKey | LinkAttributeKey) -> LinkAttributeKey:
+def attribute_key_to_link(
+    attribute_key: AttributeKey | LinkAttributeKey,
+) -> LinkAttributeKey:
     if isinstance(attribute_key, AttributeKey):
         return LinkAttributeKey(name=attribute_key.name)
     return attribute_key

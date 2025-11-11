@@ -380,7 +380,7 @@
                         {
                             "vendor": "com.snowplowanalytics.snowplow",
                             "name": "change_form",
-                            "version": "1-0-0"
+                            "version": null
                         }
                     ],
                     "aggregation": "counter",

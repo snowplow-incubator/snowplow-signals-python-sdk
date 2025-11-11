@@ -138,7 +138,9 @@ class TestSignalsPublish:
             "http://localhost:8000/api/v1/registry/services/"
         ).mock(side_effect=check_service_request)
 
-        applied_objects = signals_client.publish(objects=[attribute_group, service, custom_key])
+        applied_objects = signals_client.publish(
+            objects=[attribute_group, service, custom_key]
+        )
 
         assert key_mock.called
         assert group_mock.called
@@ -234,7 +236,9 @@ class TestSignalsUnpublish:
             "http://localhost:8000/api/v1/registry/services/"
         ).mock(side_effect=check_service_request)
 
-        unpublished_objects = signals_client.unpublish(objects=[attribute_group, service])
+        unpublished_objects = signals_client.unpublish(
+            objects=[attribute_group, service]
+        )
 
         assert group_mock.called
         assert service_mock.called
