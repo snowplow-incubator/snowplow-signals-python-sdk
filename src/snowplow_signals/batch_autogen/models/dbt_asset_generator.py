@@ -9,7 +9,7 @@ from snowplow_signals.cli_logging import get_logger
 
 logger = get_logger(__name__)
 
-AssetTypeLiteral = Literal["model", "macro", "yml"]
+AssetTypeLiteral = Literal["model", "macro", "snapshot", "yml"]
 FileTypeLiteral = Literal["sql", "yml"]
 
 
@@ -21,7 +21,7 @@ class DbtAssetGenerator(BaseModel):
         project_path: Path to the dbt project root
         asset_subpath: Subpath within the project for the asset
         filename: Name of the file to generate (without extension)
-        asset_type: Type of dbt asset (model, macro, or yml)
+        asset_type: Type of dbt asset (model, macro, snapshot, or yml)
         custom_context: Optional custom context for template rendering
     """
 
@@ -36,7 +36,7 @@ class DbtAssetGenerator(BaseModel):
         description="Name of the file to generate (without extension)"
     )
     asset_type: AssetTypeLiteral = Field(
-        description="Type of dbt asset (model, macro, or yml)"
+        description="Type of dbt asset (model, macro, snapshot, or yml)"
     )
     custom_context: dict[str, Any] | None = Field(
         default=None, description="Optional custom context for template rendering"
@@ -75,7 +75,7 @@ class DbtAssetGenerator(BaseModel):
 
     def _get_file_type(self) -> FileTypeLiteral:
         """Returns the file extension based on asset type."""
-        if self.asset_type in ["model", "macro"]:
+        if self.asset_type in ["model", "macro", "snapshot"]:
             return "sql"
         elif self.asset_type == "yml":
             return "yml"

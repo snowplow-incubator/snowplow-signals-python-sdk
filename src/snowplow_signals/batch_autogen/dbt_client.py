@@ -269,6 +269,16 @@ class BatchAutogenClient:
                 filename="src_base",
                 asset_type="yml",
             ),
+            DbtAssetGenerator(
+                project_path=project_path,
+                asset_subpath="snapshots",
+                filename="snapshot",
+                asset_type="snapshot",
+                custom_context={
+                    **dbt_config.attributes.model_dump(),
+                    "attribute_key": base_config.attribute_key,
+                },
+            ),
         ]
 
         for asset in assets:

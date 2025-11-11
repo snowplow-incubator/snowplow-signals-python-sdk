@@ -889,9 +889,9 @@
       {
           "database": "",
           "wh_schema": "",
-          "table": "ecommerce_transaction_interactions_features_1_attributes",
+          "table": "ecommerce_transaction_interactions_features_1_attributes_snapshot",
           "name": "ecommerce_transaction_interactions_features_1_attributes",
-          "timestamp_field": "valid_at_tstamp",
+          "timestamp_field": "dbt_valid_from",
           "description": "Table containing attributes for ecommerce_transaction_interactions_features_1 attribute group",
           "owner": ""
       }
@@ -1591,10 +1591,6 @@
         config(
           materialized='table',
           dist=var('snowplow__attribute_key', 'domain_userid'),
-          partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
-            "field": "valid_at_tstamp",
-            "data_type": "timestamp"
-          }),
           sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
         )
       }}
@@ -1789,10 +1785,7 @@
       
       select
           
-        a.attribute_key as domain_userid,
-        {{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
-        date({{ lower_limit }}) as lower_limit,
-        date({{ upper_limit }}) as upper_limit
+        a.attribute_key as domain_userid
         
           , w.first_mkt_source
           , w.first_mkt_medium
@@ -2531,6 +2524,26 @@
       packages:
         - package: snowplow/snowplow_utils
           version: [">=0.17.5", "<0.18.0"]
+  
+    ''',
+    'ecommerce_transaction_interactions_features_1/snapshots/ecommerce_transaction_interactions_features_1_snapshot.sql': '''
+      
+      
+      {% snapshot ecommerce_transaction_interactions_features_1_attributes_snapshot %}
+      
+      {{
+          config(
+            unique_key='domain_userid',
+            strategy='check',
+            check_cols='all',
+            target_schema=target.schema ~ '_derived'
+          )
+      }}
+      
+      select * from {{ ref('ecommerce_transaction_interactions_features_1_attributes')}}
+      
+      {% endsnapshot %}
+      
   
     ''',
   })
