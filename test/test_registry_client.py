@@ -9,11 +9,10 @@ from snowplow_signals import (
     AttributeGroup,
     BatchSource,
     Event,
-    LinkAttributeKey,
     domain_userid,
 )
 from snowplow_signals.api_client import ApiClient
-from snowplow_signals.models import AttributeGroupResponse
+from snowplow_signals.models import AttributeGroupResponse, AttributeKeyOutput
 from snowplow_signals.registry_client import RegistryClient
 
 from .utils import MOCK_ORG_ID
@@ -45,7 +44,7 @@ class TestRegistryClient:
         )
         group_output = AttributeGroupResponse(
             name="my_attribute_group",
-            attribute_key=LinkAttributeKey(name="user"),
+            attribute_key=AttributeKeyOutput(name="user_id", blobl_path="user_id"),
             feast_name="my_attribute_group_v1",
             offline=True,
             stream_source_name="my_stream",
@@ -96,7 +95,7 @@ class TestRegistryClient:
         )
         group_output = AttributeGroupResponse(
             name="my_attribute_group",
-            attribute_key=LinkAttributeKey(name="user"),
+            attribute_key=AttributeKeyOutput(name="user_id", blobl_path="user_id"),
             feast_name="my_attribute_group_v1",
             offline=True,
             stream_source_name="my_stream",
@@ -135,7 +134,7 @@ class TestRegistryClient:
         )
         group_output = AttributeGroupResponse(
             name="my_attribute_group",
-            attribute_key=LinkAttributeKey(name="user"),
+            attribute_key=AttributeKeyOutput(name="user_id", blobl_path="user_id"),
             feast_name="my_attribute_group_v1",
             offline=True,
             stream_source_name="my_stream",

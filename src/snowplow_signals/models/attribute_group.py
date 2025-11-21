@@ -4,10 +4,10 @@ from pydantic import BeforeValidator, EmailStr
 from pydantic import Field
 from pydantic import Field as PydanticField
 
+from .attribute_key import AttributeKey
 from .model import (
     AttributeGroupInput,
     AttributeInput,
-    AttributeKey,
     BatchSource,
     FieldModel,
     LinkAttributeKey,
@@ -17,21 +17,22 @@ if TYPE_CHECKING:
     from snowplow_signals.signals import Signals
 
 
-def attribute_key_to_link(
+def attribute_key_link_to_attribute_key(
     attribute_key: AttributeKey | LinkAttributeKey,
-) -> LinkAttributeKey:
-    if isinstance(attribute_key, AttributeKey):
-        return LinkAttributeKey(name=attribute_key.name)
+) -> AttributeKey:
+    if isinstance(attribute_key, LinkAttributeKey):
+        return AttributeKey(name=attribute_key.name)
     return attribute_key
 
 
 class AttributeGroup(AttributeGroupInput):
     attribute_key: Annotated[
-        AttributeKey | LinkAttributeKey, BeforeValidator(attribute_key_to_link)
+        AttributeKey | LinkAttributeKey,
+        BeforeValidator(attribute_key_link_to_attribute_key),
     ] = PydanticField(
         ...,
         description="The attribute key that this attribute group is associated with.",
-    )  # type: ignore[assignment]
+    )
     owner: EmailStr = PydanticField(
         ...,
         description="The owner of the attribute group, typically the email of the primary maintainer. This field is required for attribute group creation.",
