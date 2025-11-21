@@ -2,7 +2,6 @@
 Tests for verifying the output of generated files.
 """
 
-import shutil
 from pathlib import Path
 
 import httpx

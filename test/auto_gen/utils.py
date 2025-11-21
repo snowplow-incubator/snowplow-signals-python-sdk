@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Literal
 MOCK_ECOMMERCE_VIEW = {
     "name": "ecommerce_transaction_interactions_features",
     "version": 1,
-    "attribute_key": {"name": "user", "key": "user"},
+    "attribute_key": {"name": "user", "key": "user", "blobl_path": None},
     "ttl": None,
     "batch_source": {
         "name": "ecommerce_transaction_interactions_source",
@@ -55,7 +55,7 @@ MOCK_ECOMMERCE_VIEW = {
 MOCK_USERS_VIEW = {
     "name": "unified_users_features",
     "version": 1,
-    "attribute_key": {"name": "user"},
+    "attribute_key": {"name": "user", "blobl_path": None},
     "ttl": None,
     "batch_source": {
         "name": "snowplow_unified_users_source",
