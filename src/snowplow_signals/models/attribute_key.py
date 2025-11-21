@@ -32,11 +32,7 @@ class AttributeKey(AttributeKeyInput):
             raise ValueError(
                 "If external_column is specified, it must be equal to the name of the AttributeKey."
             )
-        if self.name is None and (
-            self.property is not None
-            or self.external_column is not None
-            or self.key is not None
-        ):
+        if self.name is None:
             if self.external_column:
                 self.name = self.external_column
             elif isinstance(self.property, AtomicProperty):

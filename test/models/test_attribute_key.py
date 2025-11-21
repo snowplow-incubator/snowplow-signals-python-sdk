@@ -129,3 +129,10 @@ class TestAttributeKey:
             match="If external_column is specified, it must be equal to the name of the AttributeKey",
         ):
             AttributeKey(name="user_id", external_column="customer_id")
+
+    def test_create_without_any_fields_fails(self):
+        """Test that creating AttributeKey without name or any derivable fields fails."""
+        with pytest.raises(
+            ValueError, match="Name should be provided if no other fields are set"
+        ):
+            AttributeKey()
