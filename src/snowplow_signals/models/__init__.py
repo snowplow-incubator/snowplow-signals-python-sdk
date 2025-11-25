@@ -18,6 +18,7 @@ from .model import AttributeInput as Attribute
 from .model import (
     AttributeKeyId,
     AttributeKeyIdentifiers,
+    AttributeKeyOutput,
     AttributeKeyReference,
     AttributeOutput,
     AttributeWithStringProperty,
@@ -99,3 +100,4 @@ AtomicProperty
 EventProperty
 EntityProperty
 AttributeKeyId
+AttributeKeyOutput

@@ -4,7 +4,8 @@
             "name": "ecommerce_transaction_interactions_features",
             "version": 1,
             "attribute_key": {
-                "name": "user"
+                "name": "user",
+                "blobl_path": null
             },
             "ttl": null,
             "batch_source": {
