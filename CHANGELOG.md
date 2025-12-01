@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.4.2] - 2025-12-01
+
+- [AISP-828] Deprecate attribute key `key` (#113)
+- [AISP-620] Add Databricks support for batch engine (#114)
+- [AISP-769] Allow processing versionless events in the Batch Engine (#116)
+- [AISP-917] Allow for event/entity based attribute key properties (#118)
+
 # [0.4.1] - 2025-10-22
 
 - [AISP-768] Update contributing with release process (#110)
