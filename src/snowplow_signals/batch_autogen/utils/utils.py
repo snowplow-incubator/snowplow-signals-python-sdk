@@ -12,7 +12,7 @@ from snowplow_signals.cli_logging import get_logger
 
 logger = get_logger(__name__)
 
-WarehouseType = Literal["snowflake", "bigquery"]
+WarehouseType = Literal["snowflake", "bigquery", "databricks"]
 
 
 def write_file(file_path: Path, content: str) -> None:

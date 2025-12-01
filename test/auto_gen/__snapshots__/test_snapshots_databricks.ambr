@@ -1,5 +1,5 @@
 # serializer version: 1
-# name: test_generated_files_bigquery
+# name: test_generated_files_databricks
   dict({
     'ecommerce_transaction_interactions_features_1/configs/base_config.json': '''
       {
@@ -37,10 +37,10 @@
                   "geo_timezone": "geo_timezone"
               },
               {
-                  "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].operating_system_name": "operating_system_name"
+                  "contexts_nl_basjes_yauaa_context_1[0].operating_system_name": "operating_system_name"
               },
               {
-                  "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].device_class": "device_class"
+                  "contexts_nl_basjes_yauaa_context_1[0].device_class": "device_class"
               },
               {
                   "mkt_source": "mkt_source"
@@ -58,7 +58,7 @@
                   "page_url": "page_url"
               },
               {
-                  "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[safe_offset(0)].revenue": "revenue"
+                  "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0].revenue": "revenue"
               }
           ],
           "periods": [
@@ -1059,16 +1059,16 @@
                       "column_prefix": null
                   },
                   {
-                      "type": "coalesced",
-                      "full_path": "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].operating_system_name",
+                      "type": "direct",
+                      "full_path": "contexts_nl_basjes_yauaa_context_1[0].operating_system_name",
                       "alias": "operating_system_name",
-                      "column_prefix": "contexts_nl_basjes_yauaa_context_1"
+                      "column_prefix": null
                   },
                   {
-                      "type": "coalesced",
-                      "full_path": "contexts_nl_basjes_yauaa_context_1[safe_offset(0)].device_class",
+                      "type": "direct",
+                      "full_path": "contexts_nl_basjes_yauaa_context_1[0].device_class",
                       "alias": "device_class",
-                      "column_prefix": "contexts_nl_basjes_yauaa_context_1"
+                      "column_prefix": null
                   },
                   {
                       "type": "direct",
@@ -1101,10 +1101,10 @@
                       "column_prefix": null
                   },
                   {
-                      "type": "coalesced",
-                      "full_path": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[safe_offset(0)].revenue",
+                      "type": "direct",
+                      "full_path": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0].revenue",
                       "alias": "revenue",
-                      "column_prefix": "contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1"
+                      "column_prefix": null
                   }
               ]
           },
@@ -1156,13 +1156,13 @@
                       "step_type": "daily_aggregation",
                       "aggregation": "array_agg",
                       "column_name": "op_systems",
-                      "condition_clause": "distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls"
+                      "condition_clause": "case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name end"
                   },
                   {
                       "step_type": "daily_aggregation",
                       "aggregation": "array_agg",
                       "column_name": "op_systems_2",
-                      "condition_clause": "distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls"
+                      "condition_clause": "case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name end"
                   },
                   {
                       "step_type": "daily_aggregation",
@@ -2087,12 +2087,12 @@
             
               , array_agg(
             
-              distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls) as op_systems
+              case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name end) as op_systems
           
             
               , array_agg(
             
-              distinct case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name else null end ignore nulls) as op_systems_2
+              case when  event_name IN('page_view','page_ping','snowplow_ecommerce_action') and  (revenue != 1 or revenue is null) then operating_system_name end) as op_systems_2
           
             
               , min(
@@ -2284,28 +2284,10 @@
                       geo_timezone AS geo_timezone,
               
                   
-                      
-                      
-                      {{ snowplow_utils.combine_column_versions(
-                          relation=ref('snowplow_batch_engine_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
-                          column_prefix="contexts_nl_basjes_yauaa_context_1",
-                          required_fields=[("operating_system_name","operating_system_name")],
-                          include_field_alias=True
-                      ) | join(', ')}}
-                      
-                  ,
+                      contexts_nl_basjes_yauaa_context_1[0].operating_system_name AS operating_system_name,
               
                   
-                      
-                      
-                      {{ snowplow_utils.combine_column_versions(
-                          relation=ref('snowplow_batch_engine_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
-                          column_prefix="contexts_nl_basjes_yauaa_context_1",
-                          required_fields=[("device_class","device_class")],
-                          include_field_alias=True
-                      ) | join(', ')}}
-                      
-                  ,
+                      contexts_nl_basjes_yauaa_context_1[0].device_class AS device_class,
               
                   
                       mkt_source AS mkt_source,
@@ -2323,16 +2305,7 @@
                       page_url AS page_url,
               
                   
-                      
-                      
-                      {{ snowplow_utils.combine_column_versions(
-                          relation=ref('snowplow_batch_engine_events_stg') if 'integration_tests' in project_name and 'snowplow' in project_name else source('atomic', 'events'),
-                          column_prefix="contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1",
-                          required_fields=[("revenue","revenue")],
-                          include_field_alias=True
-                      ) | join(', ')}}
-                      
-                  
+                      contexts_com_snowplowanalytics_snowplow_ecommerce_transaction_1[0].revenue AS revenue
               
       
           from

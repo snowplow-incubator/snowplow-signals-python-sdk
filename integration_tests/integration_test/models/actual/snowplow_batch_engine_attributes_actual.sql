@@ -10,9 +10,6 @@ with prep as (
     select
 
         domain_userid,
-        -- valid_at_tstamp,
-        lower_limit,
-        upper_limit,
         first_mkt_source,
         first_mkt_medium,
         first_referrer_source,
@@ -46,9 +43,6 @@ with prep as (
     select
 
         domain_userid,
-        -- valid_at_tstamp,
-        lower_limit,
-        upper_limit,
         first_mkt_source,
         first_mkt_medium,
         first_referrer_source,

@@ -9,9 +9,6 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 select
 
     domain_userid,
-    -- valid_at_tstamp,
-    lower_limit,
-    upper_limit,
     first_mkt_source,
     first_mkt_medium,
     first_referrer_source,
@@ -38,7 +35,7 @@ select
         case when domain_userid = 'user_9' then
         TO_VARIANT('13.0')
         else max_revenue_last_7_days end as max_revenue_last_7_days
-    {% elif target.type == 'bigquery' %}
+    {% elif target.type in ['bigquery', 'databricks'] %}
         min_revenue_last_7_days,
         max_revenue_last_7_days
     {% endif %}

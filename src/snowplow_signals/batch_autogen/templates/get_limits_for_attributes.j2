@@ -18,6 +18,8 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
       {% set current_day = "CAST(CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP()) AS DATE)" %}
     {% elif target.type == "bigquery" %}
       {% set current_day = "CURRENT_DATE" %}
+    {% elif target.type == "databricks" %}
+      {% set current_day = "date(to_utc_timestamp(current_timestamp(), 'UTC'))" %}
     {% endif %}
   {% endif %}
 

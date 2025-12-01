@@ -72,7 +72,7 @@ def test_setup_all_projects_skips_views_with_no_attributes_and_fields(
         {
             "name": "with_attributes",
             "version": 1,
-            "attribute_key": {"name": "user", "key": "user"},
+            "attribute_key": {"name": "user", "key": "user", "blobl_path": None},
             "attributes": [
                 {
                     "name": "attr1",
@@ -91,7 +91,7 @@ def test_setup_all_projects_skips_views_with_no_attributes_and_fields(
         {
             "name": "empty_attributes_with_fields",
             "version": 1,
-            "attribute_key": {"name": "user", "key": "user"},
+            "attribute_key": {"name": "user", "key": "user", "blobl_path": None},
             "attributes": [],
             "fields": [{"name": "f1", "type": "int32"}],
             "feast_name": "empty_attributes_with_fields_v1",
@@ -103,7 +103,7 @@ def test_setup_all_projects_skips_views_with_no_attributes_and_fields(
         {
             "name": "none_attributes_with_fields",
             "version": 1,
-            "attribute_key": {"name": "user", "key": "user"},
+            "attribute_key": {"name": "user", "key": "user", "blobl_path": None},
             "attributes": None,
             "fields": [{"name": "f2", "type": "int32"}],
             "feast_name": "none_attributes_with_fields_v1",

@@ -25,8 +25,8 @@ from .cli_params import (
     ORG_ID,
     PROJECT_NAME,
     REPO_PATH,
-    TARGET_TYPE,
     SANDBOX_TOKEN,
+    TARGET_TYPE,
     UPDATE,
     VERBOSE,
 )
@@ -138,7 +138,9 @@ def init(
         setup_logging(verbose)
         validated_path = validate_repo_path(repo_path)
         logger.info(f"Initializing dbt project(s) in {validated_path}")
-        api_client = create_api_client(api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token)
+        api_client = create_api_client(
+            api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token
+        )
         client = BatchAutogenClient(
             api_client=api_client, target_type=target_type.value
         )
@@ -175,7 +177,9 @@ def generate(
         setup_logging(verbose)
         validated_path = validate_repo_path(repo_path)
         logger.info(f"🛠️ Generating dbt models in {validated_path}")
-        api_client = create_api_client(api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token)
+        api_client = create_api_client(
+            api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token
+        )
         client = BatchAutogenClient(
             api_client=api_client, target_type=target_type.value
         )
@@ -215,7 +219,9 @@ def sync(
             )
             raise typer.Exit(code=1)
 
-        api_client = create_api_client(api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token)
+        api_client = create_api_client(
+            api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token
+        )
         client = BatchAutogenClient(
             api_client=api_client, target_type=target_type.value
         )
@@ -251,7 +257,9 @@ def test_connection(
     """Test the connection to the authentication and API services."""
     try:
         setup_logging(verbose)
-        api_client = create_api_client(api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token)
+        api_client = create_api_client(
+            api_url, api_key, api_key_id, org_id, auth_mode, sandbox_token
+        )
         auth_status = None
         api_status = None
         # Check authentication service if requested

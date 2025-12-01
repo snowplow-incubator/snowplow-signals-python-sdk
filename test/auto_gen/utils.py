@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Literal
 MOCK_ECOMMERCE_VIEW = {
     "name": "ecommerce_transaction_interactions_features",
     "version": 1,
-    "attribute_key": {"name": "user", "key": "user"},
+    "attribute_key": {"name": "user", "key": "user", "blobl_path": None},
     "ttl": None,
     "batch_source": {
         "name": "ecommerce_transaction_interactions_source",
@@ -55,7 +55,7 @@ MOCK_ECOMMERCE_VIEW = {
 MOCK_USERS_VIEW = {
     "name": "unified_users_features",
     "version": 1,
-    "attribute_key": {"name": "user"},
+    "attribute_key": {"name": "user", "blobl_path": None},
     "ttl": None,
     "batch_source": {
         "name": "snowplow_unified_users_source",
@@ -123,7 +123,7 @@ def get_attribute_view_response_from_file() -> List[Dict[str, Any]]:
 
 
 def get_integration_test_view_response(
-    warehouse: Literal["snowflake", "bigquery"],
+    warehouse: Literal["snowflake", "bigquery", "databricks"],
 ) -> List[Dict[str, Any]]:
     """
     Reads and returns mock attribute groups from a JSON file.
@@ -139,6 +139,8 @@ def get_integration_test_view_response(
         json_path = Path(__file__).parent / "integration_test_view_snowflake.json"
     elif warehouse == "bigquery":
         json_path = Path(__file__).parent / "integration_test_view_bigquery.json"
+    elif warehouse == "databricks":
+        json_path = Path(__file__).parent / "integration_test_view_databricks.json"
     else:
         raise ValueError(f"Unsupported warehouse: {warehouse}")
     with open(json_path, "r") as f:

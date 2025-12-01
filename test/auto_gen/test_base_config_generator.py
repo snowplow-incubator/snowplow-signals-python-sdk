@@ -9,12 +9,12 @@ from snowplow_signals.batch_autogen.models.base_config_generator import (
 )
 from snowplow_signals.models import (
     AttributeGroupResponse,
+    AttributeKeyOutput,
     AttributeWithStringProperty,
     BatchSource,
     CriteriaWithStringProperty,
     CriterionWithStringProperty,
     Event,
-    LinkAttributeKey,
 )
 
 
@@ -23,14 +23,13 @@ def test_view_response():
     return AttributeGroupResponse(
         name="test_view",
         version=1,
-        attribute_key=LinkAttributeKey(name="user"),
+        attribute_key=AttributeKeyOutput(name="user", blobl_path=None),
         ttl=timedelta(days=30),
         batch_source=BatchSource(
             name="test_source",
             timestamp_field="event_time",
             description="Test batch source",
             owner="test_owner",
-            date_partition_column="date",
             database="test_db",
             schema="test_schema",
             table="test_table",

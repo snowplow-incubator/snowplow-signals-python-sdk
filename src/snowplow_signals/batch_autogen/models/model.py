@@ -7,7 +7,7 @@ class ConfigEvents(BaseModel):
     event_vendor: str
     event_name: str
     event_format: str
-    event_version: str
+    event_version: str | None = None
 
 
 class ConfigAttributes(BaseModel):

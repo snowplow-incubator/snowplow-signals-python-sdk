@@ -127,12 +127,13 @@ ATTRIBUTE_GROUP_VERSION = Annotated[
 class TargetType(str, Enum):
     snowflake = "snowflake"
     bigquery = "bigquery"
+    databricks = "databricks"
 
 
 TARGET_TYPE = Annotated[
     TargetType,
     typer.Option(
-        help="Target database type. One of: `snowflake` or `bigquery`. Default: snowflake",
+        help="Target database type. One of: `snowflake`, `bigquery`, `databricks`. Default: snowflake",
         envvar="SNOWPLOW_TARGET_TYPE",
     ),
 ]

@@ -1,7 +1,3 @@
-import re
-
-import pytest
-
 from snowplow_signals import AtomicProperty, EntityProperty, EventProperty
 from snowplow_signals.models.criterion_wrapper import Criterion
 

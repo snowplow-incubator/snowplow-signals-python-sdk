@@ -35,16 +35,16 @@ def test_dir(tmp_path):
     return tmp_path
 
 
-def test_generated_files_snowflake(test_dir, signals_client, respx_mock, snapshot):
+def test_generated_files_databricks(test_dir, signals_client, respx_mock, snapshot):
     """Test that the generated files are correct."""
     # Setup mock API response
-    mock_response = get_integration_test_view_response(warehouse="snowflake")
+    mock_response = get_integration_test_view_response(warehouse="databricks")
     respx_mock.get(API_ENDPOINT).mock(
         return_value=httpx.Response(200, json=mock_response)
     )
 
     # Generate the files
-    client = BatchAutogenClient(signals_client.api_client, target_type="snowflake")
+    client = BatchAutogenClient(signals_client.api_client, target_type="databricks")
     client.init_project(
         repo_path=str(test_dir), attribute_group_name=TEST_ATTRIBUTE_GROUP_NAME
     )

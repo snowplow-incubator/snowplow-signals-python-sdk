@@ -25,7 +25,7 @@
               "iglu:com.snowplowanalytics.snowplow.media/seek_end_event/jsonschema/1-0-0",
               "iglu:com.snowplowanalytics.snowplow.media/seek_start_event/jsonschema/1-0-0",
               "iglu:com.snowplowanalytics.snowplow.media/volume_change_event/jsonschema/1-0-0",
-              "iglu:com.snowplowanalytics.snowplow/change_form/jsonschema/1-0-0",
+              "iglu:com.snowplowanalytics.snowplow/change_form/jsonschema/None",
               "iglu:com.snowplowanalytics.snowplow/focus_form/jsonschema/1-0-0",
               "iglu:com.snowplowanalytics.snowplow.ecommerce/snowplow_ecommerce_action/jsonschema/1-0-0"
           ],
@@ -889,9 +889,9 @@
       {
           "database": "",
           "wh_schema": "",
-          "table": "ecommerce_transaction_interactions_features_1_attributes",
+          "table": "ecommerce_transaction_interactions_features_1_attributes_snapshot",
           "name": "ecommerce_transaction_interactions_features_1_attributes",
-          "timestamp_field": "valid_at_tstamp",
+          "timestamp_field": "dbt_valid_from",
           "description": "Table containing attributes for ecommerce_transaction_interactions_features_1 attribute group",
           "owner": ""
       }
@@ -1030,7 +1030,7 @@
                       "event_vendor": "com.snowplowanalytics.snowplow",
                       "event_name": "change_form",
                       "event_format": "jsonschema",
-                      "event_version": "1-0-0"
+                      "event_version": null
                   },
                   {
                       "event_vendor": "com.snowplowanalytics.snowplow",
@@ -1460,13 +1460,12 @@
           snowplow__dev_target_name: dev # If the target matches the dev target, there is no need to set the snowplow__allow_refresh to true to drop the manifest table as well
           
           # WAREHOUSE & TRACKER
-          
+          snowplow__databricks_catalog: "hive_metastore"
           # snowplow__atomic_schema: 'atomic' # Only set if not using 'atomic' schema for Snowplow events data
           # snowplow__database: # Only set if not using target.database for Snowplow events data -- WILL BE IGNORED FOR DATABRICKS
           # snowplow__events_table: "events" # Only set if not using 'events' table for Snowplow events data
       
           # PRIVATE VARS - DO NOT MODIFY
-          snowplow__databricks_catalog: "hive_metastore"
           snowplow__events: "{{ source('atomic', 'events') }}"
           snowplow__attribute_key: 'domain_userid' # The attribute key to use as grain for aggregations (e.g. domain_userid)
       
@@ -1554,6 +1553,8 @@
             {% set current_day = "CAST(CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP()) AS DATE)" %}
           {% elif target.type == "bigquery" %}
             {% set current_day = "CURRENT_DATE" %}
+          {% elif target.type == "databricks" %}
+            {% set current_day = "date(to_utc_timestamp(current_timestamp(), 'UTC'))" %}
           {% endif %}
         {% endif %}
       
@@ -1590,10 +1591,6 @@
         config(
           materialized='table',
           dist=var('snowplow__attribute_key', 'domain_userid'),
-          partition_by = snowplow_utils.get_value_by_target_type(bigquery_val = {
-            "field": "valid_at_tstamp",
-            "data_type": "timestamp"
-          }, databricks_val='last_event_date'),
           sql_header=snowplow_utils.set_query_tag(var('snowplow__query_tag', 'snowplow_dbt')),
         )
       }}
@@ -1647,12 +1644,20 @@
         , op_systems_flattened as (
           select
               d.attribute_key,
-              array_agg(distinct cast(f{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}) as op_systems
-          from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }} d,
+              {% if target.type == 'snowflake' %}
+                array_agg(distinct cast(f.value as {{ dbt.type_string() }})) as  op_systems
+              {% elif target.type == 'bigquery' %}
+                array_agg(distinct cast(f as {{ dbt.type_string() }}) order by f) as  op_systems
+              {% elif target.type == 'databricks' %}
+                sort_array(collect_set(cast(f as {{ dbt.type_string() }}))) as  op_systems
+              {% endif %}
+          from {{ ref('ecommerce_transaction_interactions_features_1_daily_aggregates') }} d
                {% if target.type == 'snowflake' %}
-                 LATERAL FLATTEN(input => op_systems) f
+                 , LATERAL FLATTEN(input => op_systems) f
                {% elif target.type == 'bigquery' %}
-                 UNNEST(d.op_systems) AS f
+                 , UNNEST(d.op_systems) AS f
+               {% elif target.type == 'databricks' %}
+                 lateral view explode(d.op_systems) as f
                {% endif %}
           group by d.attribute_key
         )
@@ -1676,12 +1681,20 @@
         , op_systems_2_flattened as (
           select
               d.attribute_key,
-              array_agg(distinct cast(f{% if target.type == 'snowflake' %}.value{% endif %} as {{ dbt.type_string() }}) {% if target.type == 'bigquery' %} ORDER BY f{% endif %}) as op_systems_2
-          from filtered_data_op_systems_2 d,
+              {% if target.type == 'snowflake' %}
+                array_agg(distinct cast(f.value as {{ dbt.type_string() }})) as  op_systems_2
+              {% elif target.type == 'bigquery' %}
+                array_agg(distinct cast(f as {{ dbt.type_string() }}) order by f) as  op_systems_2
+              {% elif target.type == 'databricks' %}
+                sort_array(collect_set(cast(f as {{ dbt.type_string() }}))) as  op_systems_2
+              {% endif %}
+          from filtered_data_op_systems_2 d
                {% if target.type == 'snowflake' %}
-                 LATERAL FLATTEN(input => op_systems_2) f
+                 , LATERAL FLATTEN(input => op_systems_2) f
                {% elif target.type == 'bigquery' %}
-                 UNNEST(d.op_systems_2) AS f
+                 , UNNEST(d.op_systems_2) AS f
+               {% elif target.type == 'databricks' %}
+                 lateral view explode(d.op_systems_2) as f
                {% endif %}
           group by d.attribute_key
         )
@@ -1772,10 +1785,7 @@
       
       select
           
-        a.attribute_key as domain_userid,
-        {{ snowplow_utils.current_timestamp_in_utc() }} as valid_at_tstamp,
-        date({{ lower_limit }}) as lower_limit,
-        date({{ upper_limit }}) as upper_limit
+        a.attribute_key as domain_userid
         
           , w.first_mkt_source
           , w.first_mkt_medium
@@ -2229,7 +2239,9 @@
       ) }}
       
       select *
-          
+        {% if target.type in ['databricks', 'spark'] -%}
+        , DATE(derived_tstamp) as derived_tstamp_date
+        {%- endif %}
       from {{ ref('ecommerce_transaction_interactions_features_1_filtered_events_this_run') }}
       where {{ snowplow_utils.is_run_with_new_events("ecommerce_transaction_interactions_features_1"
               , new_event_limits_table="ecommerce_transaction_interactions_features_1_base_new_event_limits"
@@ -2301,144 +2313,191 @@
           where 
               (event_name = 'page_view'
                   and event_vendor = 'com.snowplowanalytics.snowplow'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'page_ping'
                   and event_vendor = 'com.snowplowanalytics.snowplow'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'ad_break_end_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'ad_break_start_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'ad_complete_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'ad_quartile_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'ad_skip_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'ad_start_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'buffer_end_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'buffer_start_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'end_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'pause_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'percent_progress_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'ping_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'play_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'playback_rate_change_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'quality_change_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'ready_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'seek_end_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'seek_start_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'volume_change_event'
                   and event_vendor = 'com.snowplowanalytics.snowplow.media'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'change_form'
                   and event_vendor = 'com.snowplowanalytics.snowplow'
-                  and event_version = '1-0-0'
+              
+              
               ) or 
       
           
               (event_name = 'focus_form'
                   and event_vendor = 'com.snowplowanalytics.snowplow'
+              
+              
                   and event_version = '1-0-0'
               ) or 
       
           
               (event_name = 'snowplow_ecommerce_action'
                   and event_vendor = 'com.snowplowanalytics.snowplow.ecommerce'
+              
+              
                   and event_version = '1-0-0'
               )
       
@@ -2464,7 +2523,27 @@
       
       packages:
         - package: snowplow/snowplow_utils
-          version: [">=0.17.4", "<0.18.0"]
+          version: [">=0.17.5", "<0.18.0"]
+  
+    ''',
+    'ecommerce_transaction_interactions_features_1/snapshots/ecommerce_transaction_interactions_features_1_snapshot.sql': '''
+      
+      
+      {% snapshot ecommerce_transaction_interactions_features_1_attributes_snapshot %}
+      
+      {{
+          config(
+            unique_key='domain_userid',
+            strategy='check',
+            check_cols='all',
+            target_schema=target.schema ~ '_derived'
+          )
+      }}
+      
+      select * from {{ ref('ecommerce_transaction_interactions_features_1_attributes')}}
+      
+      {% endsnapshot %}
+      
   
     ''',
   })

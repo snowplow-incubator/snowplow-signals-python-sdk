@@ -8,7 +8,6 @@ from test.auto_gen.test_base_config_attributes import (
 
 import pytest
 
-import snowplow_signals.batch_autogen.models.dbt_config_generator as dbg
 from snowplow_signals.batch_autogen.models.base_config_generator import DbtBaseConfig
 from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     ConfigAttributes,
@@ -20,7 +19,6 @@ from snowplow_signals.batch_autogen.models.dbt_config_generator import (
     FilteredEventsProperty,
 )
 from snowplow_signals.batch_autogen.models.modeling_step import (
-    FilterCondition,
     ModelingStep,
 )
 
