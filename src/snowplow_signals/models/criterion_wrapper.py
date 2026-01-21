@@ -127,3 +127,33 @@ class Criterion(SignalsApiModelsViewCriterionCriterion):
             values: The list of values to compare against.
         """
         return cls(property=property, operator="in", value=values)
+
+    @classmethod
+    def is_null(
+        cls, property: AtomicProperty | EventProperty | EntityProperty
+    ) -> "Criterion":
+        """
+        Creates a Criterion that checks if the property is null.
+
+        Args:
+            property: The property to check.
+
+        Returns:
+            A Criterion instance with 'is null' operator.
+        """
+        return cls(property=property, operator="is null", value=None)
+
+    @classmethod
+    def is_not_null(
+        cls, property: AtomicProperty | EventProperty | EntityProperty
+    ) -> "Criterion":
+        """
+        Creates a Criterion that checks if the property is not null.
+
+        Args:
+            property: The property to check.
+
+        Returns:
+            A Criterion instance with 'is not null' operator.
+        """
+        return cls(property=property, operator="is not null", value=None)
