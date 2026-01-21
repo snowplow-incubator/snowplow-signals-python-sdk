@@ -170,6 +170,8 @@ class BaseConfigGenerator:
             "<=": "lte",
             ">=": "gte",
             "like": "like",
+            "is null": "is_null",
+            "is not null": "is_not_null",
         }
 
         property_name = self.get_cleaned_property_name(filter_condition.property)
