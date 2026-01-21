@@ -260,3 +260,76 @@ class TestAttributeGroupGetAttributes:
             signals_client, "cust-789"
         )
         assert result is not None
+
+
+def test_stream_view_with_most_frequent_aggregation():
+    """Test that StreamAttributeGroup accepts most_frequent aggregation."""
+    stream_view = StreamAttributeGroup(
+        name="test_view",
+        attribute_key=AttributeKey(name="test_entity"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="most_common_item",
+                aggregation="most_frequent",
+                type="string",
+                events=[Event(name="purchase")],
+            )
+        ],
+    )
+    assert stream_view.attributes[0].aggregation == "most_frequent"
+
+
+def test_stream_view_with_least_frequent_aggregation():
+    """Test that StreamAttributeGroup accepts least_frequent aggregation."""
+    stream_view = StreamAttributeGroup(
+        name="test_view",
+        attribute_key=AttributeKey(name="test_entity"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="least_common_item",
+                aggregation="least_frequent",
+                type="string",
+                events=[Event(name="purchase")],
+            )
+        ],
+    )
+    assert stream_view.attributes[0].aggregation == "least_frequent"
+
+
+def test_stream_view_with_category_count_aggregation():
+    """Test that StreamAttributeGroup accepts category_count aggregation."""
+    stream_view = StreamAttributeGroup(
+        name="test_view",
+        attribute_key=AttributeKey(name="test_entity"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="category_counts",
+                aggregation="category_count",
+                type="dict",
+                events=[Event(name="purchase")],
+            )
+        ],
+    )
+    assert stream_view.attributes[0].aggregation == "category_count"
+    assert stream_view.attributes[0].type == "dict"
+
+
+def test_stream_view_with_approx_count_distinct_aggregation():
+    """Test that StreamAttributeGroup accepts approx_count_distinct aggregation."""
+    stream_view = StreamAttributeGroup(
+        name="test_view",
+        attribute_key=AttributeKey(name="test_entity"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="unique_visitors",
+                aggregation="approx_count_distinct",
+                type="int64",
+                events=[Event(name="page_view")],
+            )
+        ],
+    )
+    assert stream_view.attributes[0].aggregation == "approx_count_distinct"

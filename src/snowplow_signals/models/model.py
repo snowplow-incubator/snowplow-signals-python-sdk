@@ -348,6 +348,7 @@ class FieldModel(BaseModel):
         "float_list",
         "bool_list",
         "unix_timestamp_list",
+        "dict",
     ] = Field(
         ..., description="The type of the field, such as string or float.", title="Type"
     )
@@ -531,14 +532,14 @@ class SignalsApiModelsViewCriterionCriterion(BaseModel):
         discriminator="type",
         title="Property",
     )
-    operator: Literal["=", "!=", "<", ">", "<=", ">=", "like", "in"] = Field(
+    operator: Literal["=", "!=", "<", ">", "<=", ">=", "like", "in", "is null", "is not null"] = Field(
         ...,
         description="The operator used to compare the property to the value.",
         title="Operator",
     )
-    value: Union[
+    value: Optional[Union[
         str, int, float, bool, List[str], List[int], List[float], List[bool]
-    ] = Field(..., description="The value to compare the property to.", title="Value")
+    ]] = Field(..., description="The value to compare the property to.", title="Value")
 
 
 class AttributeKeyInput(BaseModel):
@@ -664,14 +665,14 @@ class CriterionWithStringProperty(BaseModel):
         description="The path to the property on the event or entity you wish to filter.",
         title="Property",
     )
-    operator: Literal["=", "!=", "<", ">", "<=", ">=", "like", "in"] = Field(
+    operator: Literal["=", "!=", "<", ">", "<=", ">=", "like", "in", "is null", "is not null"] = Field(
         ...,
         description="The operator used to compare the property to the value.",
         title="Operator",
     )
-    value: Union[
+    value: Optional[Union[
         str, int, float, bool, List[str], List[int], List[float], List[bool]
-    ] = Field(..., description="The value to compare the property to.", title="Value")
+    ]] = Field(..., description="The value to compare the property to.", title="Value")
 
 
 class HTTPValidationError(BaseModel):
@@ -777,6 +778,7 @@ class AttributeInput(BaseModel):
         "float_list",
         "bool_list",
         "unix_timestamp_list",
+        "dict",
     ] = Field(
         ..., description="The type of the field, such as string or float.", title="Type"
     )
@@ -787,7 +789,18 @@ class AttributeInput(BaseModel):
         title="Events",
     )
     aggregation: Literal[
-        "counter", "sum", "min", "max", "mean", "first", "last", "unique_list"
+        "counter",
+        "sum",
+        "min",
+        "max",
+        "mean",
+        "first",
+        "last",
+        "unique_list",
+        "most_frequent",
+        "least_frequent",
+        "category_count",
+        "approx_count_distinct",
     ] = Field(
         ..., description="The aggregation type of the attribute.", title="Aggregation"
     )
@@ -840,6 +853,7 @@ class AttributeOutput(BaseModel):
         "float_list",
         "bool_list",
         "unix_timestamp_list",
+        "dict",
     ] = Field(
         ..., description="The type of the field, such as string or float.", title="Type"
     )
@@ -850,7 +864,18 @@ class AttributeOutput(BaseModel):
         title="Events",
     )
     aggregation: Literal[
-        "counter", "sum", "min", "max", "mean", "first", "last", "unique_list"
+        "counter",
+        "sum",
+        "min",
+        "max",
+        "mean",
+        "first",
+        "last",
+        "unique_list",
+        "most_frequent",
+        "least_frequent",
+        "category_count",
+        "approx_count_distinct",
     ] = Field(
         ..., description="The aggregation type of the attribute.", title="Aggregation"
     )
@@ -1056,6 +1081,7 @@ class AttributeWithStringProperty(BaseModel):
         "float_list",
         "bool_list",
         "unix_timestamp_list",
+        "dict",
     ] = Field(
         ..., description="The type of the field, such as string or float.", title="Type"
     )
@@ -1066,7 +1092,18 @@ class AttributeWithStringProperty(BaseModel):
         title="Events",
     )
     aggregation: Literal[
-        "counter", "sum", "min", "max", "mean", "first", "last", "unique_list"
+        "counter",
+        "sum",
+        "min",
+        "max",
+        "mean",
+        "first",
+        "last",
+        "unique_list",
+        "most_frequent",
+        "least_frequent",
+        "category_count",
+        "approx_count_distinct",
     ] = Field(
         ..., description="The aggregation type of the attribute.", title="Aggregation"
     )
