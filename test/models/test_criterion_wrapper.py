@@ -52,3 +52,42 @@ class TestCriterionWrapper:
 
         assert criterion.operator == ">="
         assert criterion.value == 18
+
+    def test_is_null_creates_correct_criterion(self):
+        """Test that is_null method creates criterion with 'is null' operator and no value."""
+        atomic_prop = AtomicProperty(name="user_id")
+        criterion = Criterion.is_null(atomic_prop)
+
+        assert criterion.operator == "is null"
+        assert criterion.value is None
+
+    def test_is_not_null_creates_correct_criterion(self):
+        """Test that is_not_null method creates criterion with 'is not null' operator and no value."""
+        atomic_prop = AtomicProperty(name="user_id")
+        criterion = Criterion.is_not_null(atomic_prop)
+
+        assert criterion.operator == "is not null"
+        assert criterion.value is None
+
+    def test_is_null_with_event_property(self):
+        """Test that is_null method works with EventProperty."""
+        event_prop = EventProperty(
+            vendor="com.example", name="test_event", major_version=1, path="action"
+        )
+        criterion = Criterion.is_null(event_prop)
+
+        assert criterion.operator == "is null"
+        assert criterion.value is None
+
+    def test_is_not_null_with_entity_property(self):
+        """Test that is_not_null method works with EntityProperty."""
+        entity_prop = EntityProperty(
+            vendor="com.example",
+            name="user_context",
+            major_version=1,
+            path="age",
+        )
+        criterion = Criterion.is_not_null(entity_prop)
+
+        assert criterion.operator == "is not null"
+        assert criterion.value is None
