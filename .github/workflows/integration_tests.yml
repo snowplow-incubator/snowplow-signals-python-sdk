@@ -90,6 +90,7 @@ jobs:
         working-directory: integration_tests/ecommerce_transaction_interactions_features_1/integration_test
 
       - name: Clean up before tests
+        if: matrix.warehouse != 'bigquery'
         run: dbt run-operation post_ci_cleanup --target ${{matrix.warehouse}}
         working-directory: integration_tests/ecommerce_transaction_interactions_features_1/integration_test
 
