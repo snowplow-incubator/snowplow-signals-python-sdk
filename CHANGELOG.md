@@ -1,5 +1,10 @@
 # Changelog
 
+# [0.4.3] - 2026-01-27
+
+- Add support for new attribute aggregation types (category count, most and least frequent, approximate count distinct) and new filtering operators (is null and is not null)
+- Disable BigQuery dbt cleanup
+
 # [0.4.2] - 2025-12-01
 
 - [AISP-828] Deprecate attribute key `key` (#113)
