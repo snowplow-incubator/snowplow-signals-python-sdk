@@ -1337,7 +1337,7 @@ class RuleInterventionInput(BaseModel):
         description="The attribute keys that should be targeted with this intervention by having their IDs extracted from the event that triggered this intervention",
         title="Target Attribute Keys",
     )
-    attribute_groups: Optional[List[VersionedLinkAttributeGroup]] = Field(
+    payload_attribute_groups: Optional[List[VersionedLinkAttributeGroup]] = Field(
         default=None,
         description="Optional list of attribute group names and versions to include in intervention payload. Specify attribute groups explicitly to include contextual data for personalization.",
         title="Attribute Groups",
@@ -1382,7 +1382,7 @@ class RuleInterventionOutput(BaseModel):
         description="The attribute keys that should be targeted with this intervention by having their IDs extracted from the event that triggered this intervention",
         title="Target Attribute Keys",
     )
-    attribute_groups: Optional[List[VersionedLinkAttributeGroup]] = Field(
+    payload_attribute_groups: Optional[List[VersionedLinkAttributeGroup]] = Field(
         default=None,
         description="Optional list of attribute group names and versions to include in intervention payload. Specify attribute groups explicitly to include contextual data for personalization.",
         title="Attribute Groups",
