@@ -1,3 +1,4 @@
+from .additional_models import InterventionInstance as InterventionInstance
 from .attribute_group import (
     AttributeGroup,
     BatchAttributeGroup,
@@ -38,9 +39,6 @@ from .model import FieldModel as Field
 from .model import (
     GetAttributeGroupAttributesRequest,
     GetServiceAttributesRequest,
-)
-from .model import InterventionInstance as InterventionInstance
-from .model import (
     InterventionReference,
     LinkAttributeKey,
     RuleInterventionInput,
