@@ -67,8 +67,7 @@ def bump_prerelease(
                 # Same type, increment the number
                 new_prerelease = f"{prefix}{int(num) + 1}"
         else:
-            # Fallback if format is unexpected
-            new_prerelease = f"{prerelease_type}1"
+            raise ValueError("Invalid pre-release format")
 
         new_version = version.replace(prerelease=new_prerelease)
     else:
