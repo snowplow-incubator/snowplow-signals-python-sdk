@@ -52,6 +52,7 @@ from .model import (
 from .model import (
     TestAttributeGroupRequest,
     UnpublishRequest,
+    VersionedLinkAttributeGroup,
 )
 from .service import Service
 
@@ -84,6 +85,7 @@ InterventionCriteriaAnyInput
 InterventionCriteriaNoneInput
 InterventionCriterion
 AttributeKeyIdentifiers
+VersionedLinkAttributeGroup
 
 AttributeGroupReference
 ServiceReference
