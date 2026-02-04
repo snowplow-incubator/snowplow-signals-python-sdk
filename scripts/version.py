@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import semver
+import re
 from typing import Literal
 
 VersionType = Literal["patch", "minor", "major"]
@@ -41,7 +42,8 @@ def bump_prerelease(
     Bump to a pre-release version.
 
     If current version is stable (e.g., "1.2.3"), bumps to next version with pre-release.
-    If current version is already a pre-release, increments the pre-release number.
+    If current version is already a pre-release, increments the pre-release number
+    (or changes the pre-release type if different).
 
     Args:
         current_version: Current version string (e.g., "1.2.3" or "1.2.4-rc1")
@@ -53,15 +55,17 @@ def bump_prerelease(
     """
     version = semver.VersionInfo.parse(current_version)
 
-    # If already a pre-release, increment it
+    # If already a pre-release
     if version.prerelease:
-        # Parse existing prerelease to increment number
-        import re
-
         match = re.match(r"([a-z]+)(\d+)", version.prerelease)
         if match:
             prefix, num = match.groups()
-            new_prerelease = f"{prefix}{int(num) + 1}"
+            # If changing pre-release type, start at 1
+            if prefix != prerelease_type:
+                new_prerelease = f"{prerelease_type}1"
+            else:
+                # Same type, increment the number
+                new_prerelease = f"{prefix}{int(num) + 1}"
         else:
             # Fallback if format is unexpected
             new_prerelease = f"{prerelease_type}1"
@@ -84,12 +88,33 @@ def bump_prerelease(
     return str(new_version)
 
 
+def finalize_version(current_version: str) -> str:
+    """
+    Finalize a pre-release version by stripping the pre-release suffix.
+
+    Args:
+        current_version: Current version string (e.g., "1.2.3-rc1")
+
+    Returns:
+        Finalized version string (e.g., "1.2.3")
+
+    Raises:
+        ValueError: If current version is not a pre-release
+    """
+    version = semver.VersionInfo.parse(current_version)
+
+    if not version.prerelease:
+        raise ValueError(f"Version {current_version} is not a pre-release")
+
+    return f"{version.major}.{version.minor}.{version.patch}"
+
+
 def main():
     if len(sys.argv) < 3:
         print(
             "Usage: python version.py <current_version> <version_type> [prerelease_type]"
         )
-        print("  version_type: patch, minor, major")
+        print("  version_type: patch, minor, major, finalize")
         print("  prerelease_type (optional): rc, alpha, beta")
         sys.exit(1)
 
@@ -98,22 +123,28 @@ def main():
     prerelease_type_str = sys.argv[3] if len(sys.argv) > 3 else None
 
     try:
-        if version_type_str not in ("patch", "minor", "major"):
-            raise ValueError(
-                f"Invalid version type: {version_type_str}. Must be one of: patch, minor, major"
-            )
-        version_type: VersionType = version_type_str  # type: ignore
-
-        if prerelease_type_str:
+        if version_type_str == "finalize":
+            new_version = finalize_version(current_version)
+        elif prerelease_type_str:
+            if version_type_str not in ("patch", "minor", "major"):
+                raise ValueError(
+                    f"Invalid version type: {version_type_str}. Must be one of: patch, minor, major"
+                )
             if prerelease_type_str not in ("rc", "alpha", "beta"):
                 raise ValueError(
                     f"Invalid prerelease type: {prerelease_type_str}. Must be one of: rc, alpha, beta"
                 )
+            version_type: VersionType = version_type_str  # type: ignore
             prerelease_type: PrereleaseType = prerelease_type_str  # type: ignore
             new_version = bump_prerelease(
                 current_version, prerelease_type, version_type
             )
         else:
+            if version_type_str not in ("patch", "minor", "major"):
+                raise ValueError(
+                    f"Invalid version type: {version_type_str}. Must be one of: patch, minor, major"
+                )
+            version_type: VersionType = version_type_str  # type: ignore
             new_version = bump_version(current_version, version_type)
 
         print(new_version)

@@ -4,13 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       version_type:
-        description: "Version type to increment"
+        description: "Version type to increment (or 'finalize' to create stable release from pre-release)"
         required: true
         type: choice
         options:
           - patch
           - minor
           - major
+          - finalize
         default: "patch"
 
 jobs:
@@ -40,7 +41,7 @@ jobs:
           CURRENT_VERSION=$(poetry version -s)
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Increment version
+      - name: Calculate new version
         id: new_version
         run: |
           CURRENT_VERSION=${{ steps.version.outputs.current_version }}
