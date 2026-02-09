@@ -279,6 +279,12 @@ class BatchAutogenClient:
                     "attribute_key": base_config.attribute_key,
                 },
             ),
+            DbtAssetGenerator(
+                project_path=project_path,
+                asset_subpath="macros",
+                filename="check_timezone",
+                asset_type="macro",
+            ),
         ]
 
         for asset in assets:
