@@ -1,0 +1,80 @@
+name: Pre-release Python Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Version type to increment"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: "patch"
+      prerelease_type:
+        description: "Pre-release type"
+        required: true
+        type: choice
+        options:
+          - rc
+          - alpha
+          - beta
+        default: "rc"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+
+      - name: Install dependencies
+        run: poetry install --extras "batch-engine"
+
+      - name: Run tests
+        run: poetry run pytest
+
+      - name: Get current version
+        id: version
+        run: |
+          CURRENT_VERSION=$(poetry version -s)
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Calculate new version
+        id: new_version
+        run: |
+          CURRENT_VERSION=${{ steps.version.outputs.current_version }}
+          VERSION_TYPE=${{ github.event.inputs.version_type }}
+          PRERELEASE_TYPE=${{ github.event.inputs.prerelease_type }}
+          NEW_VERSION=$(poetry run python scripts/version.py "$CURRENT_VERSION" "$VERSION_TYPE" "$PRERELEASE_TYPE")
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update version
+        run: |
+          poetry version ${{ steps.new_version.outputs.new_version }}
+
+      - name: Create and push tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pyproject.toml
+          git commit -m "chore: pre-release v${{ steps.new_version.outputs.new_version }}"
+          git tag -a "v${{ steps.new_version.outputs.new_version }}" -m "Pre-release v${{ steps.new_version.outputs.new_version }}"
+          git push origin HEAD:${{ github.ref_name }}
+          git push origin "v${{ steps.new_version.outputs.new_version }}"
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish to PyPI
+        env:
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: poetry publish --username __token__ --password $PYPI_API_TOKEN
