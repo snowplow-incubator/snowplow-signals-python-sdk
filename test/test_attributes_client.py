@@ -27,7 +27,7 @@ class TestAttributesClient:
             assert "attribute_keys" in body
             assert body["attribute_keys"]["domain_userid"] == ["user-123"]
             assert "attributes" in body
-            assert body["attributes"] == ["page_views_count"]
+            assert body["attributes"] == ["my_attribute_group_v1:page_views_count"]
             # Should NOT have "service" field for view requests
             assert "service" not in body
             return httpx.Response(200, json=api_request_response.data)

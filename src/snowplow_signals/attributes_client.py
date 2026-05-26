@@ -24,7 +24,7 @@ class AttributesClient:
         attributes = (
             [f"{name}_v{version}:{attribute}" for attribute in attributes]
             if isinstance(attributes, list)
-            else [attributes]
+            else [f"{name}_v{version}:{attributes}"]
         )
         attribute_key_identifiers = AttributeKeyIdentifiers(
             root={attribute_key: [identifier]}
