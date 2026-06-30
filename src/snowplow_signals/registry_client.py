@@ -6,9 +6,12 @@ from .models import (
     AttributeGroupResponse,
     AttributeKey,
     EventLog,
+    EventLogReference,
     EventLogResponse,
     RuleIntervention,
+    SelectivePublishRequest,
     Service,
+    UnpublishRequest,
 )
 
 RegistryObject = AttributeGroup | Service | AttributeKey | RuleIntervention | EventLog
@@ -190,7 +193,33 @@ class RegistryClient:
             else:
                 raise e
 
+        # Unlike other registry types, the event_logs endpoint does not promote
+        # the resource to the engines based on is_published. We need to call the
+        # engines publish/unpublish endpoint explicitly as a second step.
+        if event_log.is_published:
+            self._publish_event_log_to_engines(event_log=event_log)
+        else:
+            self._unpublish_event_log_from_engines(event_log=event_log)
+
         return EventLog.model_validate(response)
+
+    def _publish_event_log_to_engines(self, event_log: EventLog) -> None:
+        request = SelectivePublishRequest(
+            event_logs=[EventLogReference(name=event_log.name)]
+        )
+        self.api_client.make_request(
+            method="POST",
+            endpoint="engines/publish",
+            data=self._model_dump(request),
+        )
+
+    def _unpublish_event_log_from_engines(self, event_log: EventLog) -> None:
+        request = UnpublishRequest(event_logs=[EventLogReference(name=event_log.name)])
+        self.api_client.make_request(
+            method="POST",
+            endpoint="engines/unpublish",
+            data=self._model_dump(request),
+        )
 
     def _create_or_update_attribute_key(
         self, attribute_key: AttributeKey
