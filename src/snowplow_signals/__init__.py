@@ -12,7 +12,11 @@ from snowplow_signals.models import (
     Criterion,
     EntityProperty,
     Event,
+    EventLog,
+    EventLogBufferResponse,
+    EventLogResponse,
     EventProperty,
+    EventSelection,
     ExternalBatchAttributeGroup,
     Field,
 )
@@ -73,6 +77,12 @@ network_userid
 EntityProperty
 EventProperty
 AtomicProperty
+
+# Event logs
+EventLog
+EventLogResponse
+EventLogBufferResponse
+EventSelection
 PagePing
 PageView
 StructuredEvent

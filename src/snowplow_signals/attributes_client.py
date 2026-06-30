@@ -1,8 +1,9 @@
-from typing import Any
+from typing import Any, Literal
 
 from .api_client import ApiClient
 from .models import (
     AttributeKeyIdentifiers,
+    EventLogBufferResponse,
     GetAttributeGroupAttributesRequest,
     GetAttributesResponse,
     GetServiceAttributesRequest,
@@ -51,6 +52,36 @@ class AttributesClient:
             attribute_keys=attribute_key_identifiers,
         )
         return self._make_request(request)
+
+    def get_event_log(
+        self,
+        name: str,
+        identifier: str,
+        format: Literal["json", "narrative"] = "json",
+    ) -> EventLogBufferResponse | str:
+        """
+        Retrieves the buffered events for a given event log by name.
+
+        Args:
+            name: The name of the event log.
+            identifier: The attribute key value identifying the entity.
+            format: The response format. "json" (default) returns a structured
+                EventLogBufferResponse; "narrative" returns an LLM-ready
+                plain-text context block.
+        """
+        params = {"name": name, "identifier": identifier, "format": format}
+        if format == "narrative":
+            return self.api_client.make_text_request(
+                method="GET",
+                endpoint="event_log",
+                params=params,
+            )
+        response = self.api_client.make_request(
+            method="GET",
+            endpoint="event_log",
+            params=params,
+        )
+        return EventLogBufferResponse.model_validate(response)
 
     def _make_request(
         self, request: GetAttributeGroupAttributesRequest | GetServiceAttributesRequest

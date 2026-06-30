@@ -201,6 +201,76 @@ class TestRegistryClient:
 
         assert delete_mock.called
 
+    def test_create_or_update_event_log(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        from snowplow_signals import EventLog, EventSelection
+        from snowplow_signals.models import LinkAttributeKey
+
+        event_log = EventLog(
+            name="my_event_log",
+            attribute_key=LinkAttributeKey(name="domain_sessionid"),
+            events=[
+                EventSelection(
+                    event={
+                        "name": "page_view",
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "version": "1-0-0",
+                    },
+                    properties=[{"type": "atomic", "name": "page_url"}],
+                )
+            ],
+            max_events=10,
+            max_age_seconds=600,
+        )
+
+        create_mock = respx_mock.post(
+            "http://localhost:8000/api/v1/registry/event_logs/"
+        ).mock(
+            return_value=httpx.Response(
+                201, json=event_log.model_dump(mode="json", by_alias=True)
+            )
+        )
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.create_or_update([event_log])
+
+        assert create_mock.called
+        request_content = json.loads(create_mock.calls[0].request.content)
+        assert request_content["name"] == "my_event_log"
+        assert request_content["attribute_key"]["name"] == "domain_sessionid"
+        assert request_content["max_events"] == 10
+
+    def test_delete_event_log(self, respx_mock: MockRouter, api_client: ApiClient):
+        from snowplow_signals import EventLog, EventSelection
+        from snowplow_signals.models import LinkAttributeKey
+
+        event_log = EventLog(
+            name="my_event_log",
+            attribute_key=LinkAttributeKey(name="domain_sessionid"),
+            events=[
+                EventSelection(
+                    event={
+                        "name": "page_view",
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "version": "1-0-0",
+                    },
+                    properties=[{"type": "atomic", "name": "page_url"}],
+                )
+            ],
+            max_events=10,
+            max_age_seconds=600,
+        )
+
+        delete_mock = respx_mock.delete(
+            "http://localhost:8000/api/v1/registry/event_logs/my_event_log"
+        ).mock(return_value=httpx.Response(200, json={}))
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.delete([event_log])
+
+        assert delete_mock.called
+
     def test_delete_intervention(self, respx_mock: MockRouter, api_client: ApiClient):
         from snowplow_signals.models import (
             InterventionCriterion,
