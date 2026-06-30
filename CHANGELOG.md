@@ -1,5 +1,10 @@
 # Changelog
 
+# [0.4.4] - 2026-06-30
+
+- Batch Engine model updates (#126)
+- Add prehook to avoid snowflake timezone errors (#122)
+
 # [0.4.3] - 2026-01-27
 
 - Add support for new attribute aggregation types (category count, most and least frequent, approximate count distinct) and new filtering operators (is null and is not null)
