@@ -12,12 +12,15 @@ from .models import (
     AttributeKey,
     AttributeKeyId,
     AttributeKeyIdentifiers,
+    EventLog,
+    EventLogBufferResponse,
+    EventLogResponse,
     InterventionInstance,
     RuleIntervention,
     Service,
     TestAttributeGroupRequest,
 )
-from .registry_client import RegistryClient
+from .registry_client import RegistryClient, RegistryObject
 from .testing_client import TestingClient
 
 
@@ -36,9 +39,7 @@ class BaseSignalsWithApiClient:
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
 
-    def publish(
-        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
-    ) -> list[AttributeGroup | Service | AttributeKey | RuleIntervention]:
+    def publish(self, objects: list[RegistryObject]) -> list[RegistryObject]:
         """
         Creates or updates the provided objects in the Signals registry and publishes them to the compute engines.
 
@@ -54,9 +55,7 @@ class BaseSignalsWithApiClient:
         updated_objects = self.registry.create_or_update(objects=to_update)
         return updated_objects
 
-    def unpublish(
-        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
-    ) -> list[AttributeGroup | Service | AttributeKey | RuleIntervention]:
+    def unpublish(self, objects: list[RegistryObject]) -> list[RegistryObject]:
         """
         Creates or updates the provided objects in the Signals registry and unpublishes them from the compute engines.
 
@@ -72,9 +71,7 @@ class BaseSignalsWithApiClient:
         updated_objects = self.registry.create_or_update(objects=to_update)
         return updated_objects
 
-    def delete(
-        self, objects: list[AttributeGroup | Service | AttributeKey | RuleIntervention]
-    ) -> None:
+    def delete(self, objects: list[RegistryObject]) -> None:
         """
         Deletes the provided objects from the Signals registry.
         Make sure to unpublish the objects first.
@@ -147,6 +144,41 @@ class BaseSignalsWithApiClient:
             attribute_key=attribute_key,
             identifier=identifier,
         )
+
+    def get_event_log(
+        self,
+        name: str,
+        identifier: str,
+        format: Literal["json", "narrative"] = "json",
+    ) -> EventLogBufferResponse | str:
+        """
+        Retrieves the buffered events for a given event log by name.
+
+        Args:
+            name: The name of the event log.
+            identifier: The attribute key value identifying the entity.
+            format: The response format. "json" (default) returns a structured
+                EventLogBufferResponse; "narrative" returns an LLM-ready
+                plain-text context block.
+        Returns:
+            The buffered event log contents.
+        """
+        return self.attributes.get_event_log(
+            name=name,
+            identifier=identifier,
+            format=format,
+        )
+
+    def get_event_log_definition(self, name: str) -> EventLogResponse:
+        """
+        Returns an Event Log definition from the Signals registry by name.
+
+        Args:
+            name: The name of the Event Log.
+        Returns:
+            The Event Log definition
+        """
+        return self.registry.get_event_log_definition(name)
 
     def test(
         self,
