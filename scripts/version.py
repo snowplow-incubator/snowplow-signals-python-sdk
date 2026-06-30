@@ -1,10 +1,29 @@
 #!/usr/bin/env python3
+import re
 import sys
 import semver
 from typing import Literal
 
 VersionType = Literal["patch", "minor", "major"]
 PrereleaseType = Literal["rc", "alpha", "beta"]
+
+
+def normalize_version(version: str) -> str:
+    """
+    Normalize a version string into a SemVer-parseable form.
+
+    Poetry stores pre-release versions in PEP 440 form (e.g. "0.4.5rc1"),
+    but semver requires a hyphen before the pre-release identifier
+    (e.g. "0.4.5-rc1"). Insert the missing hyphen so the string round-trips
+    through semver.
+
+    Args:
+        version: A version string, possibly PEP 440 normalized.
+
+    Returns:
+        A SemVer-compatible version string.
+    """
+    return re.sub(r"^(\d+\.\d+\.\d+)(rc|alpha|beta)", r"\1-\2", version)
 
 
 def bump_version(current_version: str, version_type: VersionType) -> str:
@@ -18,7 +37,7 @@ def bump_version(current_version: str, version_type: VersionType) -> str:
     Returns:
         New version string
     """
-    version = semver.VersionInfo.parse(current_version)
+    version = semver.VersionInfo.parse(normalize_version(current_version))
 
     if version_type == "patch":
         new_version = version.bump_patch()
@@ -51,7 +70,7 @@ def bump_prerelease(
     Returns:
         New pre-release version string (format: X.Y.Z-rc1)
     """
-    version = semver.VersionInfo.parse(current_version)
+    version = semver.VersionInfo.parse(normalize_version(current_version))
 
     # If already a pre-release, increment it
     if version.prerelease:
