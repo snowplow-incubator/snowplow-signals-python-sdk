@@ -7,6 +7,7 @@ from .attribute_group import (
 from .attribute_key import AttributeKey
 from .criteria_wrapper import Criteria
 from .criterion_wrapper import Criterion
+from .event_log import EventLog
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
@@ -32,7 +33,11 @@ from .model import (
     CriterionWithStringProperty,
     EntityProperty,
     Event,
+    EventLogBufferResponse,
+    EventLogReference,
+    EventLogResponse,
     EventProperty,
+    EventSelection,
 )
 from .model import FieldModel as Field
 from .model import (
@@ -101,3 +106,10 @@ EventProperty
 EntityProperty
 AttributeKeyId
 AttributeKeyOutput
+
+# Event logs
+EventLog
+EventLogResponse
+EventLogBufferResponse
+EventLogReference
+EventSelection

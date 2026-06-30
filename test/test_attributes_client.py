@@ -95,6 +95,68 @@ class TestAttributesClient:
 
         assert response == sdk_expected_response
 
+    def test_get_event_log(self, respx_mock: MockRouter, api_client: ApiClient):
+        attributes_client = AttributesClient(api_client=api_client)
+
+        api_response = {
+            "attribute_key": "domain_sessionid",
+            "identifier": "session-123",
+            "name": "my_event_log",
+            "prompt": "some prompt",
+            "started_at_ms": 1700000000000,
+            "version": 1,
+            "events": [{"event_name": "page_view", "page_url": "https://example.com"}],
+        }
+
+        def check_request(request):
+            assert request.url.params["name"] == "my_event_log"
+            assert request.url.params["identifier"] == "session-123"
+            assert request.url.params["format"] == "json"
+            return httpx.Response(200, json=api_response)
+
+        respx_mock.get("http://localhost:8000/api/v1/event_log").mock(
+            side_effect=check_request
+        )
+
+        response = attributes_client.get_event_log(
+            name="my_event_log",
+            identifier="session-123",
+        )
+
+        assert response.name == "my_event_log"
+        assert response.identifier == "session-123"
+        assert response.attribute_key == "domain_sessionid"
+        assert response.events == [
+            {"event_name": "page_view", "page_url": "https://example.com"}
+        ]
+
+    def test_get_event_log_narrative(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        attributes_client = AttributesClient(api_client=api_client)
+
+        narrative = "Session session-123 viewed https://example.com"
+
+        def check_request(request):
+            assert request.url.params["name"] == "my_event_log"
+            assert request.url.params["identifier"] == "session-123"
+            assert request.url.params["format"] == "narrative"
+            return httpx.Response(
+                200, text=narrative, headers={"Content-Type": "text/plain"}
+            )
+
+        respx_mock.get("http://localhost:8000/api/v1/event_log").mock(
+            side_effect=check_request
+        )
+
+        response = attributes_client.get_event_log(
+            name="my_event_log",
+            identifier="session-123",
+            format="narrative",
+        )
+
+        assert response == narrative
+
     def test_get_attributes_multiple_attributes(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
