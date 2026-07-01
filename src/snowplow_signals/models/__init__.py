@@ -33,7 +33,11 @@ from .model import (
     CriterionWithStringProperty,
     EntityProperty,
     Event,
+    EventLogAtomicProperty,
     EventLogBufferResponse,
+    EventLogEntityProperty,
+    EventLogEvent,
+    EventLogEventProperty,
     EventLogReference,
     EventLogResponse,
     EventProperty,
@@ -113,3 +117,7 @@ EventLogResponse
 EventLogBufferResponse
 EventLogReference
 EventSelection
+EventLogEvent
+EventLogAtomicProperty
+EventLogEventProperty
+EventLogEntityProperty

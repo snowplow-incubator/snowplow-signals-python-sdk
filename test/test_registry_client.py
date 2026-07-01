@@ -202,7 +202,12 @@ class TestRegistryClient:
         assert delete_mock.called
 
     def _make_event_log(self, is_published: bool):
-        from snowplow_signals import EventLog, EventSelection
+        from snowplow_signals import (
+            EventLog,
+            EventLogAtomicProperty,
+            EventLogEvent,
+            EventSelection,
+        )
         from snowplow_signals.models import LinkAttributeKey
 
         return EventLog(
@@ -210,12 +215,12 @@ class TestRegistryClient:
             attribute_key=LinkAttributeKey(name="domain_sessionid"),
             events=[
                 EventSelection(
-                    event={
-                        "name": "page_view",
-                        "vendor": "com.snowplowanalytics.snowplow",
-                        "version": "1-0-0",
-                    },
-                    properties=[{"type": "atomic", "name": "page_url"}],
+                    event=EventLogEvent(
+                        name="page_view",
+                        vendor="com.snowplowanalytics.snowplow",
+                        version="1-0-0",
+                    ),
+                    properties=[EventLogAtomicProperty(name="page_url")],
                 )
             ],
             max_events=10,

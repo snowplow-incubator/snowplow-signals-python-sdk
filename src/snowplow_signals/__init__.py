@@ -13,7 +13,11 @@ from snowplow_signals.models import (
     EntityProperty,
     Event,
     EventLog,
+    EventLogAtomicProperty,
     EventLogBufferResponse,
+    EventLogEntityProperty,
+    EventLogEvent,
+    EventLogEventProperty,
     EventLogResponse,
     EventProperty,
     EventSelection,
@@ -83,6 +87,10 @@ EventLog
 EventLogResponse
 EventLogBufferResponse
 EventSelection
+EventLogEvent
+EventLogAtomicProperty
+EventLogEventProperty
+EventLogEntityProperty
 PagePing
 PageView
 StructuredEvent
