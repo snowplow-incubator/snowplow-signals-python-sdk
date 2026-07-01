@@ -10,10 +10,6 @@ from .criterion_wrapper import Criterion
 from .event_log import EventLog
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
-
-# The API's EventLogBufferResponse is the buffered values read back for an
-# identifier. Publicly we expose these retrieved values as the "agentic
-# context", keeping "event log" for the published definition.
 from .model import (
     AtomicProperty,
     AttributeGroupReference,
@@ -39,7 +35,6 @@ from .model import (
     Event,
     EventLogAtomicProperty,
 )
-from .model import EventLogBufferResponse
 from .model import EventLogBufferResponse as AgenticContextResponse
 from .model import (
     EventLogEntityProperty,
@@ -130,4 +125,3 @@ EventLogEntityProperty
 
 # Agentic context (retrieved values)
 AgenticContextResponse
-EventLogBufferResponse

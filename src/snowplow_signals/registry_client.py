@@ -177,18 +177,24 @@ class RegistryClient:
         return RuleIntervention.model_validate(response)
 
     def _create_or_update_event_log(self, event_log: EventLog) -> EventLog:
+        # is_published is a client-side control for engine promotion and is not
+        # part of the event_logs registry input schema (unlike the other
+        # registry types), so it must not be sent to the registry endpoint.
+        payload = self._model_dump(event_log)
+        payload.pop("is_published", None)
+
         try:
             response = self.api_client.make_request(
                 method="POST",
                 endpoint="registry/event_logs/",
-                data=self._model_dump(event_log),
+                data=payload,
             )
         except SignalsAPIError as e:
             if e.status_code == 400:
                 response = self.api_client.make_request(
                     method="PUT",
                     endpoint=(f"registry/event_logs/{event_log.name}"),
-                    data=self._model_dump(event_log),
+                    data=payload,
                 )
             else:
                 raise e
@@ -201,7 +207,11 @@ class RegistryClient:
         else:
             self._unpublish_event_log_from_engines(event_log=event_log)
 
-        return EventLog.model_validate(response)
+        # The registry response has no is_published field, so preserve the
+        # requested publish state on the returned wrapper.
+        updated = EventLog.model_validate(response)
+        updated.is_published = event_log.is_published
+        return updated
 
     def _publish_event_log_to_engines(self, event_log: EventLog) -> None:
         request = SelectivePublishRequest(

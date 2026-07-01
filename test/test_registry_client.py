@@ -233,54 +233,62 @@ class TestRegistryClient:
     ):
         event_log = self._make_event_log(is_published=True)
 
+        # The registry response does not carry is_published (it is not part of
+        # the event_logs input schema).
+        registry_response = event_log.model_dump(mode="json", by_alias=True)
+        registry_response.pop("is_published", None)
         create_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/event_logs/"
-        ).mock(
-            return_value=httpx.Response(
-                201, json=event_log.model_dump(mode="json", by_alias=True)
-            )
-        )
+        ).mock(return_value=httpx.Response(201, json=registry_response))
         publish_mock = respx_mock.post(
             "http://localhost:8000/api/v1/engines/publish"
         ).mock(return_value=httpx.Response(200, json={}))
 
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.create_or_update([event_log])
+        [updated] = registry_client.create_or_update([event_log])
 
         assert create_mock.called
         request_content = json.loads(create_mock.calls[0].request.content)
         assert request_content["name"] == "my_event_log"
         assert request_content["attribute_key"]["name"] == "domain_sessionid"
         assert request_content["max_events"] == 10
+        # is_published is a client-side control and must not be sent to the
+        # event_logs registry endpoint.
+        assert "is_published" not in request_content
 
         # The registry write must be followed by an explicit engines publish call
         assert publish_mock.called
         publish_content = json.loads(publish_mock.calls[0].request.content)
         assert publish_content["event_logs"] == [{"name": "my_event_log"}]
 
+        # The requested publish state is preserved on the returned object even
+        # though the registry response omits it.
+        assert updated.is_published is True
+
     def test_unpublish_event_log_removes_from_engines(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
         event_log = self._make_event_log(is_published=False)
 
+        registry_response = event_log.model_dump(mode="json", by_alias=True)
+        registry_response.pop("is_published", None)
         create_mock = respx_mock.post(
             "http://localhost:8000/api/v1/registry/event_logs/"
-        ).mock(
-            return_value=httpx.Response(
-                201, json=event_log.model_dump(mode="json", by_alias=True)
-            )
-        )
+        ).mock(return_value=httpx.Response(201, json=registry_response))
         unpublish_mock = respx_mock.post(
             "http://localhost:8000/api/v1/engines/unpublish"
         ).mock(return_value=httpx.Response(200, json={}))
 
         registry_client = RegistryClient(api_client=api_client)
-        registry_client.create_or_update([event_log])
+        [updated] = registry_client.create_or_update([event_log])
 
         assert create_mock.called
+        request_content = json.loads(create_mock.calls[0].request.content)
+        assert "is_published" not in request_content
         assert unpublish_mock.called
         unpublish_content = json.loads(unpublish_mock.calls[0].request.content)
         assert unpublish_content["event_logs"] == [{"name": "my_event_log"}]
+        assert updated.is_published is False
 
     def test_delete_event_log(self, respx_mock: MockRouter, api_client: ApiClient):
         event_log = self._make_event_log(is_published=False)

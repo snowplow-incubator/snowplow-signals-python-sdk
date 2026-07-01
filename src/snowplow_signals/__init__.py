@@ -15,7 +15,6 @@ from snowplow_signals.models import (
     Event,
     EventLog,
     EventLogAtomicProperty,
-    EventLogBufferResponse,
     EventLogEntityProperty,
     EventLogEvent,
     EventLogEventProperty,
@@ -94,7 +93,6 @@ EventLogEntityProperty
 
 # Agentic context (retrieved values)
 AgenticContextResponse
-EventLogBufferResponse
 
 PagePing
 PageView
