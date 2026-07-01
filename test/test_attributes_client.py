@@ -1,7 +1,8 @@
 import httpx
+import pytest
 from respx import MockRouter
 
-from snowplow_signals.api_client import ApiClient
+from snowplow_signals.api_client import ApiClient, SignalsAPIError
 from snowplow_signals.attributes_client import AttributesClient
 from snowplow_signals.models import GetAttributesResponse
 
@@ -95,7 +96,7 @@ class TestAttributesClient:
 
         assert response == sdk_expected_response
 
-    def test_get_event_log(self, respx_mock: MockRouter, api_client: ApiClient):
+    def test_get_agentic_context(self, respx_mock: MockRouter, api_client: ApiClient):
         attributes_client = AttributesClient(api_client=api_client)
 
         api_response = {
@@ -118,7 +119,7 @@ class TestAttributesClient:
             side_effect=check_request
         )
 
-        response = attributes_client.get_event_log(
+        response = attributes_client.get_agentic_context(
             name="my_event_log",
             identifier="session-123",
         )
@@ -130,7 +131,7 @@ class TestAttributesClient:
             {"event_name": "page_view", "page_url": "https://example.com"}
         ]
 
-    def test_get_event_log_narrative(
+    def test_get_agentic_context_narrative(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
         attributes_client = AttributesClient(api_client=api_client)
@@ -149,13 +150,30 @@ class TestAttributesClient:
             side_effect=check_request
         )
 
-        response = attributes_client.get_event_log(
+        response = attributes_client.get_agentic_context(
             name="my_event_log",
             identifier="session-123",
             format="narrative",
         )
 
         assert response == narrative
+
+    def test_get_agentic_context_not_found(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        attributes_client = AttributesClient(api_client=api_client)
+
+        respx_mock.get("http://localhost:8000/api/v1/event_log").mock(
+            return_value=httpx.Response(404, json={"error": "event log name not found"})
+        )
+
+        with pytest.raises(SignalsAPIError) as exc_info:
+            attributes_client.get_agentic_context(
+                name="missing_event_log",
+                identifier="session-123",
+            )
+
+        assert exc_info.value.status_code == 404
 
     def test_get_attributes_multiple_attributes(
         self, respx_mock: MockRouter, api_client: ApiClient

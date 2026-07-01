@@ -1,5 +1,6 @@
 from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
+    AgenticContextResponse,
     AtomicProperty,
     Attribute,
     AttributeGroup,
@@ -82,15 +83,19 @@ EntityProperty
 EventProperty
 AtomicProperty
 
-# Event logs
+# Event logs (definitions)
 EventLog
 EventLogResponse
-EventLogBufferResponse
 EventSelection
 EventLogEvent
 EventLogAtomicProperty
 EventLogEventProperty
 EventLogEntityProperty
+
+# Agentic context (retrieved values)
+AgenticContextResponse
+EventLogBufferResponse
+
 PagePing
 PageView
 StructuredEvent

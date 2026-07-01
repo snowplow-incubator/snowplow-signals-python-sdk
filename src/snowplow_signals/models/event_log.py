@@ -37,27 +37,27 @@ class EventLog(EventLogInput):
         title="Is Published",
     )
 
-    def get_values(
+    def get_agentic_context(
         self,
         signals: "Signals",
         identifier: str,
         format: Literal["json", "narrative"] = "json",
     ):
         """
-        Retrieves the buffered events for this event log.
+        Retrieves the agentic context (the buffered events) for this event log.
 
         Args:
-            signals: The Signals instance to use for retrieving the event log.
-            identifier: The attribute key identifier to retrieve the event log for.
+            signals: The Signals instance to use for retrieving the context.
+            identifier: The attribute key identifier to retrieve the context for.
             format: The response format. "json" (default) returns a structured
-                EventLogBufferResponse; "narrative" returns an LLM-ready
+                AgenticContextResponse; "narrative" returns an LLM-ready
                 plain-text context block.
 
         Returns:
-            The buffered event log contents.
+            The agentic context for the entity.
         """
 
-        return signals.get_event_log(
+        return signals.get_agentic_context(
             name=self.name,
             identifier=identifier,
             format=format,

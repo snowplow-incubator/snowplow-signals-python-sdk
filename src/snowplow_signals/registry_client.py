@@ -104,7 +104,7 @@ class RegistryClient:
         )
         return Service.model_validate(response)
 
-    def get_event_log_definition(self, name: str) -> EventLogResponse:
+    def get_event_log(self, name: str) -> EventLogResponse:
         response = self.api_client.make_request(
             method="GET",
             endpoint=(f"registry/event_logs/{name}"),

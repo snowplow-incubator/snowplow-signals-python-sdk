@@ -294,6 +294,41 @@ class TestRegistryClient:
 
         assert delete_mock.called
 
+    def test_get_event_log_definition(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        api_response = {
+            "name": "my_event_log",
+            "version": 1,
+            "attribute_key": {"name": "domain_sessionid"},
+            "events": [
+                {
+                    "event": {
+                        "name": "page_view",
+                        "vendor": "com.snowplowanalytics.snowplow",
+                        "version": "1-0-0",
+                    },
+                    "properties": [{"type": "atomic", "name": "page_url"}],
+                }
+            ],
+            "max_events": 10,
+            "max_age_seconds": 600,
+            "is_published": True,
+            "has_published_version": True,
+        }
+
+        get_mock = respx_mock.get(
+            "http://localhost:8000/api/v1/registry/event_logs/my_event_log"
+        ).mock(return_value=httpx.Response(200, json=api_response))
+
+        registry_client = RegistryClient(api_client=api_client)
+        response = registry_client.get_event_log("my_event_log")
+
+        assert get_mock.called
+        assert response.name == "my_event_log"
+        assert response.is_published is True
+        assert response.max_events == 10
+
     def test_delete_intervention(self, respx_mock: MockRouter, api_client: ApiClient):
         from snowplow_signals.models import (
             InterventionCriterion,

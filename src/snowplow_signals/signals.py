@@ -7,13 +7,13 @@ from .api_client import ApiClient
 from .attributes_client import AttributesClient
 from .interventions_client import InterventionsClient
 from .models import (
+    AgenticContextResponse,
     AttributeGroup,
     AttributeGroupResponse,
     AttributeKey,
     AttributeKeyId,
     AttributeKeyIdentifiers,
     EventLog,
-    EventLogBufferResponse,
     EventLogResponse,
     InterventionInstance,
     RuleIntervention,
@@ -145,31 +145,32 @@ class BaseSignalsWithApiClient:
             identifier=identifier,
         )
 
-    def get_event_log(
+    def get_agentic_context(
         self,
         name: str,
         identifier: str,
         format: Literal["json", "narrative"] = "json",
-    ) -> EventLogBufferResponse | str:
+    ) -> AgenticContextResponse | str:
         """
-        Retrieves the buffered events for a given event log by name.
+        Retrieves the agentic context (the buffered events) for a given event
+        log by name.
 
         Args:
             name: The name of the event log.
             identifier: The attribute key value identifying the entity.
             format: The response format. "json" (default) returns a structured
-                EventLogBufferResponse; "narrative" returns an LLM-ready
+                AgenticContextResponse; "narrative" returns an LLM-ready
                 plain-text context block.
         Returns:
-            The buffered event log contents.
+            The agentic context for the entity.
         """
-        return self.attributes.get_event_log(
+        return self.attributes.get_agentic_context(
             name=name,
             identifier=identifier,
             format=format,
         )
 
-    def get_event_log_definition(self, name: str) -> EventLogResponse:
+    def get_event_log(self, name: str) -> EventLogResponse:
         """
         Returns an Event Log definition from the Signals registry by name.
 
@@ -178,7 +179,7 @@ class BaseSignalsWithApiClient:
         Returns:
             The Event Log definition
         """
-        return self.registry.get_event_log_definition(name)
+        return self.registry.get_event_log(name)
 
     def test(
         self,
