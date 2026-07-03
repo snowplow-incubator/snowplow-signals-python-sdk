@@ -173,6 +173,37 @@ class ApiClient:
                         stream.status_code, f"Failed to decode response: {stream.text}"
                     )
 
+    def _request_text(
+        self,
+        method: HTTP_METHODS,
+        endpoint: str,
+        params: Optional[dict] = None,
+        data: Optional[dict] = None,
+    ) -> str:
+        token = self._check_token(self.token)
+        self.token = token
+
+        url = f"{self.api_url}/api/v1/{endpoint}"
+        response = httpx.request(
+            method=method,
+            url=url,
+            headers=self._get_headers(token),
+            params=params,
+            json=data,
+            timeout=30.0,
+        )
+
+        if response.status_code in (200, 201):
+            return response.text
+
+        try:
+            payload = response.json()
+            raise SignalsAPIError(response.status_code, payload)
+        except (KeyError, ValueError):
+            raise SignalsAPIError(
+                response.status_code, f"Failed to decode response: {response.text}"
+            )
+
     def make_request(
         self,
         method: HTTP_METHODS,
@@ -181,6 +212,17 @@ class ApiClient:
         data: Optional[dict] = None,
     ) -> dict:
         return self._request(method=method, endpoint=endpoint, params=params, data=data)
+
+    def make_text_request(
+        self,
+        method: HTTP_METHODS,
+        endpoint: str,
+        params: Optional[dict] = None,
+        data: Optional[dict] = None,
+    ) -> str:
+        return self._request_text(
+            method=method, endpoint=endpoint, params=params, data=data
+        )
 
     def make_stream_request(
         self,

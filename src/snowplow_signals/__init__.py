@@ -1,5 +1,6 @@
 from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
+    AgenticContextResponse,
     AtomicProperty,
     Attribute,
     AttributeGroup,
@@ -12,7 +13,14 @@ from snowplow_signals.models import (
     Criterion,
     EntityProperty,
     Event,
+    EventLog,
+    EventLogAtomicProperty,
+    EventLogEntityProperty,
+    EventLogEvent,
+    EventLogEventProperty,
+    EventLogResponse,
     EventProperty,
+    EventSelection,
     ExternalBatchAttributeGroup,
     Field,
 )
@@ -73,6 +81,19 @@ network_userid
 EntityProperty
 EventProperty
 AtomicProperty
+
+# Event logs (definitions)
+EventLog
+EventLogResponse
+EventSelection
+EventLogEvent
+EventLogAtomicProperty
+EventLogEventProperty
+EventLogEntityProperty
+
+# Agentic context (retrieved values)
+AgenticContextResponse
+
 PagePing
 PageView
 StructuredEvent
