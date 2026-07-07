@@ -11,6 +11,7 @@ from snowplow_signals.models import (
     BatchSource,
     Criteria,
     Criterion,
+    DatasetBundle,
     EntityProperty,
     Event,
     EventLog,
@@ -39,9 +40,13 @@ from snowplow_signals.models import (
 from snowplow_signals.models import InterventionInstance as InterventionInstance
 from snowplow_signals.models import (
     LinkAttributeKey,
+    Output,
     RuleIntervention,
     Service,
+    SessionAnchors,
     StreamAttributeGroup,
+    TrainingSpan,
+    UserSuppliedAnchors,
 )
 from snowplow_signals.signals import Signals, SignalsSandbox
 
@@ -107,3 +112,10 @@ InterventionCriterion
 SignalsAPIError
 AttributeKeyIdentifiers
 AttributeKeyId
+
+# Datasets
+SessionAnchors
+UserSuppliedAnchors
+TrainingSpan
+Output
+DatasetBundle

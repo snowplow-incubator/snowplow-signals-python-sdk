@@ -5,6 +5,7 @@ import pandas as pd
 
 from .api_client import ApiClient
 from .attributes_client import AttributesClient
+from .dataset_client import DatasetClient
 from .interventions_client import InterventionsClient
 from .models import (
     AgenticContextResponse,
@@ -19,6 +20,12 @@ from .models import (
     RuleIntervention,
     Service,
     TestAttributeGroupRequest,
+)
+from .models import (
+    DatasetBundle,
+    Output,
+    SessionAnchors,
+    UserSuppliedAnchors,
 )
 from .registry_client import RegistryClient, RegistryObject
 from .testing_client import TestingClient
@@ -38,6 +45,7 @@ class BaseSignalsWithApiClient:
         self.registry = RegistryClient(api_client=self.api_client)
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
+        self.datasets = DatasetClient(api_client=self.api_client)
 
     def publish(self, objects: list[RegistryObject]) -> list[RegistryObject]:
         """
@@ -229,6 +237,31 @@ class BaseSignalsWithApiClient:
             A subscription object that can be started or used as a context manager to receive interventions.
         """
         return self.interventions.subscribe(targets)
+
+    def build_dataset_sql(
+        self,
+        attribute_groups: list[AttributeGroup],
+        anchors: SessionAnchors | UserSuppliedAnchors,
+        source_table: str,
+        output: Output | None = None,
+    ) -> DatasetBundle:
+        """
+        Generate a SQL bundle for building a training dataset.
+
+        Args:
+            attribute_groups: The attribute groups to include in the dataset.
+            anchors: Anchor configuration — either SessionAnchors or UserSuppliedAnchors.
+            source_table: Fully qualified events table to read from.
+            output: Optional output location configuration.
+        Returns:
+            A DatasetBundle containing the generated SQL files.
+        """
+        return self.datasets.build_sql(
+            attribute_groups=attribute_groups,
+            anchors=anchors,
+            source_table=source_table,
+            output=output,
+        )
 
 
 class Signals(BaseSignalsWithApiClient):
