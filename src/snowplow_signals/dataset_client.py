@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
 from .api_client import ApiClient
-from .models import AttributeGroup
-from .models.dataset import (
+from .models import (
+    AttributeGroup,
     DatasetBundle,
     Output,
     SessionAnchors,
