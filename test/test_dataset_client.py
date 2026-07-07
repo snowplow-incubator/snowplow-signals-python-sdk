@@ -14,8 +14,8 @@ from snowplow_signals import (
     domain_userid,
 )
 from snowplow_signals.api_client import ApiClient
-from snowplow_signals.models import AtomicProperty
-from snowplow_signals.models.dataset import (
+from snowplow_signals.models import (
+    AtomicProperty,
     DatasetBundle,
     Output,
     SessionAnchors,
@@ -26,7 +26,7 @@ from snowplow_signals.models.dataset import (
 
 class TestDatasetModels:
     def test_session_anchors_serialization(self):
-        from snowplow_signals.models.dataset import SessionAnchors, TrainingSpan
+        from snowplow_signals.models import SessionAnchors, TrainingSpan
 
         anchors = SessionAnchors(
             goal_criteria=Criteria(
@@ -49,7 +49,7 @@ class TestDatasetModels:
         assert "training_span" in dumped
 
     def test_user_supplied_anchors_serialization(self):
-        from snowplow_signals.models.dataset import UserSuppliedAnchors
+        from snowplow_signals.models import UserSuppliedAnchors
 
         anchors = UserSuppliedAnchors(
             source_table="db.schema.my_anchors",
@@ -63,7 +63,7 @@ class TestDatasetModels:
         assert dumped["has_label"] is True
 
     def test_output_serialization_uses_schema_alias(self):
-        from snowplow_signals.models.dataset import Output
+        from snowplow_signals.models import Output
 
         output = Output(database="my_db", schema="my_schema")
 
@@ -74,7 +74,7 @@ class TestDatasetModels:
         assert dumped["anchors_table"] == "signals_anchors"
 
     def test_output_optional_fields_excluded_when_none(self):
-        from snowplow_signals.models.dataset import Output
+        from snowplow_signals.models import Output
 
         output = Output()
 
@@ -84,7 +84,7 @@ class TestDatasetModels:
         assert dumped["anchors_table"] == "signals_anchors"
 
     def test_dataset_bundle_save_to(self, tmp_path):
-        from snowplow_signals.models.dataset import DatasetBundle
+        from snowplow_signals.models import DatasetBundle
 
         bundle = DatasetBundle(
             files={
@@ -101,7 +101,7 @@ class TestDatasetModels:
         assert (tmp_path / "output" / "attributes.sql").read_text() == "SELECT 2;"
 
     def test_dataset_bundle_save_to_creates_nested_dirs(self, tmp_path):
-        from snowplow_signals.models.dataset import DatasetBundle
+        from snowplow_signals.models import DatasetBundle
 
         bundle = DatasetBundle(files={"test.sql": "SELECT 1;"})
         nested = tmp_path / "a" / "b" / "c"
