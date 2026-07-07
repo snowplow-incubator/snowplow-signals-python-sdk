@@ -6,7 +6,6 @@ from .models import (
     DatasetBundle,
     Output,
     SessionAnchors,
-    UserSuppliedAnchors,
 )
 
 
@@ -17,9 +16,10 @@ class DatasetClient:
     def build_sql(
         self,
         attribute_groups: list[AttributeGroup],
-        anchors: SessionAnchors | UserSuppliedAnchors,
+        anchors: SessionAnchors,
         source_table: str,
         output: Output | None = None,
+        max_lookback_days: int | None = None,
     ) -> DatasetBundle:
         data = {
             "source_table": source_table,
@@ -28,6 +28,8 @@ class DatasetClient:
         }
         if output is not None:
             data["output"] = self._model_dump(output)
+        if max_lookback_days is not None:
+            data["max_lookback_days"] = max_lookback_days
 
         response = self.api_client.make_request("POST", "datasets/sql", data=data)
         files = {f["filename"]: f["content"] for f in response["files"]}

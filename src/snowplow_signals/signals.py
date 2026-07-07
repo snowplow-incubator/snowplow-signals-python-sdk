@@ -14,18 +14,15 @@ from .models import (
     AttributeKey,
     AttributeKeyId,
     AttributeKeyIdentifiers,
+    DatasetBundle,
     EventLog,
     EventLogResponse,
     InterventionInstance,
+    Output,
     RuleIntervention,
     Service,
-    TestAttributeGroupRequest,
-)
-from .models import (
-    DatasetBundle,
-    Output,
     SessionAnchors,
-    UserSuppliedAnchors,
+    TestAttributeGroupRequest,
 )
 from .registry_client import RegistryClient, RegistryObject
 from .testing_client import TestingClient
@@ -241,18 +238,20 @@ class BaseSignalsWithApiClient:
     def build_dataset_sql(
         self,
         attribute_groups: list[AttributeGroup],
-        anchors: SessionAnchors | UserSuppliedAnchors,
+        anchors: SessionAnchors,
         source_table: str,
         output: Output | None = None,
+        max_lookback_days: int | None = None,
     ) -> DatasetBundle:
         """
         Generate a SQL bundle for building a training dataset.
 
         Args:
             attribute_groups: The attribute groups to include in the dataset.
-            anchors: Anchor configuration — either SessionAnchors or UserSuppliedAnchors.
+            anchors: Anchor configuration (SessionAnchors).
             source_table: Fully qualified events table to read from.
             output: Optional output location configuration.
+            max_lookback_days: Override the computed max lookback window (in days).
         Returns:
             A DatasetBundle containing the generated SQL files.
         """
@@ -261,6 +260,7 @@ class BaseSignalsWithApiClient:
             anchors=anchors,
             source_table=source_table,
             output=output,
+            max_lookback_days=max_lookback_days,
         )
 
 

@@ -2,32 +2,26 @@ import json
 from datetime import datetime, timezone
 
 import httpx
-import pytest
 from respx import MockRouter
 
 from snowplow_signals import (
     AttributeGroup,
     Criteria,
     Criterion,
-    Event,
     Signals,
     domain_userid,
 )
-from snowplow_signals.api_client import ApiClient
 from snowplow_signals.models import (
     AtomicProperty,
     DatasetBundle,
     Output,
     SessionAnchors,
     TrainingSpan,
-    UserSuppliedAnchors,
 )
 
 
 class TestDatasetModels:
     def test_session_anchors_serialization(self):
-        from snowplow_signals.models import SessionAnchors, TrainingSpan
-
         anchors = SessionAnchors(
             goal_criteria=Criteria(
                 any=[Criterion.eq(AtomicProperty(name="se_action"), "purchase")]
@@ -48,23 +42,7 @@ class TestDatasetModels:
         assert "goal_criteria" in dumped
         assert "training_span" in dumped
 
-    def test_user_supplied_anchors_serialization(self):
-        from snowplow_signals.models import UserSuppliedAnchors
-
-        anchors = UserSuppliedAnchors(
-            source_table="db.schema.my_anchors",
-            key_columns=["domain_userid"],
-        )
-
-        dumped = anchors.model_dump(mode="json", exclude_none=True, by_alias=True)
-        assert dumped["mode"] == "user_supplied"
-        assert dumped["source_table"] == "db.schema.my_anchors"
-        assert dumped["key_columns"] == ["domain_userid"]
-        assert dumped["has_label"] is True
-
     def test_output_serialization_uses_schema_alias(self):
-        from snowplow_signals.models import Output
-
         output = Output(database="my_db", schema="my_schema")
 
         dumped = output.model_dump(mode="json", exclude_none=True, by_alias=True)
@@ -74,8 +52,6 @@ class TestDatasetModels:
         assert dumped["anchors_table"] == "signals_anchors"
 
     def test_output_optional_fields_excluded_when_none(self):
-        from snowplow_signals.models import Output
-
         output = Output()
 
         dumped = output.model_dump(mode="json", exclude_none=True, by_alias=True)
@@ -84,8 +60,6 @@ class TestDatasetModels:
         assert dumped["anchors_table"] == "signals_anchors"
 
     def test_dataset_bundle_save_to(self, tmp_path):
-        from snowplow_signals.models import DatasetBundle
-
         bundle = DatasetBundle(
             files={
                 "README.md": "# My Dataset",
@@ -101,8 +75,6 @@ class TestDatasetModels:
         assert (tmp_path / "output" / "attributes.sql").read_text() == "SELECT 2;"
 
     def test_dataset_bundle_save_to_creates_nested_dirs(self, tmp_path):
-        from snowplow_signals.models import DatasetBundle
-
         bundle = DatasetBundle(files={"test.sql": "SELECT 1;"})
         nested = tmp_path / "a" / "b" / "c"
 
@@ -161,29 +133,6 @@ class TestDatasetClient:
         assert "training_span" in request_body["anchors"]
         assert len(request_body["attribute_groups"]) == 1
         assert request_body["attribute_groups"][0]["name"] == "my_group"
-
-    def test_build_sql_user_supplied_anchors_request(
-        self, respx_mock: MockRouter, signals_client: Signals
-    ):
-        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/sql").mock(
-            return_value=httpx.Response(200, json=self._mock_bundle_response())
-        )
-
-        anchors = UserSuppliedAnchors(
-            source_table="db.schema.my_anchors",
-            key_columns=["domain_userid"],
-        )
-
-        signals_client.build_dataset_sql(
-            attribute_groups=[self._make_attribute_group()],
-            anchors=anchors,
-            source_table="db.schema.events",
-        )
-
-        request_body = json.loads(mock.calls[0].request.content)
-        assert request_body["anchors"]["mode"] == "user_supplied"
-        assert request_body["anchors"]["source_table"] == "db.schema.my_anchors"
-        assert request_body["anchors"]["key_columns"] == ["domain_userid"]
 
     def test_build_sql_parses_bundle_response(
         self, respx_mock: MockRouter, signals_client: Signals
@@ -247,11 +196,9 @@ class TestDatasetExports:
             Output,
             SessionAnchors,
             TrainingSpan,
-            UserSuppliedAnchors,
         )
 
         assert SessionAnchors is not None
-        assert UserSuppliedAnchors is not None
         assert TrainingSpan is not None
         assert Output is not None
         assert DatasetBundle is not None
