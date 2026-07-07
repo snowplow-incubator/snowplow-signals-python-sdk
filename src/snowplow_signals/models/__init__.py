@@ -70,7 +70,6 @@ from .model import (
     TestAttributeGroupRequest,
     TrainingSpan,
     UnpublishRequest,
-    UserSuppliedAnchors,
 )
 from .service import Service
 
@@ -121,7 +120,6 @@ DatasetBundle
 Output
 SessionAnchors
 TrainingSpan
-UserSuppliedAnchors
 
 # Event logs (definitions)
 EventLog
