@@ -1,5 +1,9 @@
 # Changelog
 
+# [0.4.5] - 2026-07-13
+
+- Integrate event logs (agentic contexts) (#129)
+
 # [0.4.4] - 2026-06-30
 
 - Batch Engine model updates (#126)
