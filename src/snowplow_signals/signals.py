@@ -9,6 +9,7 @@ from .dataset_client import DatasetClient
 from .interventions_client import InterventionsClient
 from .models import (
     AgenticContextResponse,
+    Anchors,
     AttributeGroup,
     AttributeGroupResponse,
     AttributeKey,
@@ -18,11 +19,10 @@ from .models import (
     EventLog,
     EventLogResponse,
     InterventionInstance,
-    Output,
     RuleIntervention,
     Service,
-    SessionAnchors,
     TestAttributeGroupRequest,
+    WarehouseTable,
 )
 from .registry_client import RegistryClient, RegistryObject
 from .testing_client import TestingClient
@@ -238,9 +238,11 @@ class BaseSignalsWithApiClient:
     def build_dataset_sql(
         self,
         attribute_groups: list[AttributeGroup],
-        anchors: SessionAnchors,
-        source_table: str,
-        output: Output | None = None,
+        anchors: Anchors,
+        attributes_database: str | None = None,
+        attributes_schema: str | None = None,
+        attributes_table_prefix: str | None = None,
+        dataset: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
     ) -> DatasetBundle:
         """
@@ -248,9 +250,11 @@ class BaseSignalsWithApiClient:
 
         Args:
             attribute_groups: The attribute groups to include in the dataset.
-            anchors: Anchor configuration (SessionAnchors).
-            source_table: Fully qualified events table to read from.
-            output: Optional output location configuration.
+            anchors: Anchor configuration (SessionAnchors or UserSuppliedAnchors).
+            attributes_database: Optional database for attribute output tables.
+            attributes_schema: Optional schema for attribute output tables.
+            attributes_table_prefix: Optional table name prefix for attribute tables.
+            dataset: Optional output table for the assembled dataset.
             max_lookback_days: Override the computed max lookback window (in days).
         Returns:
             A DatasetBundle containing the generated SQL files.
@@ -258,8 +262,10 @@ class BaseSignalsWithApiClient:
         return self.datasets.build_sql(
             attribute_groups=attribute_groups,
             anchors=anchors,
-            source_table=source_table,
-            output=output,
+            attributes_database=attributes_database,
+            attributes_schema=attributes_schema,
+            attributes_table_prefix=attributes_table_prefix,
+            dataset=dataset,
             max_lookback_days=max_lookback_days,
         )
 
