@@ -14,9 +14,10 @@ from snowplow_signals import (
 from snowplow_signals.models import (
     AtomicProperty,
     DatasetBundle,
-    Output,
     SessionAnchors,
     TrainingSpan,
+    UserSuppliedAnchors,
+    WarehouseTable,
 )
 
 
@@ -26,7 +27,6 @@ class TestDatasetModels:
             goal_criteria=Criteria(
                 any=[Criterion.eq(AtomicProperty(name="se_action"), "purchase")]
             ),
-            keys=["domain_userid", "domain_sessionid"],
             training_span=TrainingSpan(
                 start_time=datetime(2025, 1, 1, tzinfo=timezone.utc),
                 end_time=datetime(2025, 6, 1, tzinfo=timezone.utc),
@@ -35,44 +35,99 @@ class TestDatasetModels:
 
         dumped = anchors.model_dump(mode="json", exclude_none=True, by_alias=True)
         assert dumped["mode"] == "session"
-        assert dumped["keys"] == ["domain_userid", "domain_sessionid"]
         assert dumped["max_negative_ratio"] == 5.0
         assert dumped["min_events"] == 1
-        assert dumped["excluded_events"] == ["page_ping"]
+        assert dumped["excluded_events"] == [{"name": "page_ping"}]
         assert "goal_criteria" in dumped
         assert "training_span" in dumped
 
-    def test_output_serialization_uses_schema_alias(self):
-        output = Output(database="my_db", schema="my_schema")
+    def test_user_supplied_anchors_serialization(self):
+        anchors = UserSuppliedAnchors(
+            source=WarehouseTable(
+                database="my_db", schema="my_schema", table="my_anchors"
+            ),
+            has_label=True,
+        )
 
-        dumped = output.model_dump(mode="json", exclude_none=True, by_alias=True)
+        dumped = anchors.model_dump(mode="json", exclude_none=True, by_alias=True)
+        assert dumped["mode"] == "user_supplied"
+        assert dumped["source"]["database"] == "my_db"
+        assert dumped["source"]["schema"] == "my_schema"
+        assert dumped["source"]["table"] == "my_anchors"
+        assert dumped["has_label"] is True
+
+    def test_warehouse_table_serialization_uses_schema_alias(self):
+        table = WarehouseTable(database="my_db", schema="my_schema", table="my_table")
+
+        dumped = table.model_dump(mode="json", exclude_none=True, by_alias=True)
         assert dumped["schema"] == "my_schema"
         assert "schema_" not in dumped
         assert dumped["database"] == "my_db"
-        assert dumped["anchors_table"] == "signals_anchors"
-
-    def test_output_optional_fields_excluded_when_none(self):
-        output = Output()
-
-        dumped = output.model_dump(mode="json", exclude_none=True, by_alias=True)
-        assert "database" not in dumped
-        assert "schema" not in dumped
-        assert dumped["anchors_table"] == "signals_anchors"
+        assert dumped["table"] == "my_table"
 
     def test_dataset_bundle_save_to(self, tmp_path):
         bundle = DatasetBundle(
             files={
-                "README.md": "# My Dataset",
-                "anchors.sql": "SELECT 1;",
-                "attributes.sql": "SELECT 2;",
-            }
+                "signals_anchors.sql": "SELECT 1;",
+                "signals_attributes_domain_sessionid.sql": "SELECT 2;",
+                "signals_training_dataset.sql": "SELECT 3;",
+            },
+            request_data={
+                "anchors": {"mode": "session"},
+                "attributes": {
+                    "attribute_groups": [{"name": "my_group", "version": 1}]
+                },
+            },
+            response_data={
+                "anchors": {
+                    "database": "db",
+                    "schema": "sch",
+                    "table": "signals_anchors",
+                    "sql": "SELECT 1;",
+                },
+                "attributes": [
+                    {
+                        "database": "db",
+                        "schema": "sch",
+                        "table": "signals_attributes_domain_sessionid",
+                        "sql": "SELECT 2;",
+                    }
+                ],
+                "dataset": {
+                    "database": "db",
+                    "schema": "sch",
+                    "table": "signals_training_dataset",
+                    "sql": "SELECT 3;",
+                },
+            },
         )
 
         bundle.save_to(tmp_path / "output")
 
-        assert (tmp_path / "output" / "README.md").read_text() == "# My Dataset"
-        assert (tmp_path / "output" / "anchors.sql").read_text() == "SELECT 1;"
-        assert (tmp_path / "output" / "attributes.sql").read_text() == "SELECT 2;"
+        out = tmp_path / "output"
+        assert (out / "signals_anchors.sql").read_text() == "SELECT 1;"
+        assert (
+            out / "signals_attributes_domain_sessionid.sql"
+        ).read_text() == "SELECT 2;"
+        assert (out / "signals_training_dataset.sql").read_text() == "SELECT 3;"
+
+        # manifest.json is generated
+        import json
+
+        manifest = json.loads((out / "manifest.json").read_text())
+        assert "generated_at" in manifest
+        assert manifest["input"]["anchors"]["mode"] == "session"
+        assert manifest["input"]["attribute_groups"] == [
+            {"name": "my_group", "version": 1}
+        ]
+        assert manifest["output"]["database"] == "db"
+        assert manifest["output"]["tables"]["anchors"] == "signals_anchors"
+        assert len(manifest["files"]) == 3
+
+        # README.md is generated
+        readme = (out / "README.md").read_text()
+        assert "signals_anchors.sql" in readme
+        assert "manifest.json" in readme
 
     def test_dataset_bundle_save_to_creates_nested_dirs(self, tmp_path):
         bundle = DatasetBundle(files={"test.sql": "SELECT 1;"})
@@ -89,7 +144,6 @@ class TestDatasetClient:
             goal_criteria=Criteria(
                 any=[Criterion.eq(AtomicProperty(name="se_action"), "purchase")]
             ),
-            keys=["domain_userid", "domain_sessionid"],
             training_span=TrainingSpan(
                 start_time=datetime(2025, 1, 1, tzinfo=timezone.utc),
                 end_time=datetime(2025, 6, 1, tzinfo=timezone.utc),
@@ -105,11 +159,30 @@ class TestDatasetClient:
 
     def _mock_bundle_response(self) -> dict:
         return {
-            "files": [
-                {"filename": "README.md", "content": "# Dataset"},
-                {"filename": "anchors.sql", "content": "SELECT 1;"},
-                {"filename": "attributes.sql", "content": "SELECT 2;"},
-            ]
+            "anchors": {
+                "database": "db",
+                "schema": "schema",
+                "table": "signals_anchors",
+                "sql": "SELECT 1;",
+            },
+            "attributes": [
+                {
+                    "database": "db",
+                    "schema": "schema",
+                    "table": "signals_attributes_domain_userid",
+                    "sql": "SELECT 2;",
+                    "attribute_key": {
+                        "name": "domain_userid",
+                        "blobl_path": None,
+                    },
+                }
+            ],
+            "dataset": {
+                "database": "db",
+                "schema": "schema",
+                "table": "signals_training_dataset",
+                "sql": "SELECT 3;",
+            },
         }
 
     def test_build_sql_session_anchors_request(
@@ -122,17 +195,14 @@ class TestDatasetClient:
         result = signals_client.build_dataset_sql(
             attribute_groups=[self._make_attribute_group()],
             anchors=self._make_session_anchors(),
-            source_table="db.schema.events",
         )
 
         assert mock.called
         request_body = json.loads(mock.calls[0].request.content)
-        assert request_body["source_table"] == "db.schema.events"
         assert request_body["anchors"]["mode"] == "session"
-        assert request_body["anchors"]["keys"] == ["domain_userid", "domain_sessionid"]
         assert "training_span" in request_body["anchors"]
-        assert len(request_body["attribute_groups"]) == 1
-        assert request_body["attribute_groups"][0]["name"] == "my_group"
+        assert len(request_body["attributes"]["attribute_groups"]) == 1
+        assert request_body["attributes"]["attribute_groups"][0]["name"] == "my_group"
 
     def test_build_sql_parses_bundle_response(
         self, respx_mock: MockRouter, signals_client: Signals
@@ -144,17 +214,14 @@ class TestDatasetClient:
         result = signals_client.build_dataset_sql(
             attribute_groups=[self._make_attribute_group()],
             anchors=self._make_session_anchors(),
-            source_table="db.schema.events",
         )
 
         assert isinstance(result, DatasetBundle)
-        assert result.files == {
-            "README.md": "# Dataset",
-            "anchors.sql": "SELECT 1;",
-            "attributes.sql": "SELECT 2;",
-        }
+        assert "signals_anchors.sql" in result.files
+        assert "signals_attributes_domain_userid.sql" in result.files
+        assert "signals_training_dataset.sql" in result.files
 
-    def test_build_sql_output_included_when_provided(
+    def test_build_sql_dataset_included_when_provided(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
         mock = respx_mock.post("http://localhost:8000/api/v1/datasets/sql").mock(
@@ -164,15 +231,17 @@ class TestDatasetClient:
         signals_client.build_dataset_sql(
             attribute_groups=[self._make_attribute_group()],
             anchors=self._make_session_anchors(),
-            source_table="db.schema.events",
-            output=Output(database="my_db", schema="my_schema"),
+            dataset=WarehouseTable(
+                database="my_db", schema="my_schema", table="my_dataset"
+            ),
         )
 
         request_body = json.loads(mock.calls[0].request.content)
-        assert request_body["output"]["database"] == "my_db"
-        assert request_body["output"]["schema"] == "my_schema"
+        assert request_body["dataset"]["database"] == "my_db"
+        assert request_body["dataset"]["schema"] == "my_schema"
+        assert request_body["dataset"]["table"] == "my_dataset"
 
-    def test_build_sql_output_omitted_when_none(
+    def test_build_sql_dataset_omitted_when_none(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
         mock = respx_mock.post("http://localhost:8000/api/v1/datasets/sql").mock(
@@ -182,23 +251,46 @@ class TestDatasetClient:
         signals_client.build_dataset_sql(
             attribute_groups=[self._make_attribute_group()],
             anchors=self._make_session_anchors(),
-            source_table="db.schema.events",
         )
 
         request_body = json.loads(mock.calls[0].request.content)
-        assert "output" not in request_body
+        assert "dataset" not in request_body
+
+    def test_build_sql_user_supplied_anchors(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/sql").mock(
+            return_value=httpx.Response(200, json=self._mock_bundle_response())
+        )
+
+        anchors = UserSuppliedAnchors(
+            source=WarehouseTable(
+                database="my_db", schema="my_schema", table="my_anchors"
+            ),
+        )
+
+        signals_client.build_dataset_sql(
+            attribute_groups=[self._make_attribute_group()],
+            anchors=anchors,
+        )
+
+        request_body = json.loads(mock.calls[0].request.content)
+        assert request_body["anchors"]["mode"] == "user_supplied"
+        assert request_body["anchors"]["source"]["table"] == "my_anchors"
 
 
 class TestDatasetExports:
     def test_models_importable_from_snowplow_signals(self):
         from snowplow_signals import (
             DatasetBundle,
-            Output,
             SessionAnchors,
             TrainingSpan,
+            UserSuppliedAnchors,
+            WarehouseTable,
         )
 
         assert SessionAnchors is not None
+        assert UserSuppliedAnchors is not None
+        assert WarehouseTable is not None
         assert TrainingSpan is not None
-        assert Output is not None
         assert DatasetBundle is not None

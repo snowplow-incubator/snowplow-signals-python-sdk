@@ -40,12 +40,13 @@ from snowplow_signals.models import (
 from snowplow_signals.models import InterventionInstance as InterventionInstance
 from snowplow_signals.models import (
     LinkAttributeKey,
-    Output,
     RuleIntervention,
     Service,
     SessionAnchors,
     StreamAttributeGroup,
     TrainingSpan,
+    UserSuppliedAnchors,
+    WarehouseTable,
 )
 from snowplow_signals.signals import Signals, SignalsSandbox
 
@@ -114,6 +115,7 @@ AttributeKeyId
 
 # Datasets
 SessionAnchors
+UserSuppliedAnchors
+WarehouseTable
 TrainingSpan
-Output
 DatasetBundle

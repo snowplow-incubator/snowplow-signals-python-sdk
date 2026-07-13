@@ -8,9 +8,12 @@ from .attribute_key import AttributeKey
 from .criteria_wrapper import Criteria
 from .criterion_wrapper import Criterion
 from .dataset import (
+    Anchors,
+    DatasetAttributeGroups,
     DatasetBundle,
-    Output,
     SessionAnchors,
+    UserSuppliedAnchors,
+    WarehouseTable,
 )
 from .event_log import EventLog
 from .get_attributes_response import GetAttributesResponse
@@ -36,7 +39,6 @@ from .model import (
     CriteriaWithStringProperty,
     CriterionWithStringProperty,
     EntityProperty,
-    Event,
     EventLogAtomicProperty,
 )
 from .model import EventLogBufferResponse as AgenticContextResponse
@@ -46,6 +48,9 @@ from .model import (
     EventLogEventProperty,
     EventLogReference,
     EventLogResponse,
+)
+from .model import EventOutput as Event
+from .model import (
     EventProperty,
     EventSelection,
 )
@@ -116,10 +121,13 @@ EventProperty
 EntityProperty
 AttributeKeyId
 AttributeKeyOutput
+Anchors
+DatasetAttributeGroups
 DatasetBundle
-Output
 SessionAnchors
 TrainingSpan
+UserSuppliedAnchors
+WarehouseTable
 
 # Event logs (definitions)
 EventLog
