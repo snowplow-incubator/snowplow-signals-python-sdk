@@ -3,11 +3,13 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Literal, Union
 
 from pydantic import BaseModel, ConfigDict
 
+from .connection import WarehouseConnection
 from .criteria_wrapper import Criteria
+from .execution import ExecutionError, ExecutionResult, StageResult
 from .model import DatasetAttributeGroups as DatasetAttributeGroupsModel
 from .model import SessionAnchors as SessionAnchorsModel
 from .model import UserSuppliedAnchors as UserSuppliedAnchorsModel
@@ -118,6 +120,71 @@ class DatasetBundle(BaseModel):
         lines.append("See `manifest.json` for full configuration details.")
         lines.append("")
         return "\n".join(lines)
+
+    def execute(self, connection: WarehouseConnection) -> ExecutionResult:
+        completed_stages: list[StageResult] = []
+        response = self.response_data
+
+        stages_to_run: list[
+            tuple[Literal["anchors", "attributes", "dataset"], dict[str, Any]]
+        ] = []
+
+        # Fixed order: anchors -> attributes -> dataset
+        stages_to_run.append(("anchors", response["anchors"]))
+        for attr_entry in response.get("attributes", []):
+            stages_to_run.append(("attributes", attr_entry))
+        stages_to_run.append(("dataset", response["dataset"]))
+
+        for stage_name, entry in stages_to_run:
+            table = WarehouseTable(
+                database=entry.get("database"),
+                schema=entry.get("schema"),
+                table=entry["table"],
+            )
+            try:
+                connection.execute(entry["sql"])
+                completed_stages.append(
+                    StageResult(stage=stage_name, table=table, status="completed")
+                )
+            except Exception as e:
+                raise ExecutionError(
+                    failed_stage=StageResult(
+                        stage=stage_name, table=table, status="failed"
+                    ),
+                    completed_stages=completed_stages,
+                    cause=e,
+                ) from e
+
+        # SELECT back the final training table
+        dataset_entry = response["dataset"]
+        parts = [
+            v
+            for v in [
+                dataset_entry.get("database"),
+                dataset_entry.get("schema"),
+                dataset_entry["table"],
+            ]
+            if v is not None
+        ]
+        fqn = ".".join(parts)
+        try:
+            dataframe = connection.fetch_pandas(f"SELECT * FROM {fqn}")
+        except Exception as e:
+            raise ExecutionError(
+                failed_stage=StageResult(
+                    stage="dataset",
+                    table=WarehouseTable(
+                        database=dataset_entry.get("database"),
+                        schema=dataset_entry.get("schema"),
+                        table=dataset_entry["table"],
+                    ),
+                    status="failed",
+                ),
+                completed_stages=completed_stages,
+                cause=e,
+            ) from e
+
+        return ExecutionResult(dataframe=dataframe, stages=completed_stages)
 
 
 def _file_description(filename: str) -> str:
