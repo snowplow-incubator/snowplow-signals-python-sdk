@@ -5,6 +5,7 @@ from .attribute_group import (
     StreamAttributeGroup,
 )
 from .attribute_key import AttributeKey
+from .connection import WarehouseConnection
 from .criteria_wrapper import Criteria
 from .criterion_wrapper import Criterion
 from .dataset import (
@@ -16,6 +17,7 @@ from .dataset import (
     WarehouseTable,
 )
 from .event_log import EventLog
+from .execution import ExecutionError, ExecutionResult, StageResult
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
@@ -141,3 +143,9 @@ EventLogEntityProperty
 
 # Agentic context (retrieved values)
 AgenticContextResponse
+
+# Warehouse execution
+WarehouseConnection
+ExecutionResult
+StageResult
+ExecutionError
