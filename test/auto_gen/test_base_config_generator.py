@@ -330,6 +330,7 @@ class TestBaseConfigGenerator:
             ("sum", "sum"),
             ("min", "min"),
             ("max", "max"),
+            ("mean", "avg"),
             ("first", "first"),
             ("last", "last"),
             ("unique_list", "unique_list"),
@@ -342,7 +343,6 @@ class TestBaseConfigGenerator:
         self, base_config_generator: BaseConfigGenerator
     ):
         """Test get_agg_short_name with unsupported aggregation and invalid input types"""
-        assert base_config_generator.get_agg_short_name("mean") is None
         assert base_config_generator.get_agg_short_name(None) is None  # type: ignore
         assert base_config_generator.get_agg_short_name("") is None  # type: ignore
         assert base_config_generator.get_agg_short_name(123) is None  # type: ignore

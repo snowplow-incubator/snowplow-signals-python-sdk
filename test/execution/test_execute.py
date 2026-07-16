@@ -1,8 +1,45 @@
+from datetime import datetime, timezone
+
 import pytest
 
+from snowplow_signals import AttributeGroup, Criteria, Criterion, domain_userid
 from snowplow_signals.execution.snowflake import SnowflakeConnection
+from snowplow_signals.models import AtomicProperty, SessionAnchors, TrainingSpan
 from snowplow_signals.models.dataset import DatasetBundle
 from snowplow_signals.models.execution import ExecutionError
+from snowplow_signals.models.model import (
+    AttributeKeyOutput,
+    AttributeSqlFile,
+    DatasetAttributeGroups,
+    DatasetBundleRequest,
+    DatasetBundleResponse,
+    DatasetSqlFile,
+)
+
+
+def _make_request(
+    attribute_group_name: str = "test_group",
+) -> DatasetBundleRequest:
+    return DatasetBundleRequest(
+        anchors=SessionAnchors(
+            goal_criteria=Criteria(
+                any=[Criterion.eq(AtomicProperty(name="se_action"), "purchase")]
+            ),
+            training_span=TrainingSpan(
+                start_time=datetime(2025, 1, 1, tzinfo=timezone.utc),
+                end_time=datetime(2025, 6, 1, tzinfo=timezone.utc),
+            ),
+        ),
+        attributes=DatasetAttributeGroups(
+            attribute_groups=[
+                AttributeGroup(
+                    name=attribute_group_name,
+                    attribute_key=domain_userid,
+                    owner="test@example.com",
+                )
+            ],
+        ),
+    )
 
 
 def _make_bundle(
@@ -10,43 +47,38 @@ def _make_bundle(
     attributes_sql: list[tuple[str, str]],
     dataset_sql: str,
 ) -> DatasetBundle:
-    """Build a DatasetBundle with controlled response_data.
+    """Build a DatasetBundle with controlled response.
 
     Args:
         anchors_sql: SQL for the anchors stage.
         attributes_sql: List of (table_name, sql) for each attribute stage.
         dataset_sql: SQL for the dataset stage.
     """
-    files = {}
-    response_data = {
-        "anchors": {
-            "database": "test_db",
-            "schema": "test_schema",
-            "table": "signals_anchors",
-            "sql": anchors_sql,
-        },
-        "attributes": [
-            {
-                "database": "test_db",
-                "schema": "test_schema",
-                "table": table_name,
-                "sql": sql,
-            }
+    response = DatasetBundleResponse(
+        anchors=DatasetSqlFile(
+            database="test_db",
+            schema="test_schema",
+            table="signals_anchors",
+            sql=anchors_sql,
+        ),
+        attributes=[
+            AttributeSqlFile(
+                database="test_db",
+                schema="test_schema",
+                table=table_name,
+                sql=sql,
+                attribute_key=AttributeKeyOutput(name=table_name, blobl_path=None),
+            )
             for table_name, sql in attributes_sql
         ],
-        "dataset": {
-            "database": "test_db",
-            "schema": "test_schema",
-            "table": "signals_training_dataset",
-            "sql": dataset_sql,
-        },
-    }
-    # Populate files dict (mirrors what dataset_client does)
-    files["signals_anchors.sql"] = anchors_sql
-    for table_name, sql in attributes_sql:
-        files[f"{table_name}.sql"] = sql
-    files["signals_training_dataset.sql"] = dataset_sql
-    return DatasetBundle(files=files, response_data=response_data)
+        dataset=DatasetSqlFile(
+            database="test_db",
+            schema="test_schema",
+            table="signals_training_dataset",
+            sql=dataset_sql,
+        ),
+    )
+    return DatasetBundle(request=_make_request(), response=response)
 
 
 def test_execute_happy_path(snowflake_conn: SnowflakeConnection):
@@ -73,7 +105,7 @@ def test_execute_happy_path(snowflake_conn: SnowflakeConnection):
 
     result = bundle.execute(snowflake_conn)
 
-    df = result.to_pandas()
+    df = result.dataframe
     assert len(df) == 1
     assert set(df.columns) == {"USER_ID", "LABEL", "PAGE_VIEWS"}
     assert df["USER_ID"].iloc[0] == 1

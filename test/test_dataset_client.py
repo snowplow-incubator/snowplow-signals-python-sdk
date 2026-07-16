@@ -14,10 +14,18 @@ from snowplow_signals import (
 from snowplow_signals.models import (
     AtomicProperty,
     DatasetBundle,
+    DatasetBundleRequest,
+    DatasetBundleResponse,
+    DatasetSqlFile,
     SessionAnchors,
     TrainingSpan,
     UserSuppliedAnchors,
     WarehouseTable,
+)
+from snowplow_signals.models.model import (
+    AttributeKeyOutput,
+    AttributeSqlFile,
+    DatasetAttributeGroups,
 )
 
 
@@ -65,41 +73,56 @@ class TestDatasetModels:
         assert dumped["database"] == "my_db"
         assert dumped["table"] == "my_table"
 
+    def _make_session_anchors(self) -> SessionAnchors:
+        return SessionAnchors(
+            goal_criteria=Criteria(
+                any=[Criterion.eq(AtomicProperty(name="se_action"), "purchase")]
+            ),
+            training_span=TrainingSpan(
+                start_time=datetime(2025, 1, 1, tzinfo=timezone.utc),
+                end_time=datetime(2025, 6, 1, tzinfo=timezone.utc),
+            ),
+        )
+
     def test_dataset_bundle_save_to(self, tmp_path):
         bundle = DatasetBundle(
-            files={
-                "signals_anchors.sql": "SELECT 1;",
-                "signals_attributes_domain_sessionid.sql": "SELECT 2;",
-                "signals_training_dataset.sql": "SELECT 3;",
-            },
-            request_data={
-                "anchors": {"mode": "session"},
-                "attributes": {
-                    "attribute_groups": [{"name": "my_group", "version": 1}]
-                },
-            },
-            response_data={
-                "anchors": {
-                    "database": "db",
-                    "schema": "sch",
-                    "table": "signals_anchors",
-                    "sql": "SELECT 1;",
-                },
-                "attributes": [
-                    {
-                        "database": "db",
-                        "schema": "sch",
-                        "table": "signals_attributes_domain_sessionid",
-                        "sql": "SELECT 2;",
-                    }
+            request=DatasetBundleRequest(
+                anchors=self._make_session_anchors(),
+                attributes=DatasetAttributeGroups(
+                    attribute_groups=[
+                        AttributeGroup(
+                            name="my_group",
+                            attribute_key=domain_userid,
+                            owner="test@example.com",
+                        )
+                    ],
+                ),
+            ),
+            response=DatasetBundleResponse(
+                anchors=DatasetSqlFile(
+                    database="db",
+                    schema="sch",
+                    table="signals_anchors",
+                    sql="SELECT 1;",
+                ),
+                attributes=[
+                    AttributeSqlFile(
+                        database="db",
+                        schema="sch",
+                        table="signals_attributes_domain_sessionid",
+                        sql="SELECT 2;",
+                        attribute_key=AttributeKeyOutput(
+                            name="domain_sessionid", blobl_path=None
+                        ),
+                    )
                 ],
-                "dataset": {
-                    "database": "db",
-                    "schema": "sch",
-                    "table": "signals_training_dataset",
-                    "sql": "SELECT 3;",
-                },
-            },
+                dataset=DatasetSqlFile(
+                    database="db",
+                    schema="sch",
+                    table="signals_training_dataset",
+                    sql="SELECT 3;",
+                ),
+            ),
         )
 
         bundle.save_to(tmp_path / "output")
@@ -130,12 +153,34 @@ class TestDatasetModels:
         assert "manifest.json" in readme
 
     def test_dataset_bundle_save_to_creates_nested_dirs(self, tmp_path):
-        bundle = DatasetBundle(files={"test.sql": "SELECT 1;"})
+        bundle = DatasetBundle(
+            request=DatasetBundleRequest(
+                anchors=self._make_session_anchors(),
+                attributes=DatasetAttributeGroups(
+                    attribute_groups=[
+                        AttributeGroup(
+                            name="t",
+                            attribute_key=domain_userid,
+                            owner="test@example.com",
+                        )
+                    ],
+                ),
+            ),
+            response=DatasetBundleResponse(
+                anchors=DatasetSqlFile(
+                    database=None, schema=None, table="anchors", sql="SELECT 1;"
+                ),
+                attributes=[],
+                dataset=DatasetSqlFile(
+                    database=None, schema=None, table="dataset", sql="SELECT 2;"
+                ),
+            ),
+        )
         nested = tmp_path / "a" / "b" / "c"
 
         bundle.save_to(nested)
 
-        assert (nested / "test.sql").read_text() == "SELECT 1;"
+        assert (nested / "anchors.sql").read_text() == "SELECT 1;"
 
 
 class TestDatasetClient:

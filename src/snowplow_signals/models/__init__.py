@@ -31,6 +31,7 @@ from .model import (
     AttributeKeyIdentifiers,
     AttributeKeyOutput,
     AttributeKeyReference,
+    AttributeSqlFile,
     AttributeWithStringProperty,
     BatchSource,
 )
@@ -40,6 +41,9 @@ from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
     CriteriaWithStringProperty,
     CriterionWithStringProperty,
+    DatasetBundleRequest,
+    DatasetBundleResponse,
+    DatasetSqlFile,
     EntityProperty,
     EventLogAtomicProperty,
 )
@@ -124,8 +128,12 @@ EntityProperty
 AttributeKeyId
 AttributeKeyOutput
 Anchors
+AttributeSqlFile
 DatasetAttributeGroups
 DatasetBundle
+DatasetBundleRequest
+DatasetBundleResponse
+DatasetSqlFile
 SessionAnchors
 TrainingSpan
 UserSuppliedAnchors

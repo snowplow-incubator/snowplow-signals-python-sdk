@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal, Union
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from .connection import WarehouseConnection
 from .criteria_wrapper import Criteria
 from .execution import ExecutionError, ExecutionResult, StageResult
+from .model import AttributeGroupInput, AttributeSqlFile
 from .model import DatasetAttributeGroups as DatasetAttributeGroupsModel
+from .model import DatasetBundleRequest, DatasetBundleResponse, DatasetSqlFile
 from .model import SessionAnchors as SessionAnchorsModel
 from .model import UserSuppliedAnchors as UserSuppliedAnchorsModel
 from .model import WarehouseTable as WarehouseTableModel
@@ -39,15 +42,48 @@ class DatasetAttributeGroups(DatasetAttributeGroupsModel):
     """SDK wrapper with populate_by_name enabled."""
 
     model_config = ConfigDict(populate_by_name=True)
+    attribute_groups: Sequence[AttributeGroupInput]  # type: ignore[assignment]
 
 
 Anchors = Union[SessionAnchors, UserSuppliedAnchors]
 
 
+class ManifestInput(BaseModel):
+    anchors: dict[str, Any]
+    attribute_groups: list[AttributeGroupInput]
+
+
+class ManifestOutput(BaseModel):
+    database: str | None
+    schema_: str | None = Field(alias="schema")
+    tables: dict[str, str]
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class Manifest(BaseModel):
+    generated_at: str
+    input: ManifestInput
+    output: ManifestOutput
+    files: list[str]
+
+
 class DatasetBundle(BaseModel):
-    files: dict[str, str]
-    request_data: dict[str, Any] = {}
-    response_data: dict[str, Any] = {}
+    request: DatasetBundleRequest
+    response: DatasetBundleResponse
+
+    @property
+    def files(self) -> dict[str, str]:
+        """SQL files keyed by filename, derived from the response."""
+        result: dict[str, str] = {}
+        for entry in [
+            self.response.anchors,
+            *self.response.attributes,
+            self.response.dataset,
+        ]:
+            if entry.sql:
+                result[entry.table + ".sql"] = entry.sql
+        return result
 
     def save_to(self, path: str | Path) -> None:
         path = Path(path)
@@ -56,55 +92,41 @@ class DatasetBundle(BaseModel):
             (path / filename).write_text(content)
 
         manifest = self._build_manifest()
-        (path / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+        (path / "manifest.json").write_text(
+            manifest.model_dump_json(indent=2, by_alias=True) + "\n"
+        )
         (path / "README.md").write_text(self._build_readme(manifest))
 
-    def _build_manifest(self) -> dict[str, Any]:
-        response = self.response_data
-        request = self.request_data
-
+    def _build_manifest(self) -> Manifest:
         # Build output tables mapping
         tables: dict[str, str] = {}
-        anchors_entry = response.get("anchors", {})
-        if anchors_entry.get("table"):
-            tables["anchors"] = anchors_entry["table"]
-        for attr_entry in response.get("attributes", []):
-            if attr_entry.get("table"):
-                tables[attr_entry["table"]] = attr_entry["table"]
-        dataset_entry = response.get("dataset", {})
-        if dataset_entry.get("table"):
-            tables["training_dataset"] = dataset_entry["table"]
+        if self.response.anchors.table:
+            tables["anchors"] = self.response.anchors.table
+        for attr_entry in self.response.attributes:
+            if attr_entry.table:
+                tables[attr_entry.table] = attr_entry.table
+        if self.response.dataset.table:
+            tables["training_dataset"] = self.response.dataset.table
 
-        # Determine output database/schema from response
-        first_entry = anchors_entry or dataset_entry or {}
-        output_db = first_entry.get("database")
-        output_schema = first_entry.get("schema")
+        first_entry = self.response.anchors
 
-        # Build attribute group summaries
-        attr_groups = []
-        for ag in request.get("attributes", {}).get("attribute_groups", []):
-            attr_groups.append(
-                {
-                    "name": ag.get("name"),
-                    "version": ag.get("version", 1),
-                }
-            )
+        return Manifest(
+            generated_at=datetime.now(timezone.utc).isoformat(),
+            input=ManifestInput(
+                anchors=self.request.anchors.model_dump(
+                    mode="json", exclude_none=True, by_alias=True
+                ),
+                attribute_groups=list(self.request.attributes.attribute_groups),
+            ),
+            output=ManifestOutput(
+                database=first_entry.database,
+                schema=first_entry.schema_,
+                tables=tables,
+            ),
+            files=sorted(self.files.keys()),
+        )
 
-        return {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "input": {
-                "anchors": request.get("anchors", {}),
-                "attribute_groups": attr_groups,
-            },
-            "output": {
-                "database": output_db,
-                "schema": output_schema,
-                "tables": tables,
-            },
-            "files": sorted(self.files.keys()),
-        }
-
-    def _build_readme(self, manifest: dict[str, Any]) -> str:
+    def _build_readme(self, manifest: Manifest) -> str:
         lines = [
             "# Dataset SQL Bundle",
             "",
@@ -123,26 +145,30 @@ class DatasetBundle(BaseModel):
 
     def execute(self, connection: WarehouseConnection) -> ExecutionResult:
         completed_stages: list[StageResult] = []
-        response = self.response_data
 
         stages_to_run: list[
-            tuple[Literal["anchors", "attributes", "dataset"], dict[str, Any]]
+            tuple[
+                Literal["anchors", "attributes", "dataset"],
+                DatasetSqlFile | AttributeSqlFile,
+            ]
         ] = []
 
         # Fixed order: anchors -> attributes -> dataset
-        stages_to_run.append(("anchors", response["anchors"]))
-        for attr_entry in response.get("attributes", []):
+        stages_to_run.append(("anchors", self.response.anchors))
+        for attr_entry in self.response.attributes:
             stages_to_run.append(("attributes", attr_entry))
-        stages_to_run.append(("dataset", response["dataset"]))
+        stages_to_run.append(("dataset", self.response.dataset))
 
         for stage_name, entry in stages_to_run:
             table = WarehouseTable(
-                database=entry.get("database"),
-                schema=entry.get("schema"),
-                table=entry["table"],
+                database=entry.database,
+                schema=entry.schema_,
+                table=entry.table,
             )
+            if entry.sql is None:
+                continue
             try:
-                connection.execute(entry["sql"])
+                connection.execute(entry.sql)
                 completed_stages.append(
                     StageResult(stage=stage_name, table=table, status="completed")
                 )
@@ -156,14 +182,10 @@ class DatasetBundle(BaseModel):
                 ) from e
 
         # SELECT back the final training table
-        dataset_entry = response["dataset"]
+        dataset = self.response.dataset
         parts = [
             v
-            for v in [
-                dataset_entry.get("database"),
-                dataset_entry.get("schema"),
-                dataset_entry["table"],
-            ]
+            for v in [dataset.database, dataset.schema_, dataset.table]
             if v is not None
         ]
         fqn = ".".join(parts)
@@ -174,9 +196,9 @@ class DatasetBundle(BaseModel):
                 failed_stage=StageResult(
                     stage="dataset",
                     table=WarehouseTable(
-                        database=dataset_entry.get("database"),
-                        schema=dataset_entry.get("schema"),
-                        table=dataset_entry["table"],
+                        database=dataset.database,
+                        schema=dataset.schema_,
+                        table=dataset.table,
                     ),
                     status="failed",
                 ),

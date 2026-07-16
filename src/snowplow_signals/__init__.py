@@ -46,6 +46,7 @@ from snowplow_signals.models import (
     StreamAttributeGroup,
     TrainingSpan,
     UserSuppliedAnchors,
+    WarehouseConnection,
     WarehouseTable,
 )
 from snowplow_signals.signals import Signals, SignalsSandbox
@@ -116,6 +117,7 @@ AttributeKeyId
 # Datasets
 SessionAnchors
 UserSuppliedAnchors
+WarehouseConnection
 WarehouseTable
 TrainingSpan
 DatasetBundle
