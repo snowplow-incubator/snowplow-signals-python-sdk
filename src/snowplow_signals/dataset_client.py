@@ -6,9 +6,11 @@ from .api_client import ApiClient
 from .models import (
     Anchors,
     AttributeGroup,
+    DatasetAttributeGroups,
     DatasetBundle,
     WarehouseTable,
 )
+from .models.model import DatasetBundleRequest, DatasetBundleResponse
 
 
 class DatasetClient:
@@ -25,38 +27,25 @@ class DatasetClient:
         dataset: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
     ) -> DatasetBundle:
-        attributes_data: dict = {
-            "attribute_groups": [self._model_dump(ag) for ag in attribute_groups],
-        }
-        if attributes_database is not None:
-            attributes_data["database"] = attributes_database
-        if attributes_schema is not None:
-            attributes_data["schema"] = attributes_schema
-        if attributes_table_prefix is not None:
-            attributes_data["table_prefix"] = attributes_table_prefix
+        request = DatasetBundleRequest(
+            anchors=anchors,
+            attributes=DatasetAttributeGroups(
+                attribute_groups=attribute_groups,
+                database=attributes_database,
+                schema=attributes_schema,
+                table_prefix=attributes_table_prefix,
+            ),
+            dataset=dataset,
+            max_lookback_days=max_lookback_days,
+        )
 
-        data: dict = {
-            "anchors": self._model_dump(anchors),
-            "attributes": attributes_data,
-        }
-        if dataset is not None:
-            data["dataset"] = self._model_dump(dataset)
-        if max_lookback_days is not None:
-            data["max_lookback_days"] = max_lookback_days
+        data = self._model_dump(request)
+        raw_response = self.api_client.make_request("POST", "datasets/sql", data=data)
+        response = DatasetBundleResponse.model_validate(raw_response)
 
-        response = self.api_client.make_request("POST", "datasets/sql", data=data)
-        files = {}
-        for section in ("anchors", "dataset"):
-            entry = response.get(section)
-            if entry and entry.get("sql"):
-                files[entry["table"] + ".sql"] = entry["sql"]
-        for entry in response.get("attributes", []):
-            if entry.get("sql"):
-                files[entry["table"] + ".sql"] = entry["sql"]
         return DatasetBundle(
-            files=files,
-            request_data=data,
-            response_data=response,
+            request=request,
+            response=response,
         )
 
     def _model_dump(self, model: BaseModel) -> dict:

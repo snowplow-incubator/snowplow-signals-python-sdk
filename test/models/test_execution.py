@@ -17,14 +17,14 @@ def test_stage_result_creation():
     assert stage.status == "completed"
 
 
-def test_execution_result_to_pandas():
+def test_execution_result_dataframe():
     df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
     table = WarehouseTable(database="db", schema="sch", table="tbl")
     result = ExecutionResult(
         dataframe=df,
         stages=[StageResult(stage="anchors", table=table, status="completed")],
     )
-    pd.testing.assert_frame_equal(result.to_pandas(), df)
+    pd.testing.assert_frame_equal(result.dataframe, df)
 
 
 def test_execution_error_attributes():

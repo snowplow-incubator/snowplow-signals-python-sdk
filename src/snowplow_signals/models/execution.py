@@ -21,9 +21,6 @@ class ExecutionResult:
     dataframe: pd.DataFrame
     stages: list[StageResult]
 
-    def to_pandas(self) -> pd.DataFrame:
-        return self.dataframe
-
 
 class ExecutionError(Exception):
     def __init__(
