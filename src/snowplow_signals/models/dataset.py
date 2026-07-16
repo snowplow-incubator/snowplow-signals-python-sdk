@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from .connection import WarehouseConnection
 from .criteria_wrapper import Criteria
 from .execution import ExecutionError, ExecutionResult, StageResult
-from .model import AttributeGroupInput, AttributeSqlFile
+from .model import AttributeGroupInput, AttributeGroupReference, AttributeSqlFile
 from .model import DatasetAttributeGroups as DatasetAttributeGroupsModel
 from .model import DatasetBundleRequest, DatasetBundleResponse, DatasetSqlFile
 from .model import SessionAnchors as SessionAnchorsModel
@@ -50,7 +50,7 @@ Anchors = Union[SessionAnchors, UserSuppliedAnchors]
 
 class ManifestInput(BaseModel):
     anchors: dict[str, Any]
-    attribute_groups: list[AttributeGroupInput]
+    attribute_groups: list[AttributeGroupReference]
 
 
 class ManifestOutput(BaseModel):
@@ -116,7 +116,10 @@ class DatasetBundle(BaseModel):
                 anchors=self.request.anchors.model_dump(
                     mode="json", exclude_none=True, by_alias=True
                 ),
-                attribute_groups=list(self.request.attributes.attribute_groups),
+                attribute_groups=[
+                    AttributeGroupReference(name=ag.name, version=ag.version or 1)
+                    for ag in self.request.attributes.attribute_groups
+                ],
             ),
             output=ManifestOutput(
                 database=first_entry.database,
