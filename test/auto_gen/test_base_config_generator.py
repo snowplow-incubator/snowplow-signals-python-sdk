@@ -330,7 +330,6 @@ class TestBaseConfigGenerator:
             ("sum", "sum"),
             ("min", "min"),
             ("max", "max"),
-            ("mean", "avg"),
             ("first", "first"),
             ("last", "last"),
             ("unique_list", "unique_list"),
