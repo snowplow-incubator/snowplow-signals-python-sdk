@@ -129,6 +129,7 @@ EntityProperty
 AttributeKeyId
 AttributeKeyOutput
 Anchors
+AttributesWarehouseTable
 AttributeSqlFile
 AttributesWarehouseTable
 DatasetAttributeGroups

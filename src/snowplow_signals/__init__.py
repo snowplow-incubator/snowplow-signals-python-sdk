@@ -7,6 +7,7 @@ from snowplow_signals.models import (
     AttributeKey,
     AttributeKeyId,
     AttributeKeyIdentifiers,
+    AttributesWarehouseTable,
     BatchAttributeGroup,
     BatchSource,
     Criteria,
@@ -115,6 +116,7 @@ AttributeKeyIdentifiers
 AttributeKeyId
 
 # Datasets
+AttributesWarehouseTable
 SessionAnchors
 UserSuppliedAnchors
 WarehouseConnection
