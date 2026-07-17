@@ -10,29 +10,21 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class StageResult:
-    stage: Literal["anchors", "attributes", "dataset"]
-    table: WarehouseTable
-    status: Literal["completed", "failed"]
-
-
-@dataclass
 class ExecutionResult:
     dataframe: pd.DataFrame
-    stages: list[StageResult]
 
 
 class ExecutionError(Exception):
     def __init__(
         self,
-        failed_stage: StageResult,
-        completed_stages: list[StageResult],
+        failed_stage: Literal["anchors", "attributes", "dataset"],
+        failed_table: WarehouseTable,
         cause: Exception,
     ):
         self.failed_stage = failed_stage
-        self.completed_stages = completed_stages
+        self.failed_table = failed_table
         self.cause = cause
         super().__init__(
-            f"Execution failed at {failed_stage.stage} stage "
-            f"(table: {failed_stage.table.table}): {cause}"
+            f"Execution failed at {failed_stage} stage "
+            f"(table: {failed_table.table}): {cause}"
         )

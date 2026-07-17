@@ -10,6 +10,7 @@ from .criteria_wrapper import Criteria
 from .criterion_wrapper import Criterion
 from .dataset import (
     Anchors,
+    AttributesWarehouseTable,
     DatasetAttributeGroups,
     DatasetBundle,
     SessionAnchors,
@@ -17,7 +18,7 @@ from .dataset import (
     WarehouseTable,
 )
 from .event_log import EventLog
-from .execution import ExecutionError, ExecutionResult, StageResult
+from .execution import ExecutionError, ExecutionResult
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
@@ -129,6 +130,7 @@ AttributeKeyId
 AttributeKeyOutput
 Anchors
 AttributeSqlFile
+AttributesWarehouseTable
 DatasetAttributeGroups
 DatasetBundle
 DatasetBundleRequest
@@ -155,5 +157,4 @@ AgenticContextResponse
 # Warehouse execution
 WarehouseConnection
 ExecutionResult
-StageResult
 ExecutionError

@@ -143,8 +143,16 @@ class TestDatasetModels:
         assert manifest["input"]["attribute_groups"] == [
             {"name": "my_group", "version": 1}
         ]
-        assert manifest["output"]["database"] == "db"
-        assert manifest["output"]["tables"]["anchors"] == "signals_anchors"
+        # Output mirrors the API response structure
+        assert manifest["output"]["anchors"]["database"] == "db"
+        assert manifest["output"]["anchors"]["schema"] == "sch"
+        assert manifest["output"]["anchors"]["table"] == "signals_anchors"
+        assert len(manifest["output"]["attributes"]) == 1
+        assert (
+            manifest["output"]["attributes"][0]["table"]
+            == "signals_attributes_domain_sessionid"
+        )
+        assert manifest["output"]["dataset"]["table"] == "signals_training_dataset"
         assert len(manifest["files"]) == 3
 
         # README.md is generated
@@ -237,9 +245,10 @@ class TestDatasetClient:
             return_value=httpx.Response(200, json=self._mock_bundle_response())
         )
 
-        result = signals_client.build_dataset_sql(
+        result = signals_client.build_dataset_with_session_anchors(
             attribute_groups=[self._make_attribute_group()],
-            anchors=self._make_session_anchors(),
+            goal_criteria=self._make_session_anchors().goal_criteria,
+            training_span=self._make_session_anchors().training_span,
         )
 
         assert mock.called
@@ -256,9 +265,10 @@ class TestDatasetClient:
             return_value=httpx.Response(200, json=self._mock_bundle_response())
         )
 
-        result = signals_client.build_dataset_sql(
+        result = signals_client.build_dataset_with_session_anchors(
             attribute_groups=[self._make_attribute_group()],
-            anchors=self._make_session_anchors(),
+            goal_criteria=self._make_session_anchors().goal_criteria,
+            training_span=self._make_session_anchors().training_span,
         )
 
         assert isinstance(result, DatasetBundle)
@@ -273,10 +283,11 @@ class TestDatasetClient:
             return_value=httpx.Response(200, json=self._mock_bundle_response())
         )
 
-        signals_client.build_dataset_sql(
+        signals_client.build_dataset_with_session_anchors(
             attribute_groups=[self._make_attribute_group()],
-            anchors=self._make_session_anchors(),
-            dataset=WarehouseTable(
+            goal_criteria=self._make_session_anchors().goal_criteria,
+            training_span=self._make_session_anchors().training_span,
+            dataset_table=WarehouseTable(
                 database="my_db", schema="my_schema", table="my_dataset"
             ),
         )
@@ -293,9 +304,10 @@ class TestDatasetClient:
             return_value=httpx.Response(200, json=self._mock_bundle_response())
         )
 
-        signals_client.build_dataset_sql(
+        signals_client.build_dataset_with_session_anchors(
             attribute_groups=[self._make_attribute_group()],
-            anchors=self._make_session_anchors(),
+            goal_criteria=self._make_session_anchors().goal_criteria,
+            training_span=self._make_session_anchors().training_span,
         )
 
         request_body = json.loads(mock.calls[0].request.content)
@@ -308,15 +320,11 @@ class TestDatasetClient:
             return_value=httpx.Response(200, json=self._mock_bundle_response())
         )
 
-        anchors = UserSuppliedAnchors(
-            source=WarehouseTable(
+        signals_client.build_dataset_with_custom_anchors(
+            attribute_groups=[self._make_attribute_group()],
+            anchors_table=WarehouseTable(
                 database="my_db", schema="my_schema", table="my_anchors"
             ),
-        )
-
-        signals_client.build_dataset_sql(
-            attribute_groups=[self._make_attribute_group()],
-            anchors=anchors,
         )
 
         request_body = json.loads(mock.calls[0].request.content)

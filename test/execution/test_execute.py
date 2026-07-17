@@ -6,7 +6,7 @@ from snowplow_signals import AttributeGroup, Criteria, Criterion, domain_userid
 from snowplow_signals.execution.snowflake import SnowflakeConnection
 from snowplow_signals.models import AtomicProperty, SessionAnchors, TrainingSpan
 from snowplow_signals.models.dataset import DatasetBundle
-from snowplow_signals.models.execution import ExecutionError
+from snowplow_signals.models.execution import ExecutionError, ExecutionResult
 from snowplow_signals.models.model import (
     AttributeKeyOutput,
     AttributeSqlFile,
@@ -112,42 +112,6 @@ def test_execute_happy_path(snowflake_conn: SnowflakeConnection):
     assert df["PAGE_VIEWS"].iloc[0] == 42
 
 
-def test_execute_stages_metadata(snowflake_conn: SnowflakeConnection):
-    bundle = _make_bundle(
-        anchors_sql=(
-            "CREATE OR REPLACE TABLE test_db.test_schema.signals_anchors "
-            "AS SELECT 1 AS id"
-        ),
-        attributes_sql=[
-            (
-                "signals_attr_a",
-                "CREATE OR REPLACE TABLE test_db.test_schema.signals_attr_a "
-                "AS SELECT 1 AS id, 10 AS val",
-            ),
-            (
-                "signals_attr_b",
-                "CREATE OR REPLACE TABLE test_db.test_schema.signals_attr_b "
-                "AS SELECT 1 AS id, 20 AS val",
-            ),
-        ],
-        dataset_sql=(
-            "CREATE OR REPLACE TABLE test_db.test_schema.signals_training_dataset "
-            "AS SELECT 1 AS id"
-        ),
-    )
-
-    result = bundle.execute(snowflake_conn)
-
-    assert len(result.stages) == 4  # anchors + 2 attributes + dataset
-    assert all(s.status == "completed" for s in result.stages)
-    assert result.stages[0].stage == "anchors"
-    assert result.stages[0].table.table == "signals_anchors"
-    assert result.stages[1].stage == "attributes"
-    assert result.stages[2].stage == "attributes"
-    assert result.stages[3].stage == "dataset"
-    assert result.stages[3].table.table == "signals_training_dataset"
-
-
 def test_execute_error_reports_failed_stage(snowflake_conn: SnowflakeConnection):
     bundle = _make_bundle(
         anchors_sql=(
@@ -170,12 +134,8 @@ def test_execute_error_reports_failed_stage(snowflake_conn: SnowflakeConnection)
         bundle.execute(snowflake_conn)
 
     err = exc_info.value
-    assert err.failed_stage.stage == "attributes"
-    assert err.failed_stage.table.table == "signals_attr_bad"
-    assert err.failed_stage.status == "failed"
-    assert len(err.completed_stages) == 1
-    assert err.completed_stages[0].stage == "anchors"
-    assert err.completed_stages[0].status == "completed"
+    assert err.failed_stage == "attributes"
+    assert err.failed_table.table == "signals_attr_bad"
 
 
 def test_execute_error_on_first_stage(snowflake_conn: SnowflakeConnection):
@@ -192,5 +152,4 @@ def test_execute_error_on_first_stage(snowflake_conn: SnowflakeConnection):
         bundle.execute(snowflake_conn)
 
     err = exc_info.value
-    assert err.failed_stage.stage == "anchors"
-    assert len(err.completed_stages) == 0
+    assert err.failed_stage == "anchors"
