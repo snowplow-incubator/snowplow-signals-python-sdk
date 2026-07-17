@@ -38,6 +38,16 @@ class WarehouseTable(WarehouseTableModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class AttributesWarehouseTable(BaseModel):
+    """Optional table configuration for attribute output tables."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    database: str | None = None
+    schema_: str | None = Field(default=None, alias="schema")
+    table_prefix: str | None = None
+
+
 class DatasetAttributeGroups(DatasetAttributeGroupsModel):
     """SDK wrapper with populate_by_name enabled."""
 
