@@ -10,6 +10,7 @@ from .criteria_wrapper import Criteria
 from .criterion_wrapper import Criterion
 from .dataset import (
     Anchors,
+    AttributesWarehouseTable,
     DatasetAttributeGroups,
     DatasetBundle,
     SessionAnchors,
@@ -128,6 +129,7 @@ EntityProperty
 AttributeKeyId
 AttributeKeyOutput
 Anchors
+AttributesWarehouseTable
 AttributeSqlFile
 DatasetAttributeGroups
 DatasetBundle
