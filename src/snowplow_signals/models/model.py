@@ -153,6 +153,13 @@ class AtomicProperty(BaseModel):
         "event_fingerprint",
         "true_tstamp",
     ] = Field(..., description="The name of the atomic property.", title="Name")
+    granularity: Optional[
+        Literal["second", "minute", "hour", "day", "month", "year"]
+    ] = Field(
+        default=None,
+        description="Truncate the timestamp property to this unit before aggregation. All truncation is UTC. Only valid on timestamp properties; ignored for non-timestamp AtomicProperty names.",
+        title="Granularity",
+    )
 
 
 class AttributeGroupReference(BaseModel):
@@ -319,6 +326,13 @@ class EntityProperty(BaseModel):
         description="Index of the entity. The :nth entity in the event context.",
         title="Index",
     )
+    granularity: Optional[
+        Literal["second", "minute", "hour", "day", "month", "year"]
+    ] = Field(
+        default=None,
+        description="Truncate the timestamp property to this unit before aggregation. All truncation is UTC.",
+        title="Granularity",
+    )
 
 
 class Event(BaseModel):
@@ -370,6 +384,13 @@ class EventProperty(BaseModel):
         title="Path",
     )
     type: Literal["event"] = Field(default="event", title="Type")
+    granularity: Optional[
+        Literal["second", "minute", "hour", "day", "month", "year"]
+    ] = Field(
+        default=None,
+        description="Truncate the timestamp property to this unit before aggregation. All truncation is UTC.",
+        title="Granularity",
+    )
 
 
 class FieldModel(BaseModel):

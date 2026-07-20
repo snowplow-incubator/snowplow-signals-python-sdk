@@ -1,5 +1,9 @@
 # Changelog
 
+# [0.5.0] - 2026-07-20
+
+- Add optional `granularity` field (`second`/`minute`/`hour`/`day`/`month`/`year`) to `AtomicProperty`, `EventProperty`, and `EntityProperty`. When set, the timestamp property is truncated to the specified unit before aggregation. All truncation is UTC. Enables active-day counts and time-of-day/day-of-week seasonality features.
+
 # [0.4.4] - 2026-06-30
 
 - Batch Engine model updates (#126)
