@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import pandas as pd
 import pytest
 
@@ -8,10 +10,41 @@ from snowplow_signals.models.execution import (
 )
 
 
-def test_execution_result_dataframe():
-    df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
-    result = ExecutionResult(dataframe=df)
-    pd.testing.assert_frame_equal(result.dataframe, df)
+def _make_result(df: pd.DataFrame | None = None, count: int = 42) -> ExecutionResult:
+    conn = MagicMock()
+
+    def fake_fetch(sql: str) -> pd.DataFrame:
+        if "COUNT(*)" in sql:
+            return pd.DataFrame({"cnt": [count]})
+        return df if df is not None else pd.DataFrame({"a": [1, 2], "b": [3, 4]})
+
+    conn.fetch_pandas.side_effect = fake_fetch
+    table = WarehouseTable(database="db", schema="sch", table="tbl")
+    return ExecutionResult(table=table, connection=conn)
+
+
+def test_execution_result_table():
+    result = _make_result()
+    assert result.table.database == "db"
+    assert result.table.schema_ == "sch"
+    assert result.table.table == "tbl"
+
+
+def test_execution_result_row_count():
+    result = _make_result(count=99)
+    assert result.row_count == 99
+
+
+def test_execution_result_to_pandas():
+    df = pd.DataFrame({"x": [10, 20]})
+    result = _make_result(df=df)
+    pd.testing.assert_frame_equal(result.to_pandas(), df)
+
+
+def test_execution_result_to_pandas_invalid_limit():
+    result = _make_result()
+    with pytest.raises(ValueError):
+        result.to_pandas(limit=-1)
 
 
 def test_execution_error_attributes():

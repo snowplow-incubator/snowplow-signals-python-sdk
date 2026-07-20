@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
 
 import pytest
 
 from snowplow_signals import AttributeGroup, Criteria, Criterion, domain_userid
+from snowplow_signals.dataset_client import DatasetClient
 from snowplow_signals.execution.snowflake import SnowflakeConnection
 from snowplow_signals.models import AtomicProperty, SessionAnchors, TrainingSpan
 from snowplow_signals.models.dataset import DatasetBundle
@@ -78,7 +80,10 @@ def _make_bundle(
             sql=dataset_sql,
         ),
     )
-    return DatasetBundle(request=_make_request(), response=response)
+    client = DatasetClient(api_client=MagicMock())
+    return DatasetBundle(
+        request=_make_request(), response=response, dataset_client=client
+    )
 
 
 def test_execute_happy_path(snowflake_conn: SnowflakeConnection):
@@ -105,7 +110,12 @@ def test_execute_happy_path(snowflake_conn: SnowflakeConnection):
 
     result = bundle.execute(snowflake_conn)
 
-    df = result.dataframe
+    assert result.table.database == "test_db"
+    assert result.table.schema_ == "test_schema"
+    assert result.table.table == "signals_training_dataset"
+    assert result.row_count == 1
+
+    df = result.to_pandas()
     assert len(df) == 1
     assert set(df.columns) == {"USER_ID", "LABEL", "PAGE_VIEWS"}
     assert df["USER_ID"].iloc[0] == 1

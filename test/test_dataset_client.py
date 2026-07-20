@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
 
 import httpx
 from respx import MockRouter
@@ -11,6 +12,7 @@ from snowplow_signals import (
     Signals,
     domain_userid,
 )
+from snowplow_signals.dataset_client import DatasetClient
 from snowplow_signals.models import (
     AtomicProperty,
     DatasetBundle,
@@ -85,6 +87,7 @@ class TestDatasetModels:
         )
 
     def test_dataset_bundle_save_to(self, tmp_path):
+        client = DatasetClient(api_client=MagicMock())
         bundle = DatasetBundle(
             request=DatasetBundleRequest(
                 anchors=self._make_session_anchors(),
@@ -123,6 +126,7 @@ class TestDatasetModels:
                     sql="SELECT 3;",
                 ),
             ),
+            dataset_client=client,
         )
 
         bundle.save_to(tmp_path / "output")
@@ -143,16 +147,19 @@ class TestDatasetModels:
         assert manifest["input"]["attribute_groups"] == [
             {"name": "my_group", "version": 1}
         ]
-        # Output mirrors the API response structure
+        # Output mirrors the API response structure (without sql)
         assert manifest["output"]["anchors"]["database"] == "db"
         assert manifest["output"]["anchors"]["schema"] == "sch"
         assert manifest["output"]["anchors"]["table"] == "signals_anchors"
+        assert "sql" not in manifest["output"]["anchors"]
         assert len(manifest["output"]["attributes"]) == 1
         assert (
             manifest["output"]["attributes"][0]["table"]
             == "signals_attributes_domain_sessionid"
         )
+        assert "sql" not in manifest["output"]["attributes"][0]
         assert manifest["output"]["dataset"]["table"] == "signals_training_dataset"
+        assert "sql" not in manifest["output"]["dataset"]
         assert len(manifest["files"]) == 3
 
         # README.md is generated
@@ -161,6 +168,7 @@ class TestDatasetModels:
         assert "manifest.json" in readme
 
     def test_dataset_bundle_save_to_creates_nested_dirs(self, tmp_path):
+        client = DatasetClient(api_client=MagicMock())
         bundle = DatasetBundle(
             request=DatasetBundleRequest(
                 anchors=self._make_session_anchors(),
@@ -183,6 +191,7 @@ class TestDatasetModels:
                     database=None, schema=None, table="dataset", sql="SELECT 2;"
                 ),
             ),
+            dataset_client=client,
         )
         nested = tmp_path / "a" / "b" / "c"
 
