@@ -981,6 +981,13 @@ class AttributeInput(BaseModel):
         description="The default value to use if the aggregation returns no results. If not set, the default value is automatically assigned based on the `type`.",
         title="Default Value",
     )
+    granularity: Optional[
+        Literal["second", "minute", "hour", "day", "week", "month", "year"]
+    ] = Field(
+        default=None,
+        description="The granularity to which the timestamp property value is truncated before aggregation. Only valid for unix_timestamp and unix_timestamp_list types.",
+        title="Granularity",
+    )
 
 
 class AttributeOutput(BaseModel):
@@ -1055,6 +1062,13 @@ class AttributeOutput(BaseModel):
         default=None,
         description="The default value to use if the aggregation returns no results. If not set, the default value is automatically assigned based on the `type`.",
         title="Default Value",
+    )
+    granularity: Optional[
+        Literal["second", "minute", "hour", "day", "week", "month", "year"]
+    ] = Field(
+        default=None,
+        description="The granularity to which the timestamp property value is truncated before aggregation. Only valid for unix_timestamp and unix_timestamp_list types.",
+        title="Granularity",
     )
 
 
@@ -1307,6 +1321,13 @@ class AttributeWithStringProperty(BaseModel):
         default=None,
         description="The default value to use if the aggregation returns no results. If not set, the default value is automatically assigned based on the `type`.",
         title="Default Value",
+    )
+    granularity: Optional[
+        Literal["second", "minute", "hour", "day", "week", "month", "year"]
+    ] = Field(
+        default=None,
+        description="The granularity to which the timestamp property value is truncated before aggregation. Only valid for unix_timestamp and unix_timestamp_list types.",
+        title="Granularity",
     )
 
 

@@ -333,3 +333,58 @@ def test_stream_view_with_approx_count_distinct_aggregation():
         ],
     )
     assert stream_view.attributes[0].aggregation == "approx_count_distinct"
+
+
+def test_attribute_granularity_day_on_unix_timestamp():
+    """Test that granularity='day' is accepted on a unix_timestamp attribute."""
+    stream_view = StreamAttributeGroup(
+        name="test_view",
+        attribute_key=AttributeKey(name="test_entity"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="active_days",
+                aggregation="approx_count_distinct",
+                type="unix_timestamp",
+                events=[Event(name="page_view")],
+                granularity="day",
+            )
+        ],
+    )
+    assert stream_view.attributes[0].granularity == "day"
+
+
+def test_attribute_granularity_all_valid_values():
+    """Test that all granularity values are accepted."""
+    for granularity in ("second", "minute", "hour", "day", "week", "month", "year"):
+        attr = Attribute(
+            name="ts_attr",
+            aggregation="approx_count_distinct",
+            type="unix_timestamp",
+            events=[Event(name="page_view")],
+            granularity=granularity,
+        )
+        assert attr.granularity == granularity
+
+
+def test_attribute_granularity_default_is_none():
+    """Test that granularity defaults to None (backward-compatible)."""
+    attr = Attribute(
+        name="count_page_views",
+        aggregation="counter",
+        type="int32",
+        events=[Event(name="page_view")],
+    )
+    assert attr.granularity is None
+
+
+def test_attribute_granularity_on_unix_timestamp_list():
+    """Test that granularity is accepted on unix_timestamp_list type."""
+    attr = Attribute(
+        name="session_timestamps",
+        aggregation="approx_count_distinct",
+        type="unix_timestamp_list",
+        events=[Event(name="page_view")],
+        granularity="week",
+    )
+    assert attr.granularity == "week"
