@@ -1,5 +1,10 @@
 # Changelog
 
+# [0.4.5] - 2026-07-21
+
+- Integrate event logs (agentic contexts) (#129)
+- [AISP-1520] Add timestamp value type to generated models (#133)
+
 # [0.4.4] - 2026-06-30
 
 - Batch Engine model updates (#126)

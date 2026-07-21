@@ -1,7 +1,8 @@
-from typing import Any
+from typing import Any, Literal
 
 from .api_client import ApiClient
 from .models import (
+    AgenticContextResponse,
     AttributeKeyIdentifiers,
     GetAttributeGroupAttributesRequest,
     GetAttributesResponse,
@@ -51,6 +52,37 @@ class AttributesClient:
             attribute_keys=attribute_key_identifiers,
         )
         return self._make_request(request)
+
+    def get_agentic_context(
+        self,
+        name: str,
+        identifier: str,
+        format: Literal["json", "narrative"] = "json",
+    ) -> AgenticContextResponse | str:
+        """
+        Retrieves the agentic context (the buffered events) for a given event
+        log by name.
+
+        Args:
+            name: The name of the event log.
+            identifier: The attribute key value identifying the entity.
+            format: The response format. "json" (default) returns a structured
+                AgenticContextResponse; "narrative" returns an LLM-ready
+                plain-text context block.
+        """
+        params = {"name": name, "identifier": identifier, "format": format}
+        if format == "narrative":
+            return self.api_client.make_text_request(
+                method="GET",
+                endpoint="event_log",
+                params=params,
+            )
+        response = self.api_client.make_request(
+            method="GET",
+            endpoint="event_log",
+            params=params,
+        )
+        return AgenticContextResponse.model_validate(response)
 
     def _make_request(
         self, request: GetAttributeGroupAttributesRequest | GetServiceAttributesRequest
