@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 
 from pydantic import BaseModel
 
@@ -14,10 +14,9 @@ from .models import (
     DatasetBundle,
     WarehouseTable,
 )
-from .models.dataset import Manifest, ManifestInput, ManifestOutput
+from .models.dataset import Manifest, ManifestDefinition, ManifestTables
 from .models.execution import ExecutionError, ExecutionResult
 from .models.model import (
-    AttributeGroupReference,
     AttributeSqlFile,
     DatasetBundleRequest,
     DatasetBundleResponse,
@@ -123,16 +122,11 @@ class DatasetClient:
     def _build_manifest(self, bundle: DatasetBundle) -> Manifest:
         return Manifest(
             generated_at=datetime.now(timezone.utc).isoformat(),
-            input=ManifestInput(
-                anchors=bundle.request.anchors.model_dump(
-                    mode="json", exclude_none=True, by_alias=True
-                ),
-                attribute_groups=[
-                    AttributeGroupReference(name=ag.name, version=ag.version or 1)
-                    for ag in bundle.request.attributes.attribute_groups
-                ],
+            definition=ManifestDefinition(
+                anchors=cast(Anchors, bundle.request.anchors),
+                attribute_groups=list(bundle.request.attributes.attribute_groups),
             ),
-            output=ManifestOutput(
+            tables=ManifestTables(
                 anchors=DatasetSqlFile(
                     database=bundle.response.anchors.database,
                     schema=bundle.response.anchors.schema_,

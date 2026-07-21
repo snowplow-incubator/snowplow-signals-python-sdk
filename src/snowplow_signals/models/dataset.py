@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from .connection import WarehouseConnection
 from .criteria_wrapper import Criteria
 from .execution import ExecutionResult
-from .model import AttributeGroupInput, AttributeGroupReference, AttributeSqlFile
+from .model import AttributeGroupInput, AttributeSqlFile
 from .model import DatasetAttributeGroups as DatasetAttributeGroupsModel
 from .model import DatasetBundleRequest, DatasetBundleResponse, DatasetSqlFile
 from .model import SessionAnchors as SessionAnchorsModel
@@ -59,12 +59,12 @@ class DatasetAttributeGroups(DatasetAttributeGroupsModel):
 Anchors = Union[SessionAnchors, UserSuppliedAnchors]
 
 
-class ManifestInput(BaseModel):
-    anchors: dict[str, object]
-    attribute_groups: list[AttributeGroupReference]
+class ManifestDefinition(BaseModel):
+    anchors: Anchors
+    attribute_groups: list[AttributeGroupInput]
 
 
-class ManifestOutput(BaseModel):
+class ManifestTables(BaseModel):
     anchors: DatasetSqlFile
     attributes: list[AttributeSqlFile]
     dataset: DatasetSqlFile
@@ -72,8 +72,8 @@ class ManifestOutput(BaseModel):
 
 class Manifest(BaseModel):
     generated_at: str
-    input: ManifestInput
-    output: ManifestOutput
+    definition: ManifestDefinition
+    tables: ManifestTables
     files: list[str]
 
 
