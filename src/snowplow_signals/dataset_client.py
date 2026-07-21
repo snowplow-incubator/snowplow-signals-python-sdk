@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel
 
@@ -123,7 +123,7 @@ class DatasetClient:
         return Manifest(
             generated_at=datetime.now(timezone.utc).isoformat(),
             definition=ManifestDefinition(
-                anchors=cast(Anchors, bundle.request.anchors),
+                anchors=bundle.request.anchors,
                 attribute_groups=list(bundle.request.attributes.attribute_groups),
             ),
             tables=ManifestTables(

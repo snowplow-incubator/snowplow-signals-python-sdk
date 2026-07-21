@@ -143,23 +143,26 @@ class TestDatasetModels:
 
         manifest = json.loads((out / "manifest.json").read_text())
         assert "generated_at" in manifest
-        assert manifest["input"]["anchors"]["mode"] == "session"
-        assert manifest["input"]["attribute_groups"] == [
-            {"name": "my_group", "version": 1}
-        ]
-        # Output mirrors the API response structure (without sql)
-        assert manifest["output"]["anchors"]["database"] == "db"
-        assert manifest["output"]["anchors"]["schema"] == "sch"
-        assert manifest["output"]["anchors"]["table"] == "signals_anchors"
-        assert "sql" not in manifest["output"]["anchors"]
-        assert len(manifest["output"]["attributes"]) == 1
+        assert manifest["definition"]["anchors"]["mode"] == "session"
+        assert len(manifest["definition"]["attribute_groups"]) == 1
+        assert manifest["definition"]["attribute_groups"][0]["name"] == "my_group"
         assert (
-            manifest["output"]["attributes"][0]["table"]
+            manifest["definition"]["attribute_groups"][0]["attribute_key"]["name"]
+            == "domain_userid"
+        )
+        # Tables mirrors the API response structure (without sql)
+        assert manifest["tables"]["anchors"]["database"] == "db"
+        assert manifest["tables"]["anchors"]["schema"] == "sch"
+        assert manifest["tables"]["anchors"]["table"] == "signals_anchors"
+        assert "sql" not in manifest["tables"]["anchors"]
+        assert len(manifest["tables"]["attributes"]) == 1
+        assert (
+            manifest["tables"]["attributes"][0]["table"]
             == "signals_attributes_domain_sessionid"
         )
-        assert "sql" not in manifest["output"]["attributes"][0]
-        assert manifest["output"]["dataset"]["table"] == "signals_training_dataset"
-        assert "sql" not in manifest["output"]["dataset"]
+        assert "sql" not in manifest["tables"]["attributes"][0]
+        assert manifest["tables"]["dataset"]["table"] == "signals_training_dataset"
+        assert "sql" not in manifest["tables"]["dataset"]
         assert len(manifest["files"]) == 3
 
         # README.md is generated

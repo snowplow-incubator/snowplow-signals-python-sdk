@@ -60,7 +60,9 @@ Anchors = Union[SessionAnchors, UserSuppliedAnchors]
 
 
 class ManifestDefinition(BaseModel):
-    anchors: Anchors
+    anchors: Union[SessionAnchorsModel, UserSuppliedAnchorsModel] = Field(
+        discriminator="mode"
+    )
     attribute_groups: list[AttributeGroupInput]
 
 
