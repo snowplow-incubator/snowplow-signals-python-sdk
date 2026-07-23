@@ -5,6 +5,7 @@ import pandas as pd
 
 from .api_client import ApiClient
 from .attributes_client import AttributesClient
+from .dataset_client import DatasetClient
 from .interventions_client import InterventionsClient
 from .models import (
     AgenticContextResponse,
@@ -13,15 +14,26 @@ from .models import (
     AttributeKey,
     AttributeKeyId,
     AttributeKeyIdentifiers,
+    AttributesWarehouseTable,
+    Criteria,
+    DatasetBundle,
     EventLog,
     EventLogResponse,
     InterventionInstance,
     RuleIntervention,
     Service,
+    SessionAnchors,
     TestAttributeGroupRequest,
+    UserSuppliedAnchors,
+    WarehouseTable,
 )
+from .models.model import SignalsApiModelsDatasetEvent, TrainingSpan
 from .registry_client import RegistryClient, RegistryObject
 from .testing_client import TestingClient
+
+
+def _exclude_none(**kwargs: Any) -> dict[str, Any]:
+    return {k: v for k, v in kwargs.items() if v is not None}
 
 
 class BaseSignalsWithApiClient:
@@ -38,6 +50,7 @@ class BaseSignalsWithApiClient:
         self.registry = RegistryClient(api_client=self.api_client)
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
+        self.datasets = DatasetClient(api_client=self.api_client)
 
     def publish(self, objects: list[RegistryObject]) -> list[RegistryObject]:
         """
@@ -229,6 +242,118 @@ class BaseSignalsWithApiClient:
             A subscription object that can be started or used as a context manager to receive interventions.
         """
         return self.interventions.subscribe(targets)
+
+    def build_dataset_with_session_anchors(
+        self,
+        attribute_groups: list[AttributeGroup],
+        goal_criteria: Criteria,
+        training_span: TrainingSpan,
+        excluded_events: list[SignalsApiModelsDatasetEvent] | None = None,
+        min_events: int | None = None,
+        max_anchors_per_session: int | None = None,
+        max_negative_ratio: float | None = None,
+        anchors_table: WarehouseTable | None = None,
+        attributes_table: AttributesWarehouseTable | None = None,
+        dataset_table: WarehouseTable | None = None,
+        max_lookback_days: int | None = None,
+    ) -> DatasetBundle:
+        """
+        Generate a SQL bundle for building a training dataset using session-based anchors.
+
+        Anchors are automatically derived from sessions matching the goal criteria
+        within the training span.
+
+        Args:
+            attribute_groups: The attribute groups to include in the dataset.
+            goal_criteria: Criteria defining the goal event for anchor generation.
+            training_span: The time span to generate anchors from.
+            excluded_events: Events to exclude from anchoring (defaults to page_ping).
+            min_events: Minimum prior in-session events before an anchor is eligible.
+            max_anchors_per_session: Max anchor events to sample per session.
+            max_negative_ratio: Max ratio of negative to positive anchors for downsampling.
+            anchors_table: Optional output table for the generated anchors.
+            attributes_table: Optional table configuration for attribute output tables.
+            dataset_table: Optional output table for the assembled dataset.
+            max_lookback_days: Override the computed max lookback window (in days).
+        Returns:
+            A DatasetBundle containing the generated SQL files.
+        """
+        anchors = SessionAnchors.model_validate(
+            _exclude_none(
+                goal_criteria=goal_criteria,
+                training_span=training_span,
+                excluded_events=excluded_events,
+                min_events=min_events,
+                max_anchors_per_session=max_anchors_per_session,
+                max_negative_ratio=max_negative_ratio,
+                output=anchors_table,
+            )
+        )
+        return self._build_dataset_sql(
+            attribute_groups=attribute_groups,
+            anchors=anchors,
+            attributes_table=attributes_table,
+            dataset_table=dataset_table,
+            max_lookback_days=max_lookback_days,
+        )
+
+    def build_dataset_with_custom_anchors(
+        self,
+        attribute_groups: list[AttributeGroup],
+        anchors_table: WarehouseTable,
+        anchors_have_label: bool | None = None,
+        attributes_table: AttributesWarehouseTable | None = None,
+        dataset_table: WarehouseTable | None = None,
+        max_lookback_days: int | None = None,
+    ) -> DatasetBundle:
+        """
+        Generate a SQL bundle for building a training dataset using user-supplied anchors.
+
+        Anchors are read from a pre-existing warehouse table that the user provides.
+
+        Args:
+            attribute_groups: The attribute groups to include in the dataset.
+            anchors_table: The warehouse table containing user-supplied anchors.
+            anchors_have_label: Whether the anchor table contains a label column.
+            attributes_table: Optional table configuration for attribute output tables.
+            dataset_table: Optional output table for the assembled dataset.
+            max_lookback_days: Override the computed max lookback window (in days).
+        Returns:
+            A DatasetBundle containing the generated SQL files.
+        """
+        anchors = UserSuppliedAnchors.model_validate(
+            _exclude_none(
+                source=anchors_table,
+                has_label=anchors_have_label,
+            )
+        )
+        return self._build_dataset_sql(
+            attribute_groups=attribute_groups,
+            anchors=anchors,
+            attributes_table=attributes_table,
+            dataset_table=dataset_table,
+            max_lookback_days=max_lookback_days,
+        )
+
+    def _build_dataset_sql(
+        self,
+        attribute_groups: list[AttributeGroup],
+        anchors: SessionAnchors | UserSuppliedAnchors,
+        attributes_table: AttributesWarehouseTable | None = None,
+        dataset_table: WarehouseTable | None = None,
+        max_lookback_days: int | None = None,
+    ) -> DatasetBundle:
+        return self.datasets.build_sql(
+            attribute_groups=attribute_groups,
+            anchors=anchors,
+            attributes_database=attributes_table.database if attributes_table else None,
+            attributes_schema=attributes_table.schema_ if attributes_table else None,
+            attributes_table_prefix=(
+                attributes_table.table_prefix if attributes_table else None
+            ),
+            dataset=dataset_table,
+            max_lookback_days=max_lookback_days,
+        )
 
 
 class Signals(BaseSignalsWithApiClient):

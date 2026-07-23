@@ -1,7 +1,7 @@
-from .criterion_wrapper import Criterion
-from .model import CriteriaInput
+from .criterion_wrapper import Criterion  # noqa: F401
+from .model import Criteria as CriteriaModel
 
 
-class Criteria(CriteriaInput):
-    all: list[Criterion] | None = None
-    any: list[Criterion] | None = None
+class Criteria(CriteriaModel):
+    all: list[Criterion] | None = None  # type: ignore[override]
+    any: list[Criterion] | None = None  # type: ignore[override]

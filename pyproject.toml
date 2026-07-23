@@ -14,6 +14,10 @@ pandas = "^2.2.0"
 httpx = "^0.28.1"
 pyjwt = "^2.10.1"
 jsonpath-ng = "^1.7.0"
+snowflake-connector-python = { version = "^3.12.0", extras = ["pandas"], optional = true }
+
+[tool.poetry.extras]
+snowflake = ["snowflake-connector-python"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
@@ -25,6 +29,7 @@ respx = "^0.22.0"
 datamodel-code-generator = "^0.28.4"
 pytest-cov = "^6.1.0"
 semver = "^3.0.2"
+fakesnow = "^0.9.0"
 
 [build-system]
 requires = ["poetry-core"]
