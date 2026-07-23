@@ -5,9 +5,9 @@ from pydantic import Field
 from pydantic import Field as PydanticField
 
 from .attribute_key import AttributeKey
+from .model import Attribute as AttributeInput
 from .model import (
     AttributeGroupInput,
-    AttributeInput,
     BatchSource,
     FieldModel,
     LinkAttributeKey,
@@ -26,14 +26,14 @@ def attribute_key_link_to_attribute_key(
 
 
 class AttributeGroup(AttributeGroupInput):
-    attribute_key: Annotated[
+    attribute_key: Annotated[  # type: ignore[override]
         AttributeKey | LinkAttributeKey,
         BeforeValidator(attribute_key_link_to_attribute_key),
     ] = PydanticField(
         ...,
         description="The attribute key that this attribute group is associated with.",
     )
-    owner: EmailStr = PydanticField(
+    owner: EmailStr = PydanticField(  # type: ignore[override]
         ...,
         description="The owner of the attribute group, typically the email of the primary maintainer. This field is required for attribute group creation.",
         title="Owner",
@@ -66,11 +66,11 @@ class AttributeGroup(AttributeGroupInput):
 
 
 class StreamOrBatchAttributeGroup(AttributeGroup):
-    fields: Literal[None] = Field(
+    fields: Literal[None] = Field(  # type: ignore[override]
         default=None,
         description="Not applicable.",
     )
-    attributes: list[AttributeInput] = Field(
+    attributes: list[AttributeInput] = Field(  # type: ignore[override]
         description="The list of attributes that will be calculated from events as part of this attribute group.",
         title="Attributes",
         min_length=1,
@@ -82,12 +82,12 @@ class StreamAttributeGroup(StreamOrBatchAttributeGroup):
     A stream attribute group is a attribute group that is calculated from events in real-time using the Signals streaming engine.
     """
 
-    offline: Literal[False] = Field(
+    offline: Literal[False] = Field(  # type: ignore[override]
         default=False,
         description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
         title="Offline",
     )
-    batch_source: Literal[None] = Field(
+    batch_source: Literal[None] = Field(  # type: ignore[override]
         default=None,
         description="Not applicable for stream attribute groups.",
         title="Batch Source",
@@ -99,7 +99,7 @@ class BatchAttributeGroup(StreamOrBatchAttributeGroup):
     A batch attribute group is a attribute group that is calculated from events in batch using the Signals batch engine.
     """
 
-    offline: Literal[True] = Field(
+    offline: Literal[True] = Field(  # type: ignore[override]
         default=True,
         description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
         title="Offline",
@@ -111,22 +111,22 @@ class ExternalBatchAttributeGroup(AttributeGroup):
     An external batch attribute group is a attribute group that is derived from an existing warehouse table.
     """
 
-    offline: Literal[True] = Field(
+    offline: Literal[True] = Field(  # type: ignore[override]
         default=True,
         description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
         title="Offline",
     )
-    fields: list[FieldModel] = Field(
+    fields: list[FieldModel] = Field(  # type: ignore[override]
         description="The list of table columns that are part of this attribute group during materialization.",
         title="Fields",
         min_length=1,
     )
-    attributes: Literal[None] = Field(
+    attributes: Literal[None] = Field(  # type: ignore[override]
         default=None,
         description="Not applicable for warehouse table views.",
         title="Attributes",
     )
-    batch_source: BatchSource = Field(
+    batch_source: BatchSource = Field(  # type: ignore[override]
         description="The batch source for materializing this attribute group from the warehouse.",
         title="Batch Source",
     )
