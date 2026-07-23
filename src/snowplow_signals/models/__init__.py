@@ -5,23 +5,34 @@ from .attribute_group import (
     StreamAttributeGroup,
 )
 from .attribute_key import AttributeKey
+from .connection import WarehouseConnection
 from .criteria_wrapper import Criteria
 from .criterion_wrapper import Criterion
+from .dataset import (
+    Anchors,
+    AttributesWarehouseTable,
+    DatasetAttributeGroups,
+    DatasetBundle,
+    SessionAnchors,
+    UserSuppliedAnchors,
+    WarehouseTable,
+)
 from .event_log import EventLog
+from .execution import ExecutionError, ExecutionResult
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
     AtomicProperty,
+)
+from .model import Attribute as Attribute
+from .model import (
     AttributeGroupReference,
     AttributeGroupResponse,
-)
-from .model import AttributeInput as Attribute
-from .model import (
     AttributeKeyId,
     AttributeKeyIdentifiers,
     AttributeKeyOutput,
     AttributeKeyReference,
-    AttributeOutput,
+    AttributeSqlFile,
     AttributeWithStringProperty,
     BatchSource,
 )
@@ -31,8 +42,10 @@ from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
 from .model import (
     CriteriaWithStringProperty,
     CriterionWithStringProperty,
+    DatasetBundleRequest,
+    DatasetBundleResponse,
+    DatasetSqlFile,
     EntityProperty,
-    Event,
     EventLogAtomicProperty,
 )
 from .model import EventLogBufferResponse as AgenticContextResponse
@@ -42,6 +55,9 @@ from .model import (
     EventLogEventProperty,
     EventLogReference,
     EventLogResponse,
+)
+from .model import EventOutput as Event
+from .model import (
     EventProperty,
     EventSelection,
 )
@@ -64,11 +80,11 @@ from .model import (
 )
 from .model import (
     TestAttributeGroupRequest,
+    TrainingSpan,
     UnpublishRequest,
 )
 from .service import Service
 
-AttributeOutput
 Criteria
 Criterion
 AttributeGroup
@@ -112,6 +128,19 @@ EventProperty
 EntityProperty
 AttributeKeyId
 AttributeKeyOutput
+Anchors
+AttributesWarehouseTable
+AttributeSqlFile
+AttributesWarehouseTable
+DatasetAttributeGroups
+DatasetBundle
+DatasetBundleRequest
+DatasetBundleResponse
+DatasetSqlFile
+SessionAnchors
+TrainingSpan
+UserSuppliedAnchors
+WarehouseTable
 
 # Event logs (definitions)
 EventLog
@@ -125,3 +154,8 @@ EventLogEntityProperty
 
 # Agentic context (retrieved values)
 AgenticContextResponse
+
+# Warehouse execution
+WarehouseConnection
+ExecutionResult
+ExecutionError
