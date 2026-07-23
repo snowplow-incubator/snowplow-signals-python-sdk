@@ -37,3 +37,36 @@ def test_view_with_owner_passes_validation():
         target_attribute_keys=[LinkAttributeKey(name="domain_sessionid")],
     )
     assert view_with_owner.owner == "test@example.com"
+
+
+def test_changed_operator_criterion_without_value():
+    """The 'changed' operator is accepted and needs no value."""
+    criterion = InterventionCriterion(
+        attribute="sample_ecommerce_stream_features:add_to_cart_events_count",
+        operator="changed",
+    )
+    assert criterion.operator == "changed"
+    assert criterion.value is None
+
+
+def test_changed_operator_in_rule_intervention():
+    """A RuleIntervention can use the 'changed' operator in its criteria."""
+    intervention = RuleIntervention(
+        name="test_intervention",
+        owner="test@example.com",
+        criteria=InterventionCriterion(
+            attribute="sample_ecommerce_stream_features:add_to_cart_events_count",
+            operator="changed",
+        ),
+        target_attribute_keys=[LinkAttributeKey(name="domain_sessionid")],
+    )
+    assert intervention.criteria.operator == "changed"
+
+
+def test_invalid_operator_raises_validation_error():
+    """An unknown operator is rejected by the criterion model."""
+    with pytest.raises(ValidationError):
+        InterventionCriterion(
+            attribute="sample_ecommerce_stream_features:add_to_cart_events_count",
+            operator="not_a_real_operator",
+        )

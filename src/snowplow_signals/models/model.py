@@ -869,6 +869,7 @@ class SignalsApiModelsInterventionCriterionCriterion(BaseModel):
         "not in",
         "is null",
         "is not null",
+        "changed",
     ] = Field(
         ...,
         description="The operator used to compare the attribute to the value.",
