@@ -104,6 +104,7 @@ class TestAttributesClient:
             "identifier": "session-123",
             "name": "my_event_log",
             "prompt": "some prompt",
+            "summary": "a short summary of the buffered events",
             "started_at_ms": 1700000000000,
             "version": 1,
             "events": [{"event_name": "page_view", "page_url": "https://example.com"}],
@@ -127,6 +128,7 @@ class TestAttributesClient:
         assert response.name == "my_event_log"
         assert response.identifier == "session-123"
         assert response.attribute_key == "domain_sessionid"
+        assert response.summary == "a short summary of the buffered events"
         assert response.events == [
             {"event_name": "page_view", "page_url": "https://example.com"}
         ]
