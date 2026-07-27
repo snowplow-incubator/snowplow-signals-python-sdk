@@ -1,5 +1,9 @@
 # Changelog
 
+# [0.4.6] - 2026-07-27
+
+- [AISP-1554] Regenerate models with per-attribute ttl override (#137)
+
 # [0.4.5] - 2026-07-21
 
 - Integrate event logs (agentic contexts) (#129)

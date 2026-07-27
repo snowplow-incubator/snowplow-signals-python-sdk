@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 
 import httpx
 import pytest
@@ -333,3 +334,36 @@ def test_stream_view_with_approx_count_distinct_aggregation():
         ],
     )
     assert stream_view.attributes[0].aggregation == "approx_count_distinct"
+
+
+def test_attribute_accepts_ttl_override():
+    """Test that a lifetime attribute (no period) accepts a per-attribute ttl."""
+    stream_view = StreamAttributeGroup(
+        name="test_view",
+        attribute_key=AttributeKey(name="test_entity"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="last_purchase_value",
+                aggregation="last",
+                type="double",
+                events=[Event(name="purchase")],
+                ttl=timedelta(days=30),
+            )
+        ],
+    )
+    attribute = stream_view.attributes[0]
+    assert attribute.ttl == timedelta(days=30)
+    # Serializes to an ISO 8601 duration string for the API.
+    assert attribute.model_dump(mode="json")["ttl"] == "P30D"
+
+
+def test_attribute_ttl_defaults_to_none():
+    """Test that ttl is optional and defaults to None (inherits the group ttl)."""
+    attribute = Attribute(
+        name="page_view_count",
+        aggregation="counter",
+        type="int32",
+        events=[Event(name="page_view")],
+    )
+    assert attribute.ttl is None
