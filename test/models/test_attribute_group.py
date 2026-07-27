@@ -367,3 +367,109 @@ def test_attribute_ttl_defaults_to_none():
         events=[Event(name="page_view")],
     )
     assert attribute.ttl is None
+
+
+# --- No event filter (events=[]) tests ---
+# These mirror the streaming-engine and batch-engine integration tests in signals-monorepo
+# (test_no_event_filter.py, test_counter_no_event_filter.py) at the SDK model layer.
+
+
+def test_attribute_empty_events_passes_validation():
+    """Empty events list is valid — semantics: match all events."""
+    attribute = Attribute(
+        name="n_events_30d",
+        aggregation="counter",
+        type="int32",
+        events=[],
+    )
+    assert attribute.events == []
+
+
+def test_attribute_absent_events_defaults_to_empty_list():
+    """Omitting events defaults to [] (match all), not a validation error."""
+    attribute = Attribute(
+        name="n_events_30d",
+        aggregation="counter",
+        type="int32",
+    )
+    assert attribute.events == []
+
+
+def test_attribute_empty_events_serializes_as_empty_array():
+    """events=[] round-trips through model_dump as an empty JSON array (not null)."""
+    attribute = Attribute(
+        name="n_events_30d",
+        aggregation="counter",
+        type="int32",
+        events=[],
+    )
+    dumped = attribute.model_dump(mode="json")
+    assert dumped["events"] == []
+
+
+def test_stream_attribute_group_counter_no_event_filter():
+    """StreamAttributeGroup with events=[] is valid — mirrors the streaming-engine
+    integration test (test_no_event_filter.py) that counts PageView+PagePing+AddToCart."""
+    group = StreamAttributeGroup(
+        name="engagement_metrics",
+        attribute_key=AttributeKey(name="user_id"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="n_events_30d",
+                aggregation="counter",
+                type="int32",
+                events=[],
+                period=timedelta(days=30),
+            )
+        ],
+    )
+    assert group.attributes[0].events == []
+    dumped = group.attributes[0].model_dump(mode="json")
+    assert dumped["events"] == []
+    assert dumped["period"] == "P30D"
+
+
+def test_batch_attribute_group_counter_no_event_filter():
+    """BatchAttributeGroup with events=[] is valid — mirrors the batch-engine integration
+    test (test_counter_no_event_filter.py) that counts all event types in the warehouse."""
+    group = BatchAttributeGroup(
+        name="batch_engagement",
+        attribute_key=AttributeKey(name="user_id"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="n_events_all_time",
+                aggregation="counter",
+                type="int32",
+                events=[],
+            )
+        ],
+    )
+    assert group.offline is True
+    assert group.attributes[0].events == []
+    dumped = group.attributes[0].model_dump(mode="json")
+    assert dumped["events"] == []
+
+
+def test_stream_attribute_group_first_field_no_event_filter():
+    """StreamAttributeGroup: first aggregation on an atomic field with events=[] is valid
+    — models the 'first utm_medium across all events' use-case."""
+    from snowplow_signals.models import AtomicProperty
+
+    group = StreamAttributeGroup(
+        name="acquisition",
+        attribute_key=AttributeKey(name="user_id"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="first_utm_medium",
+                aggregation="first",
+                type="string",
+                events=[],
+                property=AtomicProperty(name="mkt_medium"),
+            )
+        ],
+    )
+    assert group.attributes[0].events == []
+    assert group.attributes[0].aggregation == "first"
