@@ -1409,9 +1409,8 @@ class AttributeInput(BaseModel):
         ..., description="The type of the field, such as string or float.", title="Type"
     )
     events: List[Event] = Field(
-        ...,
+        default_factory=list,
         description="An array of event schemas that the attribute should be calculated for.",
-        min_length=1,
         title="Events",
     )
     aggregation: Literal[
@@ -1490,9 +1489,8 @@ class AttributeOutput(BaseModel):
         ..., description="The type of the field, such as string or float.", title="Type"
     )
     events: List[Event] = Field(
-        ...,
+        default_factory=list,
         description="An array of event schemas that the attribute should be calculated for.",
-        min_length=1,
         title="Events",
     )
     aggregation: Literal[
@@ -1747,9 +1745,8 @@ class AttributeWithStringProperty(BaseModel):
         ..., description="The type of the field, such as string or float.", title="Type"
     )
     events: List[Event] = Field(
-        ...,
+        default_factory=list,
         description="An array of event schemas that the attribute should be calculated for.",
-        min_length=1,
         title="Events",
     )
     aggregation: Literal[

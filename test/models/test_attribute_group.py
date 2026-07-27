@@ -367,3 +367,42 @@ def test_attribute_ttl_defaults_to_none():
         events=[Event(name="page_view")],
     )
     assert attribute.ttl is None
+
+
+def test_attribute_with_empty_events_passes_validation():
+    """Test that an Attribute with events=[] (match all events) passes validation."""
+    attribute = Attribute(
+        name="n_events_30d",
+        aggregation="counter",
+        type="int32",
+        events=[],
+    )
+    assert attribute.events == []
+
+
+def test_attribute_with_absent_events_defaults_to_empty_list():
+    """Test that an Attribute without events field defaults to [] (match all events)."""
+    attribute = Attribute(
+        name="n_events_30d",
+        aggregation="counter",
+        type="int32",
+    )
+    assert attribute.events == []
+
+
+def test_stream_view_with_empty_events_passes_validation():
+    """Test that a StreamAttributeGroup accepts attributes with empty events (all-events filter)."""
+    stream_view = StreamAttributeGroup(
+        name="test_view",
+        attribute_key=AttributeKey(name="test_entity"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="n_events_30d",
+                aggregation="counter",
+                type="int32",
+                events=[],
+            )
+        ],
+    )
+    assert stream_view.attributes[0].events == []
