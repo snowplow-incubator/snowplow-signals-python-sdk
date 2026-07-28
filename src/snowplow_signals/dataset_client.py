@@ -17,6 +17,7 @@ from .models import (
 from .models.dataset import Manifest, ManifestDefinition, ManifestTables
 from .models.execution import ExecutionError, ExecutionResult
 from .models.model import (
+    AttributeGroupResponse,
     AttributeSqlFile,
     DatasetBundleRequest,
     DatasetBundleResponse,
@@ -35,7 +36,7 @@ class DatasetClient:
 
     def build_sql(
         self,
-        attribute_groups: list[AttributeGroup],
+        attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         anchors: Anchors,
         attributes_database: str | None = None,
         attributes_schema: str | None = None,
@@ -43,10 +44,18 @@ class DatasetClient:
         dataset: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
     ) -> DatasetBundle:
+        resolved_groups = [
+            (
+                ag
+                if isinstance(ag, AttributeGroup)
+                else AttributeGroup.model_validate(ag.model_dump())
+            )
+            for ag in attribute_groups
+        ]
         request = DatasetBundleRequest(
             anchors=anchors,
             attributes=DatasetAttributeGroups(
-                attribute_groups=attribute_groups,
+                attribute_groups=resolved_groups,
                 database=attributes_database,
                 schema=attributes_schema,
                 table_prefix=attributes_table_prefix,

@@ -25,6 +25,7 @@ from snowplow_signals.models import (
     WarehouseTable,
 )
 from snowplow_signals.models.model import (
+    AttributeGroupResponse,
     AttributeKeyOutput,
     AttributeSqlFile,
     DatasetAttributeGroups,
@@ -342,6 +343,34 @@ class TestDatasetClient:
         request_body = json.loads(mock.calls[0].request.content)
         assert request_body["anchors"]["mode"] == "user_supplied"
         assert request_body["anchors"]["source"]["table"] == "my_anchors"
+
+    def test_build_sql_accepts_attribute_group_response(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/sql").mock(
+            return_value=httpx.Response(200, json=self._mock_bundle_response())
+        )
+
+        ag_response = AttributeGroupResponse(
+            name="my_group",
+            attribute_key=AttributeKeyOutput(name="domain_userid", blobl_path=None),
+            attribute_key_or_name="domain_userid",
+            owner="test@example.com",
+            full_name="my_group_v1",
+            feast_name="my_group_feast",
+            stream_source_name="my_group_stream",
+        )
+
+        signals_client.build_dataset_with_session_anchors(
+            attribute_groups=[ag_response],
+            goal_criteria=self._make_session_anchors().goal_criteria,
+            training_span=self._make_session_anchors().training_span,
+        )
+
+        assert mock.called
+        request_body = json.loads(mock.calls[0].request.content)
+        assert len(request_body["attributes"]["attribute_groups"]) == 1
+        assert request_body["attributes"]["attribute_groups"][0]["name"] == "my_group"
 
 
 class TestDatasetExports:

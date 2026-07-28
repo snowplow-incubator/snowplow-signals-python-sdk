@@ -245,7 +245,7 @@ class BaseSignalsWithApiClient:
 
     def build_dataset_with_session_anchors(
         self,
-        attribute_groups: list[AttributeGroup],
+        attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         goal_criteria: Criteria,
         training_span: TrainingSpan,
         excluded_events: list[SignalsApiModelsDatasetEvent] | None = None,
@@ -299,7 +299,7 @@ class BaseSignalsWithApiClient:
 
     def build_dataset_with_custom_anchors(
         self,
-        attribute_groups: list[AttributeGroup],
+        attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         anchors_table: WarehouseTable,
         anchors_have_label: bool | None = None,
         attributes_table: AttributesWarehouseTable | None = None,
@@ -337,7 +337,7 @@ class BaseSignalsWithApiClient:
 
     def _build_dataset_sql(
         self,
-        attribute_groups: list[AttributeGroup],
+        attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         anchors: SessionAnchors | UserSuppliedAnchors,
         attributes_table: AttributesWarehouseTable | None = None,
         dataset_table: WarehouseTable | None = None,
