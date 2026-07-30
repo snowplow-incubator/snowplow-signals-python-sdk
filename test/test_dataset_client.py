@@ -422,8 +422,8 @@ class TestDatasetRuns:
         return {
             "columns": ["user_id", "label", "feature_1"],
             "data": [
-                {"user_id": "u1", "label": 1, "feature_1": 0.5},
-                {"user_id": "u2", "label": 0, "feature_1": 0.3},
+                ["u1", 1, 0.5],
+                ["u2", 0, 0.3],
             ],
             "row_count": 2,
         }
@@ -517,8 +517,8 @@ class TestDatasetRuns:
         preview = DatasetPreviewResponse(
             columns=["user_id", "label"],
             data=[
-                {"user_id": "u1", "label": 1},
-                {"user_id": "u2", "label": 0},
+                ["u1", 1],
+                ["u2", 0],
             ],
             row_count=2,
         )

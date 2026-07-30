@@ -139,7 +139,7 @@ class DatasetRunStatusResponse(BaseModel):
 
 class DatasetPreviewResponse(BaseModel):
     columns: list[str]
-    data: list[dict[str, Any]]
+    data: list[list[Any]]
     row_count: int
 
     def to_pandas(self) -> pd.DataFrame:
