@@ -399,7 +399,6 @@ class TestDatasetRuns:
     def _mock_run_response(self) -> dict:
         return {
             "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-            "query_id": "01abc-query-id",
             "dataset": {
                 "database": "db",
                 "schema": "schema",
@@ -411,7 +410,6 @@ class TestDatasetRuns:
     def _mock_run_status_response(self, status: str = "pending") -> dict:
         return {
             "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-            "query_id": "01abc-query-id",
             "status": status,
             "dataset": {
                 "database": "db",
@@ -446,7 +444,6 @@ class TestDatasetRuns:
         assert mock.called
         assert isinstance(result, DatasetRunResponse)
         assert str(result.id) == "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-        assert result.query_id == "01abc-query-id"
         assert result.dataset.table == "signals_training_dataset"
 
         request_body = json.loads(mock.calls[0].request.content)

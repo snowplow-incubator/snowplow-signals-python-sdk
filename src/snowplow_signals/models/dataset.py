@@ -127,14 +127,12 @@ class DatasetRunStatus(StrEnum):
 
 class DatasetRunResponse(BaseModel):
     id: uuid.UUID
-    query_id: str
     dataset: WarehouseTable
     created_at: datetime
 
 
 class DatasetRunStatusResponse(BaseModel):
     id: uuid.UUID
-    query_id: str
     status: DatasetRunStatus
     dataset: WarehouseTable
 
