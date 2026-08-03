@@ -305,7 +305,6 @@ class BaseSignalsWithApiClient:
         self,
         attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         anchors_table: WarehouseTable,
-        anchors_have_label: bool | None = None,
         attributes_table: AttributesWarehouseTable | None = None,
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
@@ -318,7 +317,6 @@ class BaseSignalsWithApiClient:
         Args:
             attribute_groups: The attribute groups to include in the dataset.
             anchors_table: The warehouse table containing user-supplied anchors.
-            anchors_have_label: Whether the anchor table contains a label column.
             attributes_table: Optional table configuration for attribute output tables.
             dataset_table: Optional output table for the assembled dataset.
             max_lookback_days: Override the computed max lookback window (in days).
@@ -328,7 +326,6 @@ class BaseSignalsWithApiClient:
         anchors = UserSuppliedAnchors.model_validate(
             _exclude_none(
                 source=anchors_table,
-                has_label=anchors_have_label,
             )
         )
         return self._build_dataset_sql(
@@ -415,7 +412,6 @@ class BaseSignalsWithApiClient:
         self,
         attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         anchors_table: WarehouseTable,
-        anchors_have_label: bool | None = None,
         attributes_table: AttributesWarehouseTable | None = None,
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
@@ -427,7 +423,6 @@ class BaseSignalsWithApiClient:
         Args:
             attribute_groups: The attribute groups to include in the dataset.
             anchors_table: The warehouse table containing user-supplied anchors.
-            anchors_have_label: Whether the anchor table contains a label column.
             attributes_table: Optional table configuration for attribute output tables.
             dataset_table: Optional output table for the assembled dataset.
             max_lookback_days: Override the computed max lookback window (in days).
@@ -437,7 +432,6 @@ class BaseSignalsWithApiClient:
         anchors = UserSuppliedAnchors.model_validate(
             _exclude_none(
                 source=anchors_table,
-                has_label=anchors_have_label,
             )
         )
         return self._submit_dataset_run(
