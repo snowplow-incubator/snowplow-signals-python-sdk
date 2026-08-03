@@ -503,8 +503,8 @@ class TestDatasetRuns:
 
     def test_cancel_run(self, respx_mock: MockRouter, signals_client: Signals):
         run_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-        mock = respx_mock.delete(
-            f"http://localhost:8000/api/v1/datasets/runs/{run_id}"
+        mock = respx_mock.post(
+            f"http://localhost:8000/api/v1/datasets/runs/{run_id}/cancel"
         ).mock(return_value=httpx.Response(200, json={"message": "cancelled"}))
 
         import uuid
