@@ -277,7 +277,7 @@ class DatasetClient:
 
     def cancel_run(self, run_id: uuid.UUID) -> None:
         """Cancel a running dataset build."""
-        self.api_client.make_request("DELETE", f"datasets/runs/{run_id}")
+        self.api_client.make_request("POST", f"datasets/runs/{run_id}/cancel")
 
     def _model_dump(self, model: BaseModel) -> dict:
         return model.model_dump(
