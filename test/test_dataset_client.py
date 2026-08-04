@@ -9,6 +9,10 @@ from snowplow_signals import (
     AttributeGroup,
     Criteria,
     Criterion,
+    DatasetPreviewResponse,
+    DatasetRunResponse,
+    DatasetRunStatus,
+    DatasetRunStatusResponse,
     Signals,
     domain_userid,
 )
@@ -373,10 +377,165 @@ class TestDatasetClient:
         assert request_body["attributes"]["attribute_groups"][0]["name"] == "my_group"
 
 
+class TestDatasetRuns:
+    def _make_session_anchors(self) -> SessionAnchors:
+        return SessionAnchors(
+            goal_criteria=Criteria(
+                any=[Criterion.eq(AtomicProperty(name="se_action"), "purchase")]
+            ),
+            training_span=TrainingSpan(
+                start_time=datetime(2025, 1, 1, tzinfo=timezone.utc),
+                end_time=datetime(2025, 6, 1, tzinfo=timezone.utc),
+            ),
+        )
+
+    def _make_attribute_group(self) -> AttributeGroup:
+        return AttributeGroup(
+            name="my_group",
+            attribute_key=domain_userid,
+            owner="test@example.com",
+        )
+
+    def _mock_run_response(self) -> dict:
+        return {
+            "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "dataset": {
+                "database": "db",
+                "schema": "schema",
+                "table": "signals_training_dataset",
+            },
+            "created_at": "2025-07-01T12:00:00Z",
+        }
+
+    def _mock_run_status_response(self, status: str = "pending") -> dict:
+        return {
+            "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "status": status,
+            "dataset": {
+                "database": "db",
+                "schema": "schema",
+                "table": "signals_training_dataset",
+            },
+        }
+
+    def _mock_preview_response(self) -> dict:
+        return {
+            "columns": ["user_id", "label", "feature_1"],
+            "data": [
+                ["u1", 1, 0.5],
+                ["u2", 0, 0.3],
+            ],
+            "row_count": 2,
+        }
+
+    def test_submit_run_session_anchors(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/runs").mock(
+            return_value=httpx.Response(202, json=self._mock_run_response())
+        )
+
+        result = signals_client.submit_dataset_run_with_session_anchors(
+            attribute_groups=[self._make_attribute_group()],
+            goal_criteria=self._make_session_anchors().goal_criteria,
+            training_span=self._make_session_anchors().training_span,
+        )
+
+        assert mock.called
+        assert isinstance(result, DatasetRunResponse)
+        assert str(result.id) == "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        assert result.dataset.table == "signals_training_dataset"
+
+        request_body = json.loads(mock.calls[0].request.content)
+        assert request_body["anchors"]["mode"] == "session"
+        assert len(request_body["attributes"]["attribute_groups"]) == 1
+
+    def test_submit_run_custom_anchors(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/runs").mock(
+            return_value=httpx.Response(202, json=self._mock_run_response())
+        )
+
+        result = signals_client.submit_dataset_run_with_custom_anchors(
+            attribute_groups=[self._make_attribute_group()],
+            anchors_table=WarehouseTable(
+                database="my_db", schema="my_schema", table="my_anchors"
+            ),
+        )
+
+        assert mock.called
+        assert isinstance(result, DatasetRunResponse)
+        request_body = json.loads(mock.calls[0].request.content)
+        assert request_body["anchors"]["mode"] == "user_supplied"
+        assert request_body["anchors"]["source"]["table"] == "my_anchors"
+
+    def test_get_run_status(self, respx_mock: MockRouter, signals_client: Signals):
+        run_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        respx_mock.get(f"http://localhost:8000/api/v1/datasets/runs/{run_id}").mock(
+            return_value=httpx.Response(
+                200, json=self._mock_run_status_response("success")
+            )
+        )
+
+        import uuid
+
+        result = signals_client.get_dataset_run_status(uuid.UUID(run_id))
+
+        assert isinstance(result, DatasetRunStatusResponse)
+        assert result.status == DatasetRunStatus.SUCCESS
+        assert result.dataset.table == "signals_training_dataset"
+
+    def test_get_run_preview(self, respx_mock: MockRouter, signals_client: Signals):
+        run_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        respx_mock.get(
+            f"http://localhost:8000/api/v1/datasets/runs/{run_id}/preview"
+        ).mock(return_value=httpx.Response(200, json=self._mock_preview_response()))
+
+        import uuid
+
+        result = signals_client.get_dataset_run_preview(uuid.UUID(run_id))
+
+        assert isinstance(result, DatasetPreviewResponse)
+        assert result.columns == ["user_id", "label", "feature_1"]
+        assert result.row_count == 2
+        assert len(result.data) == 2
+
+    def test_cancel_run(self, respx_mock: MockRouter, signals_client: Signals):
+        run_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        mock = respx_mock.post(
+            f"http://localhost:8000/api/v1/datasets/runs/{run_id}/cancel"
+        ).mock(return_value=httpx.Response(200, json={"message": "cancelled"}))
+
+        import uuid
+
+        signals_client.cancel_dataset_run(uuid.UUID(run_id))
+
+        assert mock.called
+
+    def test_preview_to_pandas(self):
+        preview = DatasetPreviewResponse(
+            columns=["user_id", "label"],
+            data=[
+                ["u1", 1],
+                ["u2", 0],
+            ],
+            row_count=2,
+        )
+
+        df = preview.to_pandas()
+        assert list(df.columns) == ["user_id", "label"]
+        assert len(df) == 2
+
+
 class TestDatasetExports:
     def test_models_importable_from_snowplow_signals(self):
         from snowplow_signals import (
             DatasetBundle,
+            DatasetPreviewResponse,
+            DatasetRunResponse,
+            DatasetRunStatus,
+            DatasetRunStatusResponse,
             SessionAnchors,
             TrainingSpan,
             UserSuppliedAnchors,
@@ -388,3 +547,7 @@ class TestDatasetExports:
         assert WarehouseTable is not None
         assert TrainingSpan is not None
         assert DatasetBundle is not None
+        assert DatasetRunResponse is not None
+        assert DatasetRunStatus is not None
+        assert DatasetRunStatusResponse is not None
+        assert DatasetPreviewResponse is not None

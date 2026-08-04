@@ -13,6 +13,10 @@ from snowplow_signals.models import (
     Criteria,
     Criterion,
     DatasetBundle,
+    DatasetPreviewResponse,
+    DatasetRunResponse,
+    DatasetRunStatus,
+    DatasetRunStatusResponse,
     EntityProperty,
     Event,
     EventLog,
@@ -47,7 +51,6 @@ from snowplow_signals.models import (
     StreamAttributeGroup,
     TrainingSpan,
     UserSuppliedAnchors,
-    WarehouseConnection,
     WarehouseTable,
 )
 from snowplow_signals.signals import Signals, SignalsSandbox
@@ -119,7 +122,10 @@ AttributeKeyId
 AttributesWarehouseTable
 SessionAnchors
 UserSuppliedAnchors
-WarehouseConnection
 WarehouseTable
 TrainingSpan
 DatasetBundle
+DatasetRunResponse
+DatasetRunStatus
+DatasetRunStatusResponse
+DatasetPreviewResponse
