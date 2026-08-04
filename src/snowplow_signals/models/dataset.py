@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+import uuid
 from collections.abc import Sequence
+from datetime import datetime
+from enum import StrEnum
 from pathlib import Path
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .connection import WarehouseConnection
 from .criteria_wrapper import Criteria
-from .execution import ExecutionResult
 from .model import AttributeGroupInput, AttributeSqlFile
 from .model import DatasetAttributeGroups as DatasetAttributeGroupsModel
 from .model import DatasetBundleRequest, DatasetBundleResponse, DatasetSqlFile
@@ -117,10 +118,31 @@ class DatasetBundle(BaseModel):
             )
         self._dataset_client.save_dataset_bundle(self, path)
 
-    def execute(self, connection: WarehouseConnection) -> ExecutionResult:
-        if self._dataset_client is None:
-            raise RuntimeError(
-                "execute requires a DatasetClient. "
-                "Use the bundle returned by Signals.build_dataset_with_*()."
-            )
-        return self._dataset_client.execute_dataset_bundle(self, connection)
+
+class DatasetRunStatus(StrEnum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
+
+
+class DatasetRunResponse(BaseModel):
+    id: uuid.UUID
+    dataset: WarehouseTable
+    created_at: datetime
+
+
+class DatasetRunStatusResponse(BaseModel):
+    id: uuid.UUID
+    status: DatasetRunStatus
+    dataset: WarehouseTable
+
+
+class DatasetPreviewResponse(BaseModel):
+    columns: list[str]
+    data: list[list[Any]]
+    row_count: int
+
+    def to_pandas(self) -> pd.DataFrame:
+        import pandas as pd
+
+        return pd.DataFrame(self.data, columns=self.columns)

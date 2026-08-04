@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel
 
@@ -14,8 +14,14 @@ from .models import (
     DatasetBundle,
     WarehouseTable,
 )
-from .models.dataset import Manifest, ManifestDefinition, ManifestTables
-from .models.execution import ExecutionError, ExecutionResult
+from .models.dataset import (
+    DatasetPreviewResponse,
+    DatasetRunResponse,
+    DatasetRunStatusResponse,
+    Manifest,
+    ManifestDefinition,
+    ManifestTables,
+)
 from .models.model import (
     AttributeGroupResponse,
     AttributeSqlFile,
@@ -25,9 +31,6 @@ from .models.model import (
     SessionAnchors,
     UserSuppliedAnchors,
 )
-
-if TYPE_CHECKING:
-    from .models.connection import WarehouseConnection
 
 
 class DatasetClient:
@@ -85,48 +88,6 @@ class DatasetClient:
             manifest.model_dump_json(indent=2, by_alias=True, exclude_none=True) + "\n"
         )
         (path / "README.md").write_text(self._build_readme(bundle))
-
-    def execute_dataset_bundle(
-        self, bundle: DatasetBundle, connection: WarehouseConnection
-    ) -> ExecutionResult:
-        stages_to_run: list[
-            tuple[
-                Literal["anchors", "attributes", "dataset"],
-                DatasetSqlFile | AttributeSqlFile,
-            ]
-        ] = []
-
-        # Fixed order: anchors -> attributes -> dataset
-        stages_to_run.append(("anchors", bundle.response.anchors))
-        for attr_entry in bundle.response.attributes:
-            stages_to_run.append(("attributes", attr_entry))
-        stages_to_run.append(("dataset", bundle.response.dataset))
-
-        for stage_name, entry in stages_to_run:
-            if entry.sql is None:
-                continue
-            try:
-                connection.execute(entry.sql)
-            except Exception as e:
-                raise ExecutionError(
-                    failed_stage=stage_name,
-                    failed_table=WarehouseTable(
-                        database=entry.database,
-                        schema=entry.schema_,
-                        table=entry.table,
-                    ),
-                    cause=e,
-                ) from e
-
-        dataset = bundle.response.dataset
-        return ExecutionResult(
-            table=WarehouseTable(
-                database=dataset.database,
-                schema=dataset.schema_,
-                table=dataset.table,
-            ),
-            connection=connection,
-        )
 
     def _build_manifest(self, bundle: DatasetBundle) -> Manifest:
         return Manifest(
@@ -258,6 +219,65 @@ class DatasetClient:
         if isinstance(anchors, UserSuppliedAnchors):
             return "user-supplied custom anchors."
         return "custom anchoring strategy."
+
+    def submit_run(
+        self,
+        attribute_groups: list[AttributeGroup | AttributeGroupResponse],
+        anchors: Anchors,
+        attributes_database: str | None = None,
+        attributes_schema: str | None = None,
+        attributes_table_prefix: str | None = None,
+        dataset: WarehouseTable | None = None,
+        max_lookback_days: int | None = None,
+    ) -> DatasetRunResponse:
+        """Submit a dataset build for async execution on the server.
+
+        Returns immediately with a run ID that can be polled for status.
+        """
+        resolved_groups = [
+            (
+                ag
+                if isinstance(ag, AttributeGroup)
+                else AttributeGroup.model_validate(ag.model_dump())
+            )
+            for ag in attribute_groups
+        ]
+        request = DatasetBundleRequest(
+            anchors=anchors,
+            attributes=DatasetAttributeGroups(
+                attribute_groups=resolved_groups,
+                database=attributes_database,
+                schema=attributes_schema,
+                table_prefix=attributes_table_prefix,
+            ),
+            dataset=dataset,
+            max_lookback_days=max_lookback_days,
+        )
+
+        data = self._model_dump(request)
+        raw_response = self.api_client.make_request("POST", "datasets/runs", data=data)
+        return DatasetRunResponse.model_validate(raw_response)
+
+    def get_run_status(self, run_id: uuid.UUID) -> DatasetRunStatusResponse:
+        """Poll the status of an async dataset run."""
+        raw_response = self.api_client.make_request("GET", f"datasets/runs/{run_id}")
+        return DatasetRunStatusResponse.model_validate(raw_response)
+
+    def get_run_preview(
+        self, run_id: uuid.UUID, limit: int = 100
+    ) -> DatasetPreviewResponse:
+        """Fetch a preview of the completed dataset.
+
+        Only available when the run status is SUCCESS.
+        """
+        raw_response = self.api_client.make_request(
+            "GET", f"datasets/runs/{run_id}/preview", params={"limit": limit}
+        )
+        return DatasetPreviewResponse.model_validate(raw_response)
+
+    def cancel_run(self, run_id: uuid.UUID) -> None:
+        """Cancel a running dataset build."""
+        self.api_client.make_request("POST", f"datasets/runs/{run_id}/cancel")
 
     def _model_dump(self, model: BaseModel) -> dict:
         return model.model_dump(
