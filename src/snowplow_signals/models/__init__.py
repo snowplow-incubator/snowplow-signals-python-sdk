@@ -12,16 +12,16 @@ from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
     AtomicProperty,
+)
+from .model import Attribute
+from .model import Attribute as AttributeOutput
+from .model import (
     AttributeGroupReference,
     AttributeGroupResponse,
-)
-from .model import AttributeInput as Attribute
-from .model import (
     AttributeKeyId,
     AttributeKeyIdentifiers,
     AttributeKeyOutput,
     AttributeKeyReference,
-    AttributeOutput,
     AttributeWithStringProperty,
     BatchSource,
 )
@@ -32,7 +32,6 @@ from .model import (
     CriteriaWithStringProperty,
     CriterionWithStringProperty,
     EntityProperty,
-    Event,
     EventLogAtomicProperty,
 )
 from .model import EventLogBufferResponse as AgenticContextResponse
@@ -42,6 +41,9 @@ from .model import (
     EventLogEventProperty,
     EventLogReference,
     EventLogResponse,
+)
+from .model import EventOutput as Event
+from .model import (
     EventProperty,
     EventSelection,
 )

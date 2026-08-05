@@ -6,8 +6,8 @@ from pydantic import Field as PydanticField
 
 from .attribute_key import AttributeKey
 from .model import (
+    Attribute,
     AttributeGroupInput,
-    AttributeInput,
     BatchSource,
     FieldModel,
     LinkAttributeKey,
@@ -70,7 +70,7 @@ class StreamOrBatchAttributeGroup(AttributeGroup):
         default=None,
         description="Not applicable.",
     )
-    attributes: list[AttributeInput] = Field(
+    attributes: list[Attribute] = Field(
         description="The list of attributes that will be calculated from events as part of this attribute group.",
         title="Attributes",
         min_length=1,

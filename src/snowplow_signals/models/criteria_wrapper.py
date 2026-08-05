@@ -1,5 +1,5 @@
 from .criterion_wrapper import Criterion
-from .model import CriteriaInput
+from .model import Criteria as CriteriaInput
 
 
 class Criteria(CriteriaInput):
