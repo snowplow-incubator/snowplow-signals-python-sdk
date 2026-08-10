@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.4.7] - 2026-08-10
+
+- [AISP-1401/1402] Add dataset builder functionality (#131)
+- Allow `AttributeGroupResponse` in dataset builder (#143)
+- Allow snowflake execution (#144)
+- Add date part updates (#145)
+
 # [0.4.6] - 2026-07-27
 
 - [AISP-1554] Regenerate models with per-attribute ttl override (#137)
