@@ -52,6 +52,9 @@ jobs:
         id: new_version
         run: |
           CURRENT_VERSION=${{ steps.version.outputs.current_version }}
+          # Poetry normalizes versions to PEP 440 (e.g. 0.4.7rc1), but version.py
+          # parses with semver, which requires a hyphen (0.4.7-rc1). Normalize here.
+          CURRENT_VERSION=$(echo "$CURRENT_VERSION" | sed -E 's/([0-9])(rc|alpha|beta|a|b)/\1-\2/')
           VERSION_TYPE=${{ github.event.inputs.version_type }}
           PRERELEASE_TYPE=${{ github.event.inputs.prerelease_type }}
           NEW_VERSION=$(poetry run python scripts/version.py "$CURRENT_VERSION" "$VERSION_TYPE" "$PRERELEASE_TYPE")
