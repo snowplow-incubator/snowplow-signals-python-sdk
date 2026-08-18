@@ -112,7 +112,7 @@ class ApiClient:
             timeout=30.0,
         )
 
-        if response.status_code in (200, 201):
+        if response.status_code in (200, 201, 202):
             try:
                 return response.json()
             except json.JSONDecodeError:
@@ -193,7 +193,7 @@ class ApiClient:
             timeout=30.0,
         )
 
-        if response.status_code in (200, 201):
+        if response.status_code in (200, 201, 202):
             return response.text
 
         try:

@@ -66,3 +66,64 @@ response = signals.get_group_attributes(
 - Create attribute groups for related attributes
 - Deploy attribute groups to the Profile API
 - Retrieve real-time user attributes
+- Build training datasets with session-based or custom anchors
+- Execute dataset builds server-side and preview results
+
+## Dataset Builder
+
+Build training datasets from your Snowplow events using the dataset builder. You can generate SQL bundles locally or submit dataset builds for server-side execution.
+
+### Generate SQL bundle
+
+```python
+from datetime import datetime, timezone
+from snowplow_signals import Signals, Criteria, Criterion, TrainingSpan
+from snowplow_signals.models import AtomicProperty
+
+bundle = signals.build_dataset_with_session_anchors(
+    attribute_groups=[my_attribute_group],
+    goal_criteria=Criteria(
+        any=[Criterion.eq(AtomicProperty(name="se_action"), "purchase")]
+    ),
+    training_span=TrainingSpan(
+        start_time=datetime(2025, 1, 1, tzinfo=timezone.utc),
+        end_time=datetime(2025, 6, 1, tzinfo=timezone.utc),
+    ),
+)
+
+# Save SQL files to disk
+bundle.save_to("./dataset_output")
+```
+
+### Server-side execution
+
+Submit a dataset build for execution on your warehouse and poll for results:
+
+```python
+import time
+from snowplow_signals import DatasetRunStatus
+
+run = signals.submit_dataset_run_with_session_anchors(
+    attribute_groups=[my_attribute_group],
+    goal_criteria=Criteria(
+        any=[Criterion.eq(AtomicProperty(name="se_action"), "purchase")]
+    ),
+    training_span=TrainingSpan(
+        start_time=datetime(2025, 1, 1, tzinfo=timezone.utc),
+        end_time=datetime(2025, 6, 1, tzinfo=timezone.utc),
+    ),
+)
+
+# Poll for completion
+while True:
+    status = signals.get_dataset_run_status(run.id)
+    if status.status != DatasetRunStatus.PENDING:
+        break
+    time.sleep(5)
+
+# Preview results
+if status.status == DatasetRunStatus.SUCCESS:
+    preview = signals.get_dataset_run_preview(run.id, limit=100)
+    df = preview.to_pandas()
+    print(df)
+```

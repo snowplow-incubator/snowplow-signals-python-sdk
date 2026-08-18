@@ -7,10 +7,16 @@ from snowplow_signals.models import (
     AttributeKey,
     AttributeKeyId,
     AttributeKeyIdentifiers,
+    AttributesWarehouseTable,
     BatchAttributeGroup,
     BatchSource,
     Criteria,
     Criterion,
+    DatasetBundle,
+    DatasetPreviewResponse,
+    DatasetRunResponse,
+    DatasetRunStatus,
+    DatasetRunStatusResponse,
     EntityProperty,
     Event,
     EventLog,
@@ -41,7 +47,11 @@ from snowplow_signals.models import (
     LinkAttributeKey,
     RuleIntervention,
     Service,
+    SessionAnchors,
     StreamAttributeGroup,
+    TrainingSpan,
+    UserSuppliedAnchors,
+    WarehouseTable,
 )
 from snowplow_signals.signals import Signals, SignalsSandbox
 
@@ -107,3 +117,15 @@ InterventionCriterion
 SignalsAPIError
 AttributeKeyIdentifiers
 AttributeKeyId
+
+# Datasets
+AttributesWarehouseTable
+SessionAnchors
+UserSuppliedAnchors
+WarehouseTable
+TrainingSpan
+DatasetBundle
+DatasetRunResponse
+DatasetRunStatus
+DatasetRunStatusResponse
+DatasetPreviewResponse
