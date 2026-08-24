@@ -37,6 +37,7 @@ from .model import (
     AttributeSqlFile,
     AttributeWithStringProperty,
     BatchSource,
+    CalculatedProperty,
 )
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
 from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
@@ -128,6 +129,7 @@ CriterionWithStringProperty
 AtomicProperty
 EventProperty
 EntityProperty
+CalculatedProperty
 AttributeKeyId
 AttributeKeyOutput
 Anchors
