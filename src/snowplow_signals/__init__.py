@@ -10,6 +10,7 @@ from snowplow_signals.models import (
     AttributesWarehouseTable,
     BatchAttributeGroup,
     BatchSource,
+    CalculatedProperty,
     Criteria,
     Criterion,
     DatasetBundle,
@@ -91,6 +92,7 @@ network_userid
 EntityProperty
 EventProperty
 AtomicProperty
+CalculatedProperty
 
 # Event logs (definitions)
 EventLog
