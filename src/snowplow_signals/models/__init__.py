@@ -20,14 +20,11 @@ from .dataset import (
     UserSuppliedAnchors,
     WarehouseTable,
 )
-from .event_log import EventLog
+from .event_log import EventLog, EventSelection
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
     AtomicProperty,
-)
-from .model import Attribute as Attribute
-from .model import (
     AttributeGroupReference,
     AttributeGroupResponse,
     AttributeKeyId,
@@ -37,7 +34,6 @@ from .model import (
     AttributeSqlFile,
     AttributeWithStringProperty,
     BatchSource,
-    CalculatedProperty,
 )
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
 from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
@@ -62,7 +58,6 @@ from .model import (
 from .model import EventOutput as Event
 from .model import (
     EventProperty,
-    EventSelection,
 )
 from .model import FieldModel as Field
 from .model import (
@@ -86,6 +81,7 @@ from .model import (
     TrainingSpan,
     UnpublishRequest,
 )
+from .property_wrapper import Attribute, CalculatedProperty
 from .service import Service
 
 Criteria
