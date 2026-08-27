@@ -1,5 +1,9 @@
 # Changelog
 
+# [0.4.8] - 2026-08-27
+
+- [AISP-1557] Add time_since aggregations (#147)
+
 # [0.4.7] - 2026-08-10
 
 - [AISP-1401/1402] Add dataset builder functionality (#131)

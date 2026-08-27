@@ -336,6 +336,57 @@ def test_stream_view_with_approx_count_distinct_aggregation():
     assert stream_view.attributes[0].aggregation == "approx_count_distinct"
 
 
+def test_stream_view_with_time_since_last_aggregation():
+    """Test that StreamAttributeGroup accepts time_since_last aggregation with time_unit."""
+    stream_view = StreamAttributeGroup(
+        name="test_view",
+        attribute_key=AttributeKey(name="test_entity"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="time_since_last_page_view",
+                aggregation="time_since_last",
+                type="double",
+                events=[Event(name="page_view")],
+                time_unit="h",
+            )
+        ],
+    )
+    assert stream_view.attributes[0].aggregation == "time_since_last"
+    assert stream_view.attributes[0].time_unit == "h"
+
+
+def test_stream_view_with_time_since_first_aggregation():
+    """Test that StreamAttributeGroup accepts time_since_first aggregation with time_unit."""
+    stream_view = StreamAttributeGroup(
+        name="test_view",
+        attribute_key=AttributeKey(name="test_entity"),
+        owner="test@example.com",
+        attributes=[
+            Attribute(
+                name="time_since_first_purchase",
+                aggregation="time_since_first",
+                type="double",
+                events=[Event(name="purchase")],
+                time_unit="d",
+            )
+        ],
+    )
+    assert stream_view.attributes[0].aggregation == "time_since_first"
+    assert stream_view.attributes[0].time_unit == "d"
+
+
+def test_time_unit_defaults_to_none():
+    """Test that time_unit defaults to None for non-time_since aggregations."""
+    attribute = Attribute(
+        name="page_view_count",
+        aggregation="counter",
+        type="int32",
+        events=[Event(name="page_view")],
+    )
+    assert attribute.time_unit is None
+
+
 def test_attribute_accepts_ttl_override():
     """Test that a lifetime attribute (no period) accepts a per-attribute ttl."""
     stream_view = StreamAttributeGroup(

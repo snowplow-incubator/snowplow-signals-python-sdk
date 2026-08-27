@@ -1,5 +1,5 @@
-import pytest
 import httpx
+import pytest
 from respx import MockRouter
 
 from snowplow_signals import SignalsSandbox
