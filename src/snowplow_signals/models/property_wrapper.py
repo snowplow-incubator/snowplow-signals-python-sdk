@@ -38,13 +38,19 @@ def _unwrap_root(property: object) -> object:
 # One property combined by a calculated property. Same three types accepted by
 # `Attribute.property`; a calculated property cannot nest another one.
 _CalculatedLeaf = Annotated[
-    AtomicProperty | EntityProperty | EventProperty,
+    Annotated[
+        AtomicProperty | EntityProperty | EventProperty,
+        Field(discriminator="type"),
+    ],
     BeforeValidator(_unwrap_root),
 ]
 
 # One property projected from a matched event, within an event log.
 _EventLogProperty = Annotated[
-    EventLogAtomicProperty | EventLogEntityProperty | EventLogEventProperty,
+    Annotated[
+        EventLogAtomicProperty | EventLogEntityProperty | EventLogEventProperty,
+        Field(discriminator="type"),
+    ],
     BeforeValidator(_unwrap_root),
 ]
 
