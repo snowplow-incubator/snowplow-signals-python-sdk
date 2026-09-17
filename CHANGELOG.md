@@ -1,5 +1,9 @@
 # Changelog
 
+# [0.4.9] - 2026-09-17
+
+- Add support for calculated properties and fix event property selection in event logs (#149)
+
 # [0.4.8] - 2026-08-27
 
 - [AISP-1557] Add time_since aggregations (#147)
