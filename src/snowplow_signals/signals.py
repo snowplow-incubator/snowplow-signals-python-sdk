@@ -273,7 +273,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetBundle:
         """
         Generate a SQL bundle for building a training dataset using session-based anchors.
@@ -327,7 +327,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
         has_label: bool | None = None,
     ) -> DatasetBundle:
         """
@@ -371,7 +371,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetBundle:
         return self.datasets.build_sql(
             attribute_groups=attribute_groups,
@@ -401,7 +401,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build for async execution using session-based anchors.
 
@@ -453,7 +453,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
         has_label: bool | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build for async execution using user-supplied anchors.
@@ -503,7 +503,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetBundle:
         """
         Generate a SQL bundle for a dataset with one anchor per matching event.
@@ -563,7 +563,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build with one anchor per matching event for async execution.
 
@@ -603,7 +603,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetBundle:
         """
         Generate a SQL bundle for a dataset anchored where an agentic attribute would have fired.
@@ -650,7 +650,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build anchored where an agentic attribute would have fired.
 
@@ -754,7 +754,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetRunResponse:
         return self.datasets.submit_run(
             attribute_groups=attribute_groups,

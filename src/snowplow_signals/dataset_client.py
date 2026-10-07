@@ -14,6 +14,7 @@ from .models import (
     DatasetBundle,
     DatasetOutcome,
     EventLog,
+    EventLogResponse,
     WarehouseTable,
 )
 from .models.dataset import (
@@ -54,7 +55,7 @@ class DatasetClient:
         dataset: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetBundle:
         resolved_groups = [
             (
@@ -249,7 +250,7 @@ class DatasetClient:
         dataset: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog] | None = None,
+        event_logs: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build for async execution on the server.
 
@@ -303,7 +304,7 @@ class DatasetClient:
         self.api_client.make_request("POST", f"datasets/runs/{run_id}/cancel")
 
     def _event_log_inputs(
-        self, event_logs: list[EventLog] | None
+        self, event_logs: list[EventLog | EventLogResponse] | None
     ) -> list[EventLogInput] | None:
         """The SDK's event logs as the request model's type, whose properties are
         wrapped in a generated root model the SDK hides."""
