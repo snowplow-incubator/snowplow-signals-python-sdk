@@ -12,6 +12,8 @@ from .models import (
     AttributeGroup,
     DatasetAttributeGroups,
     DatasetBundle,
+    DatasetOutcome,
+    EventLog,
     WarehouseTable,
 )
 from .models.dataset import (
@@ -28,7 +30,12 @@ from .models.model import (
     DatasetBundleRequest,
     DatasetBundleResponse,
     DatasetSqlFile,
+    EventAnchors,
+)
+from .models.model import EventLog as EventLogInput
+from .models.model import (
     SessionAnchors,
+    TriggerAnchors,
     UserSuppliedAnchors,
 )
 
@@ -46,6 +53,8 @@ class DatasetClient:
         attributes_table_prefix: str | None = None,
         dataset: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
+        outcomes: list[DatasetOutcome] | None = None,
+        event_logs: list[EventLog] | None = None,
     ) -> DatasetBundle:
         resolved_groups = [
             (
@@ -65,6 +74,8 @@ class DatasetClient:
             ),
             dataset=dataset,
             max_lookback_days=max_lookback_days,
+            outcomes=outcomes,
+            event_logs=self._event_log_inputs(event_logs),
         )
 
         data = self._model_dump(request)
@@ -95,6 +106,8 @@ class DatasetClient:
             definition=ManifestDefinition(
                 anchors=bundle.request.anchors,
                 attribute_groups=list(bundle.request.attributes.attribute_groups),
+                outcomes=list(bundle.request.outcomes or []),
+                event_logs=list(bundle.request.event_logs or []),
             ),
             tables=ManifestTables(
                 anchors=DatasetSqlFile(
@@ -133,7 +146,7 @@ class DatasetClient:
         file_entries.append(
             (
                 anchors_file,
-                "Builds the anchors table (one row per training example, with its label).",
+                "Builds the anchors table (one row per moment, with its label if the anchors have one).",
             )
         )
         for attr in resp.attributes:
@@ -218,6 +231,12 @@ class DatasetClient:
             return "one training example per session."
         if isinstance(anchors, UserSuppliedAnchors):
             return "user-supplied custom anchors."
+        if isinstance(anchors, EventAnchors):
+            return "one row per matching event."
+        if isinstance(anchors, TriggerAnchors):
+            return (
+                "one row per moment the agentic attribute's triggers would have fired."
+            )
         return "custom anchoring strategy."
 
     def submit_run(
@@ -229,6 +248,8 @@ class DatasetClient:
         attributes_table_prefix: str | None = None,
         dataset: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
+        outcomes: list[DatasetOutcome] | None = None,
+        event_logs: list[EventLog] | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build for async execution on the server.
 
@@ -252,6 +273,8 @@ class DatasetClient:
             ),
             dataset=dataset,
             max_lookback_days=max_lookback_days,
+            outcomes=outcomes,
+            event_logs=self._event_log_inputs(event_logs),
         )
 
         data = self._model_dump(request)
@@ -278,6 +301,15 @@ class DatasetClient:
     def cancel_run(self, run_id: uuid.UUID) -> None:
         """Cancel a running dataset build."""
         self.api_client.make_request("POST", f"datasets/runs/{run_id}/cancel")
+
+    def _event_log_inputs(
+        self, event_logs: list[EventLog] | None
+    ) -> list[EventLogInput] | None:
+        """The SDK's event logs as the request model's type, whose properties are
+        wrapped in a generated root model the SDK hides."""
+        if event_logs is None:
+            return None
+        return [EventLogInput.model_validate(self._model_dump(e)) for e in event_logs]
 
     def _model_dump(self, model: BaseModel) -> dict:
         return model.model_dump(

@@ -1,5 +1,6 @@
 from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
+    AgenticAttributeEvaluationPolicy,
     AgenticContextResponse,
     AtomicProperty,
     Attribute,
@@ -12,14 +13,17 @@ from snowplow_signals.models import (
     BatchSource,
     CalculatedProperty,
     Criteria,
+    CriteriaTrigger,
     Criterion,
     DatasetBundle,
+    DatasetOutcome,
     DatasetPreviewResponse,
     DatasetRunResponse,
     DatasetRunStatus,
     DatasetRunStatusResponse,
     EntityProperty,
     Event,
+    EventAnchors,
     EventLog,
     EventLogAtomicProperty,
     EventLogEntityProperty,
@@ -49,8 +53,10 @@ from snowplow_signals.models import (
     RuleIntervention,
     Service,
     SessionAnchors,
+    SessionSample,
     StreamAttributeGroup,
     TrainingSpan,
+    TriggerAnchors,
     UserSuppliedAnchors,
     WarehouseTable,
 )
@@ -124,6 +130,12 @@ AttributeKeyId
 AttributesWarehouseTable
 SessionAnchors
 UserSuppliedAnchors
+EventAnchors
+TriggerAnchors
+CriteriaTrigger
+AgenticAttributeEvaluationPolicy
+SessionSample
+DatasetOutcome
 WarehouseTable
 TrainingSpan
 DatasetBundle
