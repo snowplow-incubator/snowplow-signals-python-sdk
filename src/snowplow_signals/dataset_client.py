@@ -310,7 +310,9 @@ class DatasetClient:
         wrapped in a generated root model the SDK hides."""
         if agentic_contexts is None:
             return None
-        return [EventLogInput.model_validate(self._model_dump(e)) for e in agentic_contexts]
+        return [
+            EventLogInput.model_validate(self._model_dump(e)) for e in agentic_contexts
+        ]
 
     def _model_dump(self, model: BaseModel) -> dict:
         return model.model_dump(
