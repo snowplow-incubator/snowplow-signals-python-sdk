@@ -1,5 +1,6 @@
 from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
+    AgenticAttributeEvaluationPolicy,
     AgenticContextResponse,
     AtomicProperty,
     Attribute,
@@ -12,14 +13,17 @@ from snowplow_signals.models import (
     BatchSource,
     CalculatedProperty,
     Criteria,
+    CriteriaTrigger,
     Criterion,
     DatasetBundle,
+    DatasetOutcome,
     DatasetPreviewResponse,
     DatasetRunResponse,
     DatasetRunStatus,
     DatasetRunStatusResponse,
     EntityProperty,
     Event,
+    EventAnchors,
     EventLog,
     EventLogAtomicProperty,
     EventLogEntityProperty,
@@ -31,26 +35,32 @@ from snowplow_signals.models import (
     ExternalBatchAttributeGroup,
     Field,
 )
+from snowplow_signals.models import InterventionCriteriaAllInput as AttributeCriteriaAll
 from snowplow_signals.models import (
     InterventionCriteriaAllInput as InterventionCriteriaAll,
 )
+from snowplow_signals.models import InterventionCriteriaAnyInput as AttributeCriteriaAny
 from snowplow_signals.models import (
     InterventionCriteriaAnyInput as InterventionCriteriaAny,
 )
 from snowplow_signals.models import (
-    InterventionCriteriaNoneInput as InterventionCriteriaNone,
+    InterventionCriteriaNoneInput as AttributeCriteriaNone,
 )
 from snowplow_signals.models import (
-    InterventionCriterion,
+    InterventionCriteriaNoneInput as InterventionCriteriaNone,
 )
+from snowplow_signals.models import InterventionCriterion
+from snowplow_signals.models import InterventionCriterion as AttributeCriterion
 from snowplow_signals.models import InterventionInstance as InterventionInstance
 from snowplow_signals.models import (
     LinkAttributeKey,
     RuleIntervention,
     Service,
     SessionAnchors,
+    SessionSample,
     StreamAttributeGroup,
     TrainingSpan,
+    TriggerAnchors,
     UserSuppliedAnchors,
     WarehouseTable,
 )
@@ -124,6 +134,18 @@ AttributeKeyId
 AttributesWarehouseTable
 SessionAnchors
 UserSuppliedAnchors
+EventAnchors
+TriggerAnchors
+CriteriaTrigger
+# Rules over attribute values, for trigger anchors and agentic attribute triggers:
+# the intervention criteria classes under names that do not imply interventions.
+AttributeCriteriaAll
+AttributeCriteriaAny
+AttributeCriteriaNone
+AttributeCriterion
+AgenticAttributeEvaluationPolicy
+SessionSample
+DatasetOutcome
 WarehouseTable
 TrainingSpan
 DatasetBundle
