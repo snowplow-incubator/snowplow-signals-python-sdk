@@ -7,6 +7,8 @@ from respx import MockRouter
 
 from snowplow_signals import (
     AgenticAttributeEvaluationPolicy,
+    AttributeCriteriaAll,
+    AttributeCriterion,
     AttributeGroup,
     Criteria,
     CriteriaTrigger,
@@ -562,6 +564,43 @@ class TestDatasetRuns:
         assert body["anchors"]["evaluation_policy"] == {
             "cooldown_seconds": 600,
             "max_per_session": 2,
+        }
+
+    def test_trigger_anchors_accept_attribute_criteria(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        assert AttributeCriterion is InterventionCriterion
+        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/sql").mock(
+            return_value=httpx.Response(
+                200, json=TestDatasetClient()._mock_bundle_response()
+            )
+        )
+
+        signals_client.build_dataset_with_trigger_anchors(
+            attribute_groups=[self._make_session_group()],
+            triggers=[
+                CriteriaTrigger(
+                    criteria=AttributeCriteriaAll(
+                        all=[
+                            AttributeCriterion(
+                                attribute="session_group:page_views",
+                                operator=">=",
+                                value=3,
+                            ),
+                            AttributeCriterion(
+                                attribute="session_group:cart_adds", operator="changed"
+                            ),
+                        ]
+                    )
+                )
+            ],
+            training_span=self._make_session_anchors().training_span,
+        )
+
+        body = json.loads(mock.calls[0].request.content)
+        assert body["anchors"]["triggers"][0]["criteria"]["all"][1] == {
+            "attribute": "session_group:cart_adds",
+            "operator": "changed",
         }
 
     def _make_session_group(self) -> AttributeGroup:

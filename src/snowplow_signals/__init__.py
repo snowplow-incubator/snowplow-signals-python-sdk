@@ -35,18 +35,22 @@ from snowplow_signals.models import (
     ExternalBatchAttributeGroup,
     Field,
 )
+from snowplow_signals.models import InterventionCriteriaAllInput as AttributeCriteriaAll
 from snowplow_signals.models import (
     InterventionCriteriaAllInput as InterventionCriteriaAll,
 )
+from snowplow_signals.models import InterventionCriteriaAnyInput as AttributeCriteriaAny
 from snowplow_signals.models import (
     InterventionCriteriaAnyInput as InterventionCriteriaAny,
 )
 from snowplow_signals.models import (
-    InterventionCriteriaNoneInput as InterventionCriteriaNone,
+    InterventionCriteriaNoneInput as AttributeCriteriaNone,
 )
 from snowplow_signals.models import (
-    InterventionCriterion,
+    InterventionCriteriaNoneInput as InterventionCriteriaNone,
 )
+from snowplow_signals.models import InterventionCriterion
+from snowplow_signals.models import InterventionCriterion as AttributeCriterion
 from snowplow_signals.models import InterventionInstance as InterventionInstance
 from snowplow_signals.models import (
     LinkAttributeKey,
@@ -133,6 +137,12 @@ UserSuppliedAnchors
 EventAnchors
 TriggerAnchors
 CriteriaTrigger
+# Rules over attribute values, for trigger anchors and agentic attribute triggers:
+# the intervention criteria classes under names that do not imply interventions.
+AttributeCriteriaAll
+AttributeCriteriaAny
+AttributeCriteriaNone
+AttributeCriterion
 AgenticAttributeEvaluationPolicy
 SessionSample
 DatasetOutcome
