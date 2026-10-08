@@ -273,7 +273,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetBundle:
         """
         Generate a SQL bundle for building a training dataset using session-based anchors.
@@ -294,7 +294,7 @@ class BaseSignalsWithApiClient:
             dataset_table: Optional output table for the assembled dataset.
             max_lookback_days: Override the computed max lookback window (in days).
             outcomes: Outcome columns: whether matching events happened after each anchor.
-            event_logs: Event logs to add as columns, as buffered at each anchor (Snowflake only).
+            agentic_contexts: Agentic contexts to add as columns, as buffered at each anchor (Snowflake only).
         Returns:
             A DatasetBundle containing the generated SQL files.
         """
@@ -316,7 +316,7 @@ class BaseSignalsWithApiClient:
             dataset_table=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
     def build_dataset_with_custom_anchors(
@@ -327,7 +327,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
         has_label: bool | None = None,
     ) -> DatasetBundle:
         """
@@ -343,7 +343,7 @@ class BaseSignalsWithApiClient:
             dataset_table: Optional output table for the assembled dataset.
             max_lookback_days: Override the computed max lookback window (in days).
             outcomes: Outcome columns: whether matching events happened after each anchor.
-            event_logs: Event logs to add as columns, as buffered at each anchor (Snowflake only).
+            agentic_contexts: Agentic contexts to add as columns, as buffered at each anchor (Snowflake only).
         Returns:
             A DatasetBundle containing the generated SQL files.
         """
@@ -360,7 +360,7 @@ class BaseSignalsWithApiClient:
             dataset_table=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
     def _build_dataset_sql(
@@ -371,7 +371,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetBundle:
         return self.datasets.build_sql(
             attribute_groups=attribute_groups,
@@ -384,7 +384,7 @@ class BaseSignalsWithApiClient:
             dataset=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
     def submit_dataset_run_with_session_anchors(
@@ -401,7 +401,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build for async execution using session-based anchors.
 
@@ -420,7 +420,7 @@ class BaseSignalsWithApiClient:
             dataset_table: Optional output table for the assembled dataset.
             max_lookback_days: Override the computed max lookback window (in days).
             outcomes: Outcome columns: whether matching events happened after each anchor.
-            event_logs: Event logs to add as columns, as buffered at each anchor (Snowflake only).
+            agentic_contexts: Agentic contexts to add as columns, as buffered at each anchor (Snowflake only).
         Returns:
             A DatasetRunResponse containing the run ID and dataset table info.
         """
@@ -442,7 +442,7 @@ class BaseSignalsWithApiClient:
             dataset_table=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
     def submit_dataset_run_with_custom_anchors(
@@ -453,7 +453,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
         has_label: bool | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build for async execution using user-supplied anchors.
@@ -468,7 +468,7 @@ class BaseSignalsWithApiClient:
             dataset_table: Optional output table for the assembled dataset.
             max_lookback_days: Override the computed max lookback window (in days).
             outcomes: Outcome columns: whether matching events happened after each anchor.
-            event_logs: Event logs to add as columns, as buffered at each anchor (Snowflake only).
+            agentic_contexts: Agentic contexts to add as columns, as buffered at each anchor (Snowflake only).
         Returns:
             A DatasetRunResponse containing the run ID and dataset table info.
         """
@@ -485,7 +485,7 @@ class BaseSignalsWithApiClient:
             dataset_table=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
     def build_dataset_with_event_anchors(
@@ -503,7 +503,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetBundle:
         """
         Generate a SQL bundle for a dataset with one anchor per matching event.
@@ -518,14 +518,14 @@ class BaseSignalsWithApiClient:
             max_per_session: Maximum anchors per session (default: every matching event).
             pick: Which events to keep above max_per_session: "first" or "random".
             seed: Seed for the random pick.
-            include_anchor_event: Whether attributes and event logs include the anchor event.
+            include_anchor_event: Whether attributes and agentic contexts include the anchor event.
             sample: Use only a deterministic sample of sessions.
             anchors_table: Optional output table for the generated anchors.
             attributes_table: Optional table configuration for attribute output tables.
             dataset_table: Optional output table for the assembled dataset.
             max_lookback_days: Override the computed max lookback window (in days).
             outcomes: Outcome columns: whether matching events happened after each anchor.
-            event_logs: Event logs to add as columns, as buffered at each anchor (Snowflake only).
+            agentic_contexts: Agentic contexts to add as columns, as buffered at each anchor (Snowflake only).
         Returns:
             A DatasetBundle containing the generated SQL files.
         """
@@ -545,7 +545,7 @@ class BaseSignalsWithApiClient:
             dataset_table=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
     def submit_dataset_run_with_event_anchors(
@@ -563,7 +563,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build with one anchor per matching event for async execution.
 
@@ -588,7 +588,7 @@ class BaseSignalsWithApiClient:
             dataset_table=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
     def build_dataset_with_trigger_anchors(
@@ -603,7 +603,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetBundle:
         """
         Generate a SQL bundle for a dataset anchored where an agentic attribute would have fired.
@@ -622,7 +622,7 @@ class BaseSignalsWithApiClient:
             dataset_table: Optional output table for the assembled dataset.
             max_lookback_days: Override the computed max lookback window (in days).
             outcomes: Outcome columns: whether matching events happened after each anchor.
-            event_logs: Event logs to add as columns, as buffered at each anchor (Snowflake only).
+            agentic_contexts: Agentic contexts to add as columns, as buffered at each anchor (Snowflake only).
         Returns:
             A DatasetBundle containing the generated SQL files.
         """
@@ -635,7 +635,7 @@ class BaseSignalsWithApiClient:
             dataset_table=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
     def submit_dataset_run_with_trigger_anchors(
@@ -650,7 +650,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build anchored where an agentic attribute would have fired.
 
@@ -668,7 +668,7 @@ class BaseSignalsWithApiClient:
             dataset_table=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
     @staticmethod
@@ -754,7 +754,7 @@ class BaseSignalsWithApiClient:
         dataset_table: WarehouseTable | None = None,
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
-        event_logs: list[EventLog | EventLogResponse] | None = None,
+        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
     ) -> DatasetRunResponse:
         return self.datasets.submit_run(
             attribute_groups=attribute_groups,
@@ -767,7 +767,7 @@ class BaseSignalsWithApiClient:
             dataset=dataset_table,
             max_lookback_days=max_lookback_days,
             outcomes=outcomes,
-            event_logs=event_logs,
+            agentic_contexts=agentic_contexts,
         )
 
 

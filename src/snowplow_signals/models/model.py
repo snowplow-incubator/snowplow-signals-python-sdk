@@ -1836,7 +1836,7 @@ class EventAnchors(BaseModel):
     )
     include_anchor_event: Optional[bool] = Field(
         default=False,
-        description="Whether attributes and event logs include the anchor event itself. Leave false when the model is called as the event happens, before Signals has processed it; set true when the call follows its processing.",
+        description="Whether attributes and agentic contexts include the anchor event itself. Leave false when the model is called as the event happens, before Signals has processed it; set true when the call follows its processing.",
         title="Include Anchor Event",
     )
     max_per_session: Optional[conint(ge=1)] = Field(
@@ -2831,11 +2831,11 @@ class DatasetBundleRequest(BaseModel):
     ] = Field(..., discriminator="mode", title="Anchors")
     attributes: DatasetAttributeGroups
     dataset: Optional[WarehouseTable] = None
-    event_logs: Optional[List[EventLog]] = Field(
+    agentic_contexts: Optional[List[EventLog]] = Field(
         default=None,
-        description="Event logs (agentic contexts) to add to the dataset: one column per event log, holding its entries as the streaming engine would have buffered them at each anchor. Requires a 'domain_sessionid' column on the anchors. Snowflake only.",
+        description="Agentic contexts to add to the dataset: one column per agentic context, holding its entries as the streaming engine would have buffered them at each anchor. Requires a 'domain_sessionid' column on the anchors. Snowflake only.",
         max_length=5,
-        title="Event Logs",
+        title="Agentic Contexts",
     )
     max_lookback_days: Optional[conint(ge=1)] = Field(
         default=None,

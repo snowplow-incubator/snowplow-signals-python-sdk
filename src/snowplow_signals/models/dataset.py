@@ -102,7 +102,7 @@ class ManifestDefinition(BaseModel):
     ] = Field(discriminator="mode")
     attribute_groups: list[AttributeGroupInput]
     outcomes: list[DatasetOutcomeModel] = Field(default_factory=list)
-    event_logs: list[EventLogModel] = Field(default_factory=list)
+    agentic_contexts: list[EventLogModel] = Field(default_factory=list)
 
 
 class ManifestTables(BaseModel):

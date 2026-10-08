@@ -480,7 +480,7 @@ class TestDatasetRuns:
         assert request_body["anchors"]["mode"] == "user_supplied"
         assert request_body["anchors"]["source"]["table"] == "my_anchors"
 
-    def test_submit_run_event_anchors_with_outcomes_and_event_logs(
+    def test_submit_run_event_anchors_with_outcomes_and_agentic_contexts(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
         mock = respx_mock.post("http://localhost:8000/api/v1/datasets/runs").mock(
@@ -506,7 +506,7 @@ class TestDatasetRuns:
                     name="purchased_within_10m", criteria=purchase, within_seconds=600
                 ),
             ],
-            event_logs=[self._make_event_log()],
+            agentic_contexts=[self._make_event_log()],
         )
 
         body = json.loads(mock.calls[0].request.content)
@@ -520,8 +520,8 @@ class TestDatasetRuns:
             "purchased_within_10m",
         ]
         assert body["outcomes"][1]["within_seconds"] == 600
-        assert body["event_logs"][0]["name"] == "recent_activity"
-        assert body["event_logs"][0]["max_events"] == 20
+        assert body["agentic_contexts"][0]["name"] == "recent_activity"
+        assert body["agentic_contexts"][0]["max_events"] == 20
 
     def test_build_sql_trigger_anchors(
         self, respx_mock: MockRouter, signals_client: Signals
