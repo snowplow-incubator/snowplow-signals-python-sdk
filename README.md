@@ -132,3 +132,18 @@ if status.status == DatasetRunStatus.SUCCESS:
     df = preview.to_pandas()
     print(df)
 ```
+
+## Copyright and License
+
+The Snowplow Signals Python SDK is copyright 2025-2027 Snowplow Analytics Ltd.
+
+Licensed under the [Apache License, Version 2.0][license] (the "License");
+you may not use this software except in compliance with the License.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+[license]: https://www.apache.org/licenses/LICENSE-2.0
