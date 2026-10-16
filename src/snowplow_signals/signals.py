@@ -201,8 +201,8 @@ class BaseSignalsWithApiClient:
     def test(
         self,
         attribute_group: AttributeGroup,
-        attribute_key_ids: list[AttributeKeyId] = [],
-        app_ids: list[str] = [],
+        attribute_key_ids: list[AttributeKeyId] | None = None,
+        app_ids: list[str] | None = None,
         window: timedelta = timedelta(hours=1),
     ) -> pd.DataFrame:
         """
@@ -216,9 +216,9 @@ class BaseSignalsWithApiClient:
         """
         request = TestAttributeGroupRequest(
             attribute_group=attribute_group,
-            attribute_key_ids=attribute_key_ids,
+            attribute_key_ids=attribute_key_ids or [],
             window=window,
-            app_ids=app_ids,  # pyright: ignore[reportArgumentType] AppID is already a string, validation happens at runtime
+            app_ids=app_ids or [],  # pyright: ignore[reportArgumentType] AppID is already a string, validation happens at runtime
         )
         return self.testing.test_attribute_group(request=request)
 
