@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "snowplow-signals"
 version = "0.4.9"
-description = ""
+description = "Python SDK for Snowplow Signals — define, deploy, and retrieve user attributes for real-time customer context & digital personalization"
 authors = ["Snowplow <support@snowplow.io>"]
 readme = "README.md"
 packages = [{ include = "snowplow_signals", from = "src" }]
