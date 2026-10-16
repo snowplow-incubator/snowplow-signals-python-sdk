@@ -29,7 +29,7 @@ class AttributeGroup(AttributeGroupInput):
     attribute_key: Annotated[
         AttributeKey | LinkAttributeKey,
         BeforeValidator(attribute_key_link_to_attribute_key),
-    ] = PydanticField(
+    ] = PydanticField(  # type: ignore[assignment]
         ...,
         description="The attribute key that this attribute group is associated with.",
     )
@@ -58,8 +58,8 @@ class AttributeGroup(AttributeGroupInput):
 
         return signals.get_group_attributes(
             name=self.name,
-            version=self.version,
-            attribute_key=self.attribute_key.name,
+            version=self.version,  # type: ignore[arg-type]
+            attribute_key=self.attribute_key.name,  # type: ignore[arg-type]
             identifier=identifier,
             attributes=attributes,
         )

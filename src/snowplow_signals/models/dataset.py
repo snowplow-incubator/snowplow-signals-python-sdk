@@ -18,6 +18,8 @@ from .model import UserSuppliedAnchors as UserSuppliedAnchorsModel
 from .model import WarehouseTable as WarehouseTableModel
 
 if TYPE_CHECKING:
+    import pandas as pd
+
     from snowplow_signals.dataset_client import DatasetClient
 
 
@@ -101,11 +103,12 @@ class DatasetBundle(BaseModel):
     def files(self) -> dict[str, str]:
         """SQL files keyed by filename, derived from the response."""
         result: dict[str, str] = {}
-        for entry in [
+        entries: list[DatasetSqlFile | AttributeSqlFile] = [
             self.response.anchors,
             *self.response.attributes,
             self.response.dataset,
-        ]:
+        ]
+        for entry in entries:
             if entry.sql:
                 result[entry.table + ".sql"] = entry.sql
         return result
