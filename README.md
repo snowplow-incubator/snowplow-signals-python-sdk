@@ -1,5 +1,10 @@
 # Snowplow Signals Python SDK
 
+[![Early Release](https://img.shields.io/static/v1?style=flat&label=Snowplow&message=Early%20Release&color=014477&labelColor=9ba0aa)](https://github.com/snowplow/snowplow/wiki/Tracker-Maintenance-Classification)
+[![Test](https://github.com/snowplow-incubator/snowplow-signals-python-sdk/actions/workflows/test.yml/badge.svg)](https://github.com/snowplow-incubator/snowplow-signals-python-sdk/actions/workflows/test.yml)
+[![PyPI version](https://img.shields.io/pypi/v/snowplow-signals.svg)](https://pypi.org/project/snowplow-signals/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
+
 The Snowplow Signals Python SDK enables you to interact with the Snowplow Signals Profile API. It provides a simple interface to define, deploy, and retrieve user attributes for personalization.
 
 ## Installation
