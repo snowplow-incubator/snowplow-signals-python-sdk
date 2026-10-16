@@ -25,7 +25,7 @@ class SessionAnchors(SessionAnchorsModel):
     """SDK wrapper that uses the Criteria wrapper for goal_criteria."""
 
     model_config = ConfigDict(populate_by_name=True)
-    goal_criteria: Criteria  # type: ignore[override]
+    goal_criteria: Criteria
 
 
 class UserSuppliedAnchors(UserSuppliedAnchorsModel):
