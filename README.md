@@ -1,3 +1,5 @@
+<a href="https://signals.snowplow.io/"><img src="assets/signals-logo.png" width="96" alt="Snowplow Signals logo"></a>
+
 # Snowplow Signals Python SDK
 
 [![Early Release](https://img.shields.io/static/v1?style=flat&label=Snowplow&message=Early%20Release&color=014477&labelColor=9ba0aa)](https://github.com/snowplow/snowplow/wiki/Tracker-Maintenance-Classification)
