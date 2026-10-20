@@ -45,6 +45,7 @@ from .model import (
     DatasetBundleResponse,
     DatasetSqlFile,
     EntityProperty,
+    Event,
     EventLogAtomicProperty,
 )
 from .model import EventLogBufferResponse as AgenticContextResponse
@@ -54,9 +55,6 @@ from .model import (
     EventLogEventProperty,
     EventLogReference,
     EventLogResponse,
-)
-from .model import EventOutput as Event
-from .model import (
     EventProperty,
 )
 from .model import FieldModel as Field

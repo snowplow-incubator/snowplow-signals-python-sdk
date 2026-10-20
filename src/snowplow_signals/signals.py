@@ -31,7 +31,7 @@ from .models import (
     UserSuppliedAnchors,
     WarehouseTable,
 )
-from .models.model import SignalsApiModelsDatasetEvent, TrainingSpan
+from .models.model import DatasetEvent, TrainingSpan
 from .registry_client import RegistryClient, RegistryObject
 from .testing_client import TestingClient
 
@@ -252,7 +252,7 @@ class BaseSignalsWithApiClient:
         attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         goal_criteria: Criteria,
         training_span: TrainingSpan,
-        excluded_events: list[SignalsApiModelsDatasetEvent] | None = None,
+        excluded_events: list[DatasetEvent] | None = None,
         min_events: int | None = None,
         max_anchors_per_session: int | None = None,
         max_negative_ratio: float | None = None,
@@ -361,7 +361,7 @@ class BaseSignalsWithApiClient:
         attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         goal_criteria: Criteria,
         training_span: TrainingSpan,
-        excluded_events: list[SignalsApiModelsDatasetEvent] | None = None,
+        excluded_events: list[DatasetEvent] | None = None,
         min_events: int | None = None,
         max_anchors_per_session: int | None = None,
         max_negative_ratio: float | None = None,
