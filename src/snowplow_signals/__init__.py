@@ -14,10 +14,12 @@ from snowplow_signals.models import (
     Criteria,
     Criterion,
     DatasetBundle,
+    DatasetEvent,
     DatasetPreviewResponse,
     DatasetRunResponse,
     DatasetRunStatus,
     DatasetRunStatusResponse,
+    DataShortfall,
     EntityProperty,
     Event,
     EventLog,
@@ -46,13 +48,26 @@ from snowplow_signals.models import (
 from snowplow_signals.models import InterventionInstance as InterventionInstance
 from snowplow_signals.models import (
     LinkAttributeKey,
+    PredictiveAttribute,
+    PredictiveAttributeResponse,
+    PredictiveAttributeScore,
+    PredictiveAttributeTestResponse,
+    PredictiveAttributeTestSplit,
+    PredictiveAttributeTraining,
     RuleIntervention,
     Service,
     SessionAnchors,
+    SourceGroupReference,
     StreamAttributeGroup,
+    TrainingPreset,
+    TrainingRunStatus,
     TrainingSpan,
     UserSuppliedAnchors,
     WarehouseTable,
+    attribute_reference,
+)
+from snowplow_signals.predictive_attributes_client import (
+    PredictiveAttributeTrainingError,
 )
 from snowplow_signals.signals import Signals, SignalsSandbox
 
@@ -131,3 +146,18 @@ DatasetRunResponse
 DatasetRunStatus
 DatasetRunStatusResponse
 DatasetPreviewResponse
+
+# Predictive attributes
+PredictiveAttribute
+PredictiveAttributeResponse
+PredictiveAttributeTraining
+PredictiveAttributeTrainingError
+PredictiveAttributeScore
+SourceGroupReference
+DatasetEvent
+TrainingRunStatus
+TrainingPreset
+PredictiveAttributeTestResponse
+PredictiveAttributeTestSplit
+DataShortfall
+attribute_reference

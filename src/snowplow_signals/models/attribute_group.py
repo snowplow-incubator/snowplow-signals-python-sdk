@@ -8,9 +8,11 @@ from .attribute_key import AttributeKey
 from .model import Attribute as AttributeInput
 from .model import (
     AttributeGroupInput,
+    AttributeGroupResponse,
     BatchSource,
     FieldModel,
     LinkAttributeKey,
+    SourceGroupReference,
 )
 
 if TYPE_CHECKING:
@@ -38,6 +40,19 @@ class AttributeGroup(AttributeGroupInput):
         description="The owner of the attribute group, typically the email of the primary maintainer. This field is required for attribute group creation.",
         title="Owner",
     )
+
+    def attribute_reference(self, attribute_name: str) -> SourceGroupReference:
+        """
+        Returns a reference to one of this attribute group's attributes, for use as
+        an input attribute of a predictive attribute.
+
+        Args:
+            attribute_name: The name of the attribute.
+
+        Returns:
+            A reference to the attribute in this version of the attribute group.
+        """
+        return attribute_reference(self, attribute_name)
 
     def get_attributes(self, signals: "Signals", identifier: str):
         """
@@ -129,4 +144,38 @@ class ExternalBatchAttributeGroup(AttributeGroup):
     batch_source: BatchSource = Field(  # type: ignore[override]
         description="The batch source for materializing this attribute group from the warehouse.",
         title="Batch Source",
+    )
+
+
+def attribute_reference(
+    attribute_group: AttributeGroup | AttributeGroupResponse, attribute_name: str
+) -> SourceGroupReference:
+    """
+    Returns a reference to an attribute of an attribute group, for use as an input
+    attribute of a predictive attribute.
+
+    Args:
+        attribute_group: The stream attribute group, as defined or as fetched from the registry.
+        attribute_name: The name of the attribute.
+
+    Returns:
+        A reference to the attribute in this version of the attribute group.
+    """
+    if attribute_group.offline:
+        raise ValueError(
+            f"Attribute group '{attribute_group.name}' is computed in the warehouse; "
+            "predictive attributes can only use attributes of stream attribute groups."
+        )
+    names = [attribute.name for attribute in attribute_group.attributes or []]
+    if attribute_name not in names:
+        raise ValueError(
+            f"Attribute '{attribute_name}' not found in attribute group "
+            f"'{attribute_group.name}' (v{attribute_group.version})."
+        )
+    if attribute_group.version is None:
+        raise ValueError(f"Attribute group '{attribute_group.name}' has no version.")
+    return SourceGroupReference(
+        name=attribute_group.name,
+        version=attribute_group.version,
+        attribute_name=attribute_name,
     )

@@ -7,6 +7,7 @@ from .models import (
     GetAttributeGroupAttributesRequest,
     GetAttributesResponse,
     GetServiceAttributesRequest,
+    PredictiveAttributeScore,
 )
 
 
@@ -83,6 +84,20 @@ class AttributesClient:
             params=params,
         )
         return AgenticContextResponse.model_validate(response)
+
+    def get_predictive_attribute_score(
+        self, name: str, identifiers: dict[str, str]
+    ) -> PredictiveAttributeScore:
+        if "name" in identifiers:
+            raise ValueError(
+                "'name' is reserved for the predictive attribute name and can't be used as an attribute key."
+            )
+        response = self.api_client.make_request(
+            method="GET",
+            endpoint="predictive_attribute",
+            params={"name": name, **identifiers},
+        )
+        return PredictiveAttributeScore.model_validate(response)
 
     def _make_request(
         self, request: GetAttributeGroupAttributesRequest | GetServiceAttributesRequest
