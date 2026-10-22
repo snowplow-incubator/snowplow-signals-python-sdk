@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 from pydantic import EmailStr, Field
 
@@ -7,12 +7,10 @@ from .criteria_wrapper import Criteria
 from .model import DatasetEvent
 from .model import PredictiveAttribute as PredictiveAttributeInput
 from .model import PredictiveAttributeResponse as PredictiveAttributeResponseModel
-from .model import PredictiveAttributeScore
 from .model import PredictiveAttributeTraining as PredictiveAttributeTrainingModel
 from .model import SourceGroupReference
 
-if TYPE_CHECKING:
-    from snowplow_signals.signals import Signals
+TrainingPreset = Literal["fast", "thorough"]
 
 
 class TrainingRunStatus(StrEnum):
@@ -30,7 +28,7 @@ class PredictiveAttributeTraining(PredictiveAttributeTrainingModel):
         description="The status of the training run.",
         title="Status",
     )
-    preset: Literal["fast", "thorough"] = Field(  # type: ignore[assignment]
+    preset: TrainingPreset = Field(  # type: ignore[assignment]
         default="fast",
         description="The model search preset used for training.",
         title="Preset",
@@ -87,24 +85,6 @@ class PredictiveAttribute(PredictiveAttributeInput):
     is_published: bool = Field(
         default=False,
         exclude=True,
-        description="Client-side control for whether to publish the latest successful training to the compute engines.",
+        description="Client-side control for whether the predictive attribute should be published. If it isn't published yet, its latest successful training is published; an already published training is never changed (use `Signals.publish_predictive_attribute` for that).",
         title="Is Published",
     )
-
-    def get_score(
-        self, signals: "Signals", identifiers: dict[str, str]
-    ) -> PredictiveAttributeScore:
-        """
-        Retrieves the score of this predictive attribute for an entity.
-
-        Args:
-            signals: The Signals instance to use for retrieving the score.
-            identifiers: Mapping of attribute key name to identifier, one for each
-                attribute key used by the input attribute groups.
-
-        Returns:
-            The predictive attribute score.
-        """
-        return signals.get_predictive_attribute_score(
-            name=self.name, identifiers=identifiers
-        )

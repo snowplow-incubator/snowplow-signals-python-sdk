@@ -961,6 +961,63 @@ class AttributeKeyId(
     )
 
 
+class DataShortfall(BaseModel):
+    measure: Literal["positive_sessions", "negative_sessions", "rows"] = Field(
+        ..., title="Measure"
+    )
+    split: Optional[Literal["train", "eval"]] = Field(
+        ...,
+        description="The split that misses it. None for rows, which counts both splits.",
+        title="Split",
+    )
+    actual: int = Field(..., title="Actual")
+    minimum: int = Field(..., title="Minimum")
+    message: str = Field(
+        ...,
+        description="The error training fails with for this shortfall.",
+        title="Message",
+    )
+
+
+class TestPredictiveAttributeSplit(BaseModel):
+    positive_sessions: int = Field(..., title="Positive Sessions")
+    negative_sessions: int = Field(..., title="Negative Sessions")
+
+
+class TestPredictiveAttributeResponse(BaseModel):
+    total_rows: int = Field(
+        ...,
+        description="Anchor rows in the dataset with a domain_sessionid.",
+        title="Total Rows",
+    )
+    training_rows: int = Field(
+        ...,
+        description="Rows training loads: whole sessions up to 1,000,000 rows. The counts below are of these rows.",
+        title="Training Rows",
+    )
+    positive_rows: int = Field(..., title="Positive Rows")
+    negative_rows: int = Field(..., title="Negative Rows")
+    positive_sessions: int = Field(..., title="Positive Sessions")
+    negative_sessions: int = Field(..., title="Negative Sessions")
+    train: TestPredictiveAttributeSplit = Field(
+        ..., description="Sessions training fits on: all but the latest eval sessions."
+    )
+    eval: TestPredictiveAttributeSplit = Field(
+        ...,
+        description="Sessions training evaluates on: the latest 20% by first anchor.",
+    )
+    has_enough_data: bool = Field(
+        ...,
+        description="Whether the dataset has enough data for training to start.",
+        title="Has Enough Data",
+    )
+    shortfalls: List[DataShortfall] = Field(
+        ...,
+        description="Every minimum the dataset misses. Empty when has_enough_data is true.",
+        title="Shortfalls",
+    )
+
+
 class TestInterventionResponse(BaseModel):
     scanned_count: int = Field(
         ...,
@@ -2919,6 +2976,14 @@ class TestInterventionRequest(BaseModel):
         default="PT1H",
         description="The time window to consider when querying the atomic events table",
         title="Window",
+    )
+
+
+class TestPredictiveAttributeRequest(BaseModel):
+    predictive_attribute: PredictiveAttribute
+    training: PredictiveAttributeTrainingRequest = Field(
+        ...,
+        description="Training window and anchor settings. preset and max_lookback_days don't affect the counts.",
     )
 
 

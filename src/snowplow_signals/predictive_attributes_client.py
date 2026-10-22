@@ -1,3 +1,8 @@
+import os
+import sys
+import warnings
+from typing import Any
+
 from pydantic import BaseModel
 
 from .api_client import ApiClient, SignalsAPIError
@@ -15,6 +20,14 @@ from .models.model import (
     PredictiveAttributeUnpublishReference,
     PredictiveAttributeUpdate,
 )
+
+
+class PredictiveAttributeTrainingError(Exception):
+    """Raised when a training run of a predictive attribute fails."""
+
+    def __init__(self, message: str, training: PredictiveAttributeTraining):
+        super().__init__(message)
+        self.training = training
 
 
 class PredictiveAttributesClient:
@@ -38,9 +51,15 @@ class PredictiveAttributesClient:
         except SignalsAPIError as e:
             if e.status_code != 400:
                 raise e
+            # A 400 can also be a validation error, so only treat it as
+            # "already exists" if the version can be fetched
+            existing = self.get_if_exists(
+                predictive_attribute.name, predictive_attribute.version
+            )
+            if existing is None:
+                raise e
 
-        existing = self.get(predictive_attribute.name, predictive_attribute.version)
-        _check_definition_unchanged(predictive_attribute, existing)
+        check_definition_unchanged(predictive_attribute, existing)
 
         update = PredictiveAttributeUpdate(
             description=predictive_attribute.description,
@@ -63,6 +82,16 @@ class PredictiveAttributesClient:
         )
         response = self.api_client.make_request(method="GET", endpoint=endpoint)
         return PredictiveAttributeResponse.model_validate(response)
+
+    def get_if_exists(
+        self, name: str, version: int | None = None
+    ) -> PredictiveAttributeResponse | None:
+        try:
+            return self.get(name, version)
+        except SignalsAPIError as e:
+            if e.status_code == 404:
+                return None
+            raise e
 
     def delete(
         self, predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse
@@ -107,10 +136,7 @@ class PredictiveAttributesClient:
         if training_version is None:
             training_version = _latest_successful_training_version(current)
         if training_version is None:
-            raise ValueError(
-                f"Predictive attribute '{current.name}' v{current.version} has no successful training to publish. "
-                "Train it and wait for the training to succeed before publishing."
-            )
+            raise _no_successful_training_error(current)
 
         if (
             current.is_published
@@ -148,6 +174,61 @@ class PredictiveAttributesClient:
         )
 
 
+def check_publishable(
+    predictive_attribute: PredictiveAttribute,
+    current: PredictiveAttributeResponse | None,
+) -> None:
+    """
+    Raises if publishing the predictive attribute would fail because it is not
+    published yet and has no successful training.
+    """
+    if current is not None and (
+        current.is_published or _latest_successful_training_version(current) is not None
+    ):
+        return
+    raise _no_successful_training_error(predictive_attribute)
+
+
+def warn_if_newer_training(current: PredictiveAttributeResponse) -> None:
+    latest = _latest_successful_training_version(current)
+    published = current.published_training_version
+    if not current.is_published or latest is None or published is None:
+        return
+    if latest > published:
+        warnings.warn(
+            f"Predictive attribute '{current.name}' v{current.version} is live with training "
+            f"v{published}, but training v{latest} is newer. Use "
+            "Signals.publish_predictive_attribute to publish it.",
+            stacklevel=_caller_stacklevel(),
+        )
+
+
+_PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def _caller_stacklevel() -> int:
+    """The stacklevel of the first frame outside this package, for warnings.warn
+    called from the function that calls this."""
+    stacklevel = 1
+    frame = sys._getframe(1)
+    while frame.f_back is not None and frame.f_code.co_filename.startswith(
+        _PACKAGE_DIR
+    ):
+        frame = frame.f_back
+        stacklevel += 1
+    return stacklevel
+
+
+def _no_successful_training_error(
+    predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+) -> ValueError:
+    return ValueError(
+        f"Predictive attribute '{predictive_attribute.name}' v{predictive_attribute.version} "
+        "has no successful training to publish. "
+        "Train it and wait for the training to succeed before publishing."
+    )
+
+
 def _require_version(
     predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
 ) -> int:
@@ -181,31 +262,45 @@ def _latest_successful_training_version(
     return max(successful, default=None)
 
 
-def _check_definition_unchanged(
+def check_definition_unchanged(
     predictive_attribute: PredictiveAttribute, existing: PredictiveAttributeResponse
 ) -> None:
-    def input_keys(model: PredictiveAttribute | PredictiveAttributeResponse):
-        return {
-            (ref.name, ref.version, ref.attribute_name)
-            for ref in model.input_attributes
-        }
-
-    def goal(criteria: BaseModel) -> dict:
-        return criteria.model_dump(mode="json", exclude_none=True)
-
-    def excluded(model: PredictiveAttribute | PredictiveAttributeResponse):
-        return {event.name for event in model.excluded_events or []}
-
+    """
+    Raises if the predictive attribute differs from the registered version in
+    anything other than description and owner.
+    """
     if (
-        input_keys(predictive_attribute) != input_keys(existing)
-        or goal(predictive_attribute.goal_criteria) != goal(existing.goal_criteria)
-        or excluded(predictive_attribute) != excluded(existing)
+        _input_keys(predictive_attribute) != _input_keys(existing)
+        or _goal(predictive_attribute) != _goal(existing)
+        or _excluded_event_names(predictive_attribute)
+        != _excluded_event_names(existing)
     ):
         raise ValueError(
             f"Predictive attribute '{predictive_attribute.name}' v{predictive_attribute.version} "
             "already exists with different input attributes, goal criteria or excluded events. "
             "Only description and owner can be changed; bump the version to change the definition."
         )
+
+
+def _input_keys(
+    predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+) -> set[tuple[str, int, str]]:
+    return {
+        (ref.name, ref.version, ref.attribute_name)
+        for ref in predictive_attribute.input_attributes
+    }
+
+
+def _goal(
+    predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+) -> dict[str, Any]:
+    return predictive_attribute.goal_criteria.model_dump(mode="json", exclude_none=True)
+
+
+def _excluded_event_names(
+    predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+) -> set[str]:
+    return {event.name for event in predictive_attribute.excluded_events or []}
 
 
 def _model_dump(model: BaseModel) -> dict:

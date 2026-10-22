@@ -172,8 +172,10 @@ def attribute_reference(
             f"Attribute '{attribute_name}' not found in attribute group "
             f"'{attribute_group.name}' (v{attribute_group.version})."
         )
+    if attribute_group.version is None:
+        raise ValueError(f"Attribute group '{attribute_group.name}' has no version.")
     return SourceGroupReference(
         name=attribute_group.name,
-        version=attribute_group.version or 1,
+        version=attribute_group.version,
         attribute_name=attribute_name,
     )

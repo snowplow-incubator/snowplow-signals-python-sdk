@@ -9,12 +9,18 @@ from .models import (
     EventLogReference,
     EventLogResponse,
     PredictiveAttribute,
+    PredictiveAttributeResponse,
     RuleIntervention,
     SelectivePublishRequest,
     Service,
     UnpublishRequest,
 )
-from .predictive_attributes_client import PredictiveAttributesClient
+from .predictive_attributes_client import (
+    PredictiveAttributesClient,
+    check_definition_unchanged,
+    check_publishable,
+    warn_if_newer_training,
+)
 
 RegistryObject = (
     AttributeGroup
@@ -27,26 +33,33 @@ RegistryObject = (
 
 
 class RegistryClient:
-    def __init__(
-        self,
-        api_client: ApiClient,
-        predictive_attributes: PredictiveAttributesClient | None = None,
-    ):
+    def __init__(self, api_client: ApiClient):
         self.api_client = api_client
-        self.predictive_attributes = (
-            predictive_attributes or PredictiveAttributesClient(api_client=api_client)
-        )
+        self.predictive_attributes = PredictiveAttributesClient(api_client=api_client)
 
     def create_or_update(self, objects: list[RegistryObject]) -> list[RegistryObject]:
         updated_objects: list[RegistryObject] = []
 
+        # Check predictive attributes before changing anything
+        registered: list[
+            tuple[PredictiveAttribute, PredictiveAttributeResponse | None]
+        ] = []
+        for object in objects:
+            if isinstance(object, PredictiveAttribute):
+                current = self.predictive_attributes.get_if_exists(
+                    object.name, object.version
+                )
+                if current is not None:
+                    check_definition_unchanged(object, current)
+                if object.is_published:
+                    check_publishable(object, current)
+                registered.append((object, current))
+
         # Attribute groups can't be unpublished while a published predictive attribute
         # uses them, so take predictive attributes off the engines first
-        for object in objects:
-            if isinstance(object, PredictiveAttribute) and not object.is_published:
-                self._unpublish_predictive_attribute_if_registered(
-                    predictive_attribute=object
-                )
+        for predictive_attribute, current in registered:
+            if not predictive_attribute.is_published and current is not None:
+                self.predictive_attributes.unpublish(current=current)
 
         # First publish all attribute keys in case they are dependencies of attribute groups
         for object in objects:
@@ -258,27 +271,15 @@ class RegistryClient:
 
         # Like event logs, predictive attributes are promoted to the engines by a
         # separate call. If it is already published, the live training is left as is;
-        # use Signals.publish_predictive_attribute to change it.
+        # use Signals.publish_predictive_attribute to change it. Unpublishing already
+        # happened before the attribute groups were updated.
         if predictive_attribute.is_published:
-            if not response.is_published:
+            if response.is_published:
+                warn_if_newer_training(response)
+            else:
                 self.predictive_attributes.publish(current=response)
-        else:
-            self.predictive_attributes.unpublish(current=response)
 
         return predictive_attribute
-
-    def _unpublish_predictive_attribute_if_registered(
-        self, predictive_attribute: PredictiveAttribute
-    ) -> None:
-        try:
-            current = self.predictive_attributes.get(
-                predictive_attribute.name, predictive_attribute.version
-            )
-        except SignalsAPIError as e:
-            if e.status_code == 404:
-                return
-            raise e
-        self.predictive_attributes.unpublish(current=current)
 
     def _publish_event_log_to_engines(self, event_log: EventLog) -> None:
         request = SelectivePublishRequest(

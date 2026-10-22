@@ -46,6 +46,7 @@ from .model import (
     DatasetBundleResponse,
     DatasetEvent,
     DatasetSqlFile,
+    DataShortfall,
     EntityProperty,
     Event,
     EventLogAtomicProperty,
@@ -80,6 +81,10 @@ from .model import (
 from .model import (
     SourceGroupReference,
     TestAttributeGroupRequest,
+)
+from .model import TestPredictiveAttributeResponse as PredictiveAttributeTestResponse
+from .model import TestPredictiveAttributeSplit as PredictiveAttributeTestSplit
+from .model import (
     TrainingSpan,
     UnpublishRequest,
 )
@@ -87,6 +92,7 @@ from .predictive_attribute import (
     PredictiveAttribute,
     PredictiveAttributeResponse,
     PredictiveAttributeTraining,
+    TrainingPreset,
     TrainingRunStatus,
 )
 from .property_wrapper import Attribute, CalculatedProperty
@@ -178,3 +184,7 @@ SourceGroupReference
 attribute_reference
 DatasetEvent
 TrainingRunStatus
+TrainingPreset
+PredictiveAttributeTestResponse
+PredictiveAttributeTestSplit
+DataShortfall

@@ -28,27 +28,48 @@ from .models import (
     PredictiveAttribute,
     PredictiveAttributeResponse,
     PredictiveAttributeScore,
+    PredictiveAttributeTestResponse,
     PredictiveAttributeTraining,
     RuleIntervention,
     Service,
     SessionAnchors,
     TestAttributeGroupRequest,
+    TrainingPreset,
     TrainingRunStatus,
     UserSuppliedAnchors,
     WarehouseTable,
 )
 from .models.model import (
     DatasetEvent,
+)
+from .models.model import PredictiveAttribute as PredictiveAttributeDefinition
+from .models.model import (
     PredictiveAttributeTrainingRequest,
+    TestPredictiveAttributeRequest,
     TrainingSpan,
 )
-from .predictive_attributes_client import PredictiveAttributesClient
+from .predictive_attributes_client import (
+    PredictiveAttributesClient,
+    PredictiveAttributeTrainingError,
+)
 from .registry_client import RegistryClient, RegistryObject
 from .testing_client import TestingClient
 
 
 def _exclude_none(**kwargs: Any) -> dict[str, Any]:
     return {k: v for k, v in kwargs.items() if v is not None}
+
+
+def _training_request(
+    training_span: TrainingSpan, **options: Any
+) -> PredictiveAttributeTrainingRequest:
+    return PredictiveAttributeTrainingRequest.model_validate(
+        _exclude_none(
+            training_data_start=training_span.start_time,
+            training_data_end=training_span.end_time,
+            **options,
+        )
+    )
 
 
 def _training_version(training: PredictiveAttributeTraining | int) -> int:
@@ -73,10 +94,7 @@ class BaseSignalsWithApiClient:
         self.predictive_attributes = PredictiveAttributesClient(
             api_client=self.api_client
         )
-        self.registry = RegistryClient(
-            api_client=self.api_client,
-            predictive_attributes=self.predictive_attributes,
-        )
+        self.registry = RegistryClient(api_client=self.api_client)
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
         self.datasets = DatasetClient(api_client=self.api_client)
@@ -84,6 +102,9 @@ class BaseSignalsWithApiClient:
     def publish(self, objects: list[RegistryObject]) -> list[RegistryObject]:
         """
         Creates or updates the provided objects in the Signals registry and publishes them to the compute engines.
+        A predictive attribute that isn't published yet is published with its latest successful
+        training. An already published one keeps its live training; use
+        publish_predictive_attribute to change it.
 
         Args:
             objects: The list of objects to publish.
@@ -241,7 +262,7 @@ class BaseSignalsWithApiClient:
         self,
         predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
         training_span: TrainingSpan,
-        preset: Literal["fast", "thorough"] | None = None,
+        preset: TrainingPreset | None = None,
         min_events: int | None = None,
         max_anchors_per_session: int | None = None,
         max_negative_ratio: float | None = None,
@@ -262,47 +283,15 @@ class BaseSignalsWithApiClient:
         Returns:
             The pending training run.
         """
-        request = PredictiveAttributeTrainingRequest.model_validate(
-            _exclude_none(
-                training_data_start=training_span.start_time,
-                training_data_end=training_span.end_time,
-                preset=preset,
-                min_events=min_events,
-                max_anchors_per_session=max_anchors_per_session,
-                max_negative_ratio=max_negative_ratio,
-                max_lookback_days=max_lookback_days,
-            )
-        )
-        return self.predictive_attributes.train(predictive_attribute, request)
-
-    def create_and_train_predictive_attribute(
-        self,
-        predictive_attribute: PredictiveAttribute,
-        training_span: TrainingSpan,
-        preset: Literal["fast", "thorough"] | None = None,
-        min_events: int | None = None,
-        max_anchors_per_session: int | None = None,
-        max_negative_ratio: float | None = None,
-        max_lookback_days: int | None = None,
-    ) -> PredictiveAttributeTraining:
-        """
-        Creates a predictive attribute and starts training a model for it.
-        Training runs asynchronously; use wait_for_predictive_attribute_training to wait for it.
-        See train_predictive_attribute for the training options.
-
-        Returns:
-            The pending training run.
-        """
-        self.create_predictive_attribute(predictive_attribute)
-        return self.train_predictive_attribute(
-            predictive_attribute,
-            training_span=training_span,
+        request = _training_request(
+            training_span,
             preset=preset,
             min_events=min_events,
             max_anchors_per_session=max_anchors_per_session,
             max_negative_ratio=max_negative_ratio,
             max_lookback_days=max_lookback_days,
         )
+        return self.predictive_attributes.train(predictive_attribute, request)
 
     def get_predictive_attribute(
         self, name: str, version: int | None = None
@@ -355,7 +344,7 @@ class BaseSignalsWithApiClient:
         Returns:
             The successful training run, including its metrics.
         Raises:
-            RuntimeError: If the training fails.
+            PredictiveAttributeTrainingError: If the training fails.
             TimeoutError: If the training doesn't finish within the timeout.
         """
         training_version = _training_version(training)
@@ -367,16 +356,22 @@ class BaseSignalsWithApiClient:
             if current.status == TrainingRunStatus.SUCCESS:
                 return current
             if current.status == TrainingRunStatus.FAILED:
-                raise RuntimeError(
+                raise PredictiveAttributeTrainingError(
                     f"Training v{training_version} of predictive attribute "
-                    f"'{predictive_attribute.name}' failed: {current.error}"
+                    f"'{predictive_attribute.name}' failed: {current.error}",
+                    training=current,
                 )
             if time.monotonic() >= deadline:
                 raise TimeoutError(
                     f"Training v{training_version} of predictive attribute "
                     f"'{predictive_attribute.name}' is still {current.status} after {timeout}."
                 )
-            time.sleep(poll_interval.total_seconds())
+            time.sleep(
+                min(
+                    poll_interval.total_seconds(),
+                    max(0.0, deadline - time.monotonic()),
+                )
+            )
 
     def publish_predictive_attribute(
         self,
@@ -385,8 +380,9 @@ class BaseSignalsWithApiClient:
     ) -> None:
         """
         Publishes a training of a predictive attribute to the compute engines so its
-        score can be retrieved. Publishing an older training rolls back to it.
-        Its input attribute groups must already be published.
+        score can be retrieved. Unlike publish([predictive_attribute]), this replaces the
+        live training: by default with the latest successful one. Publishing an older
+        training rolls back to it. Its input attribute groups must already be published.
 
         Args:
             predictive_attribute: The predictive attribute to publish.
@@ -459,6 +455,42 @@ class BaseSignalsWithApiClient:
             app_ids=app_ids,  # pyright: ignore[reportArgumentType] AppID is already a string, validation happens at runtime
         )
         return self.testing.test_attribute_group(request=request)
+
+    def test_predictive_attribute(
+        self,
+        predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+        training_span: TrainingSpan,
+        min_events: int | None = None,
+        max_anchors_per_session: int | None = None,
+        max_negative_ratio: float | None = None,
+    ) -> PredictiveAttributeTestResponse:
+        """
+        Previews the dataset a training of the predictive attribute would use, without
+        creating the predictive attribute or building the dataset. Use it to check there
+        is enough data before training.
+
+        Args:
+            predictive_attribute: The predictive attribute to test. It doesn't need to exist in the registry.
+            training_span: The time span of events to train on.
+            min_events: Minimum prior in-session events before an anchor is eligible.
+            max_anchors_per_session: Max anchor events to sample per session.
+            max_negative_ratio: Max ratio of negative to positive anchors for downsampling.
+        Returns:
+            The row and session counts, and the training minimums the data misses.
+        """
+        request = TestPredictiveAttributeRequest(
+            # Keeps only the definition, dropping registry fields like trainings
+            predictive_attribute=PredictiveAttributeDefinition.model_validate(
+                predictive_attribute, from_attributes=True
+            ),
+            training=_training_request(
+                training_span,
+                min_events=min_events,
+                max_anchors_per_session=max_anchors_per_session,
+                max_negative_ratio=max_negative_ratio,
+            ),
+        )
+        return self.testing.test_predictive_attribute(request=request)
 
     def push_intervention(
         self, targets: AttributeKeyIdentifiers, intervention: InterventionInstance
