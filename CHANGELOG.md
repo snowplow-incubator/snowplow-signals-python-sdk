@@ -1,5 +1,10 @@
 # Changelog
 
+# [0.4.10] - 2026-10-25
+
+- Better typing: mutable-default fix, py.typed, ignore cleanup + mypy CI gate (#154)
+- Improve project branding: PyPI summary, README logo, badges, docs link + license footer (#155)
+
 # [0.4.9] - 2026-09-17
 
 - Add support for calculated properties and fix event property selection in event logs (#149)
