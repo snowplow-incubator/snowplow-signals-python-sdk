@@ -26,14 +26,14 @@ def attribute_key_link_to_attribute_key(
 
 
 class AttributeGroup(AttributeGroupInput):
-    attribute_key: Annotated[  # type: ignore[override]
+    attribute_key: Annotated[
         AttributeKey | LinkAttributeKey,
         BeforeValidator(attribute_key_link_to_attribute_key),
-    ] = PydanticField(
+    ] = PydanticField(  # type: ignore[assignment]
         ...,
         description="The attribute key that this attribute group is associated with.",
     )
-    owner: EmailStr = PydanticField(  # type: ignore[override]
+    owner: EmailStr = PydanticField(
         ...,
         description="The owner of the attribute group, typically the email of the primary maintainer. This field is required for attribute group creation.",
         title="Owner",
@@ -58,19 +58,19 @@ class AttributeGroup(AttributeGroupInput):
 
         return signals.get_group_attributes(
             name=self.name,
-            version=self.version,
-            attribute_key=self.attribute_key.name,
+            version=self.version,  # type: ignore[arg-type]
+            attribute_key=self.attribute_key.name,  # type: ignore[arg-type]
             identifier=identifier,
             attributes=attributes,
         )
 
 
 class StreamOrBatchAttributeGroup(AttributeGroup):
-    fields: Literal[None] = Field(  # type: ignore[override]
+    fields: Literal[None] = Field(
         default=None,
         description="Not applicable.",
     )
-    attributes: list[AttributeInput] = Field(  # type: ignore[override]
+    attributes: list[AttributeInput] = Field(
         description="The list of attributes that will be calculated from events as part of this attribute group.",
         title="Attributes",
         min_length=1,
@@ -82,12 +82,12 @@ class StreamAttributeGroup(StreamOrBatchAttributeGroup):
     A stream attribute group is a attribute group that is calculated from events in real-time using the Signals streaming engine.
     """
 
-    offline: Literal[False] = Field(  # type: ignore[override]
+    offline: Literal[False] = Field(
         default=False,
         description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
         title="Offline",
     )
-    batch_source: Literal[None] = Field(  # type: ignore[override]
+    batch_source: Literal[None] = Field(
         default=None,
         description="Not applicable for stream attribute groups.",
         title="Batch Source",
@@ -99,7 +99,7 @@ class BatchAttributeGroup(StreamOrBatchAttributeGroup):
     A batch attribute group is a attribute group that is calculated from events in batch using the Signals batch engine.
     """
 
-    offline: Literal[True] = Field(  # type: ignore[override]
+    offline: Literal[True] = Field(
         default=True,
         description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
         title="Offline",
@@ -111,22 +111,22 @@ class ExternalBatchAttributeGroup(AttributeGroup):
     An external batch attribute group is a attribute group that is derived from an existing warehouse table.
     """
 
-    offline: Literal[True] = Field(  # type: ignore[override]
+    offline: Literal[True] = Field(
         default=True,
         description="A boolean indicating whether the attributes are pre-computed in the warehouse.",
         title="Offline",
     )
-    fields: list[FieldModel] = Field(  # type: ignore[override]
+    fields: list[FieldModel] = Field(
         description="The list of table columns that are part of this attribute group during materialization.",
         title="Fields",
         min_length=1,
     )
-    attributes: Literal[None] = Field(  # type: ignore[override]
+    attributes: Literal[None] = Field(
         default=None,
         description="Not applicable for warehouse table views.",
         title="Attributes",
     )
-    batch_source: BatchSource = Field(  # type: ignore[override]
+    batch_source: BatchSource = Field(
         description="The batch source for materializing this attribute group from the warehouse.",
         title="Batch Source",
     )

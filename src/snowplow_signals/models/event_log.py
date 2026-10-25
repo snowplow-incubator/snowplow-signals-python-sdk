@@ -40,7 +40,7 @@ class EventLog(EventLogInput):
     attribute_key: Annotated[
         AttributeKey | LinkAttributeKey,
         BeforeValidator(attribute_key_to_link),
-    ] = Field(
+    ] = Field(  # type: ignore[assignment]
         ...,
         description="Reference to the attribute key this event log is scoped to. For v1 the attribute key name must be 'domain_sessionid'.",
     )

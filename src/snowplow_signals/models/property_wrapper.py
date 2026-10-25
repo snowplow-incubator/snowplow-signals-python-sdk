@@ -78,7 +78,7 @@ class Attribute(AttributeInput):
     every dump.
     """
 
-    property: Optional[  # type: ignore[assignment]
+    property: Optional[
         AtomicProperty | EventProperty | EntityProperty | CalculatedProperty
     ] = Field(
         default=None,

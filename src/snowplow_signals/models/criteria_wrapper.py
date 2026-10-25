@@ -3,5 +3,5 @@ from .model import Criteria as CriteriaModel
 
 
 class Criteria(CriteriaModel):
-    all: list[Criterion] | None = None  # type: ignore[override]
-    any: list[Criterion] | None = None  # type: ignore[override]
+    all: list[Criterion] | None = None  # type: ignore[assignment]
+    any: list[Criterion] | None = None  # type: ignore[assignment]
