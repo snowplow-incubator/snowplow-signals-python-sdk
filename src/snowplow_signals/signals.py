@@ -1,3 +1,4 @@
+import time
 import uuid
 from datetime import timedelta
 from typing import Any, Literal
@@ -24,20 +25,60 @@ from .models import (
     EventLog,
     EventLogResponse,
     InterventionInstance,
+    PredictiveAttribute,
+    PredictiveAttributeResponse,
+    PredictiveAttributeScore,
+    PredictiveAttributeTestResponse,
+    PredictiveAttributeTraining,
     RuleIntervention,
     Service,
     SessionAnchors,
     TestAttributeGroupRequest,
+    TrainingPreset,
+    TrainingRunStatus,
     UserSuppliedAnchors,
     WarehouseTable,
 )
-from .models.model import AppId, SignalsApiModelsDatasetEvent, TrainingSpan
+from .models.model import (
+    AppId,
+    DatasetEvent,
+)
+from .models.model import PredictiveAttribute as PredictiveAttributeDefinition
+from .models.model import (
+    PredictiveAttributeTrainingRequest,
+    TestPredictiveAttributeRequest,
+    TrainingSpan,
+)
+from .predictive_attributes_client import (
+    PredictiveAttributesClient,
+    PredictiveAttributeTrainingError,
+)
 from .registry_client import RegistryClient, RegistryObject
 from .testing_client import TestingClient
 
 
 def _exclude_none(**kwargs: Any) -> dict[str, Any]:
     return {k: v for k, v in kwargs.items() if v is not None}
+
+
+def _training_request(
+    training_span: TrainingSpan, **options: Any
+) -> PredictiveAttributeTrainingRequest:
+    return PredictiveAttributeTrainingRequest.model_validate(
+        _exclude_none(
+            training_data_start=training_span.start_time,
+            training_data_end=training_span.end_time,
+            **options,
+        )
+    )
+
+
+def _training_version(training: PredictiveAttributeTraining | int) -> int:
+    if isinstance(training, int):
+        return training
+    if training.version is None:
+        raise ValueError("The training run has no version.")
+    return training.version
 
 
 class BaseSignalsWithApiClient:
@@ -51,6 +92,9 @@ class BaseSignalsWithApiClient:
         self.api_client = api_client
 
         self.interventions = InterventionsClient(api_client=self.api_client)
+        self.predictive_attributes = PredictiveAttributesClient(
+            api_client=self.api_client
+        )
         self.registry = RegistryClient(api_client=self.api_client)
         self.attributes = AttributesClient(api_client=self.api_client)
         self.testing = TestingClient(api_client=self.api_client)
@@ -59,6 +103,9 @@ class BaseSignalsWithApiClient:
     def publish(self, objects: list[RegistryObject]) -> list[RegistryObject]:
         """
         Creates or updates the provided objects in the Signals registry and publishes them to the compute engines.
+        A predictive attribute that isn't published yet is published with its latest successful
+        training. An already published one keeps its live training; use
+        publish_predictive_attribute to change it.
 
         Args:
             objects: The list of objects to publish.
@@ -198,6 +245,194 @@ class BaseSignalsWithApiClient:
         """
         return self.registry.get_event_log(name)
 
+    def create_predictive_attribute(
+        self, predictive_attribute: PredictiveAttribute
+    ) -> PredictiveAttributeResponse:
+        """
+        Creates a predictive attribute in the Signals registry.
+        If the version already exists with the same definition, updates its description and owner.
+
+        Args:
+            predictive_attribute: The predictive attribute to create.
+        Returns:
+            The created predictive attribute.
+        """
+        return self.predictive_attributes.create(predictive_attribute)
+
+    def train_predictive_attribute(
+        self,
+        predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+        training_span: TrainingSpan,
+        preset: TrainingPreset | None = None,
+        min_events: int | None = None,
+        max_anchors_per_session: int | None = None,
+        max_negative_ratio: float | None = None,
+        max_lookback_days: int | None = None,
+    ) -> PredictiveAttributeTraining:
+        """
+        Starts training a new model for an existing predictive attribute.
+        Training runs asynchronously; use wait_for_predictive_attribute_training to wait for it.
+
+        Args:
+            predictive_attribute: The predictive attribute to train.
+            training_span: The time span of events to train on.
+            preset: "fast" (default) or "thorough" model search.
+            min_events: Minimum prior in-session events before an anchor is eligible.
+            max_anchors_per_session: Max anchor events to sample per session.
+            max_negative_ratio: Max ratio of negative to positive anchors for downsampling.
+            max_lookback_days: Override the computed max lookback window (in days).
+        Returns:
+            The pending training run.
+        """
+        request = _training_request(
+            training_span,
+            preset=preset,
+            min_events=min_events,
+            max_anchors_per_session=max_anchors_per_session,
+            max_negative_ratio=max_negative_ratio,
+            max_lookback_days=max_lookback_days,
+        )
+        return self.predictive_attributes.train(predictive_attribute, request)
+
+    def get_predictive_attribute(
+        self, name: str, version: int | None = None
+    ) -> PredictiveAttributeResponse:
+        """
+        Returns a predictive attribute, including its trainings, from the Signals registry.
+        If no version is provided, returns the latest one.
+
+        Args:
+            name: The name of the predictive attribute.
+            version: The version of the predictive attribute.
+        Returns:
+            The predictive attribute
+        """
+        return self.predictive_attributes.get(name, version)
+
+    def get_predictive_attribute_training(
+        self,
+        predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+        training: PredictiveAttributeTraining | int,
+    ) -> PredictiveAttributeTraining:
+        """
+        Returns the latest state of a training run, including its status and metrics.
+
+        Args:
+            predictive_attribute: The predictive attribute the training belongs to.
+            training: The training run, or its version.
+        Returns:
+            The training run
+        """
+        return self.predictive_attributes.get_training(
+            predictive_attribute, _training_version(training)
+        )
+
+    def wait_for_predictive_attribute_training(
+        self,
+        predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+        training: PredictiveAttributeTraining | int,
+        timeout: timedelta = timedelta(minutes=30),
+        poll_interval: timedelta = timedelta(seconds=15),
+    ) -> PredictiveAttributeTraining:
+        """
+        Polls a training run of a predictive attribute until it succeeds.
+
+        Args:
+            predictive_attribute: The predictive attribute the training belongs to.
+            training: The training run, or its version.
+            timeout: How long to wait before giving up.
+            poll_interval: How long to wait between status checks.
+        Returns:
+            The successful training run, including its metrics.
+        Raises:
+            PredictiveAttributeTrainingError: If the training fails.
+            TimeoutError: If the training doesn't finish within the timeout.
+        """
+        training_version = _training_version(training)
+        deadline = time.monotonic() + timeout.total_seconds()
+        while True:
+            current = self.get_predictive_attribute_training(
+                predictive_attribute, training_version
+            )
+            if current.status == TrainingRunStatus.SUCCESS:
+                return current
+            if current.status == TrainingRunStatus.FAILED:
+                raise PredictiveAttributeTrainingError(
+                    f"Training v{training_version} of predictive attribute "
+                    f"'{predictive_attribute.name}' failed: {current.error}",
+                    training=current,
+                )
+            if time.monotonic() >= deadline:
+                raise TimeoutError(
+                    f"Training v{training_version} of predictive attribute "
+                    f"'{predictive_attribute.name}' is still {current.status} after {timeout}."
+                )
+            time.sleep(
+                min(
+                    poll_interval.total_seconds(),
+                    max(0.0, deadline - time.monotonic()),
+                )
+            )
+
+    def publish_predictive_attribute(
+        self,
+        predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+        training: PredictiveAttributeTraining | int | None = None,
+    ) -> None:
+        """
+        Publishes a training of a predictive attribute to the compute engines so its
+        score can be retrieved. Unlike publish([predictive_attribute]), this replaces the
+        live training: by default with the latest successful one. Publishing an older
+        training rolls back to it. Its input attribute groups must already be published.
+
+        Args:
+            predictive_attribute: The predictive attribute to publish.
+            training: The training run, or its version. Defaults to the latest successful one.
+        """
+        current = self.predictive_attributes.get(
+            predictive_attribute.name, predictive_attribute.version
+        )
+        self.predictive_attributes.publish(
+            current=current,
+            training_version=(
+                _training_version(training) if training is not None else None
+            ),
+        )
+
+    def unpublish_predictive_attribute(
+        self,
+        predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+    ) -> None:
+        """
+        Unpublishes a predictive attribute from the compute engines.
+
+        Args:
+            predictive_attribute: The predictive attribute to unpublish.
+        """
+        current = self.predictive_attributes.get(
+            predictive_attribute.name, predictive_attribute.version
+        )
+        self.predictive_attributes.unpublish(current=current)
+
+    def get_predictive_attribute_score(
+        self, name: str, identifiers: dict[str, str]
+    ) -> PredictiveAttributeScore:
+        """
+        Retrieves the score of a published predictive attribute for an entity.
+        Unlike other attributes, a predictive attribute can use attribute groups with
+        different attribute keys, so it takes an identifier per attribute key.
+
+        Args:
+            name: The name of the predictive attribute.
+            identifiers: Mapping of attribute key name to identifier, one for each
+                attribute key used by the input attribute groups.
+        Returns:
+            The predictive attribute score.
+        """
+        return self.attributes.get_predictive_attribute_score(
+            name=name, identifiers=identifiers
+        )
+
     def test(
         self,
         attribute_group: AttributeGroup,
@@ -224,6 +459,42 @@ class BaseSignalsWithApiClient:
             app_ids=[AppId(root=a) for a in (app_ids or [])],
         )
         return self.testing.test_attribute_group(request=request)
+
+    def test_predictive_attribute(
+        self,
+        predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+        training_span: TrainingSpan,
+        min_events: int | None = None,
+        max_anchors_per_session: int | None = None,
+        max_negative_ratio: float | None = None,
+    ) -> PredictiveAttributeTestResponse:
+        """
+        Previews the dataset a training of the predictive attribute would use, without
+        creating the predictive attribute or building the dataset. Use it to check there
+        is enough data before training.
+
+        Args:
+            predictive_attribute: The predictive attribute to test. It doesn't need to exist in the registry.
+            training_span: The time span of events to train on.
+            min_events: Minimum prior in-session events before an anchor is eligible.
+            max_anchors_per_session: Max anchor events to sample per session.
+            max_negative_ratio: Max ratio of negative to positive anchors for downsampling.
+        Returns:
+            The row and session counts, and the training minimums the data misses.
+        """
+        request = TestPredictiveAttributeRequest(
+            # Keeps only the definition, dropping registry fields like trainings
+            predictive_attribute=PredictiveAttributeDefinition.model_validate(
+                predictive_attribute, from_attributes=True
+            ),
+            training=_training_request(
+                training_span,
+                min_events=min_events,
+                max_anchors_per_session=max_anchors_per_session,
+                max_negative_ratio=max_negative_ratio,
+            ),
+        )
+        return self.testing.test_predictive_attribute(request=request)
 
     def push_intervention(
         self, targets: AttributeKeyIdentifiers, intervention: InterventionInstance
@@ -255,7 +526,7 @@ class BaseSignalsWithApiClient:
         attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         goal_criteria: Criteria,
         training_span: TrainingSpan,
-        excluded_events: list[SignalsApiModelsDatasetEvent] | None = None,
+        excluded_events: list[DatasetEvent] | None = None,
         min_events: int | None = None,
         max_anchors_per_session: int | None = None,
         max_negative_ratio: float | None = None,
@@ -364,7 +635,7 @@ class BaseSignalsWithApiClient:
         attribute_groups: list[AttributeGroup | AttributeGroupResponse],
         goal_criteria: Criteria,
         training_span: TrainingSpan,
-        excluded_events: list[SignalsApiModelsDatasetEvent] | None = None,
+        excluded_events: list[DatasetEvent] | None = None,
         min_events: int | None = None,
         max_anchors_per_session: int | None = None,
         max_negative_ratio: float | None = None,

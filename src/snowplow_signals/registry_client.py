@@ -8,21 +8,58 @@ from .models import (
     EventLog,
     EventLogReference,
     EventLogResponse,
+    PredictiveAttribute,
+    PredictiveAttributeResponse,
     RuleIntervention,
     SelectivePublishRequest,
     Service,
     UnpublishRequest,
 )
+from .predictive_attributes_client import (
+    PredictiveAttributesClient,
+    check_definition_unchanged,
+    check_publishable,
+    warn_if_newer_training,
+)
 
-RegistryObject = AttributeGroup | Service | AttributeKey | RuleIntervention | EventLog
+RegistryObject = (
+    AttributeGroup
+    | Service
+    | AttributeKey
+    | RuleIntervention
+    | EventLog
+    | PredictiveAttribute
+)
 
 
 class RegistryClient:
     def __init__(self, api_client: ApiClient):
         self.api_client = api_client
+        self.predictive_attributes = PredictiveAttributesClient(api_client=api_client)
 
     def create_or_update(self, objects: list[RegistryObject]) -> list[RegistryObject]:
         updated_objects: list[RegistryObject] = []
+
+        # Check predictive attributes before changing anything
+        registered: list[
+            tuple[PredictiveAttribute, PredictiveAttributeResponse | None]
+        ] = []
+        for object in objects:
+            if isinstance(object, PredictiveAttribute):
+                current = self.predictive_attributes.get_if_exists(
+                    object.name, object.version
+                )
+                if current is not None:
+                    check_definition_unchanged(object, current)
+                if object.is_published:
+                    check_publishable(object, current)
+                registered.append((object, current))
+
+        # Attribute groups can't be unpublished while a published predictive attribute
+        # uses them, so take predictive attributes off the engines first
+        for predictive_attribute, current in registered:
+            if not predictive_attribute.is_published and current is not None:
+                self.predictive_attributes.unpublish(current=current)
 
         # First publish all attribute keys in case they are dependencies of attribute groups
         for object in objects:
@@ -55,12 +92,26 @@ class RegistryClient:
                     self._create_or_update_event_log(event_log=object)
                 )
 
+        # Predictive attributes reference attribute groups, so register them last
+        for object in objects:
+            if isinstance(object, PredictiveAttribute):
+                updated_objects.append(
+                    self._create_or_update_predictive_attribute(
+                        predictive_attribute=object
+                    )
+                )
+
         return updated_objects
 
     def delete(self, objects: list[RegistryObject]) -> None:
         """
         Deletes the provided objects from the Signals registry.
         """
+        # Predictive attributes reference attribute groups, so delete them first
+        for object in objects:
+            if isinstance(object, PredictiveAttribute):
+                self.predictive_attributes.delete(object)
+
         for object in objects:
             if isinstance(object, EventLog):
                 self._delete_event_log(event_log=object)
@@ -212,6 +263,23 @@ class RegistryClient:
         updated = EventLog.model_validate(response)
         updated.is_published = event_log.is_published
         return updated
+
+    def _create_or_update_predictive_attribute(
+        self, predictive_attribute: PredictiveAttribute
+    ) -> PredictiveAttribute:
+        response = self.predictive_attributes.create(predictive_attribute)
+
+        # Like event logs, predictive attributes are promoted to the engines by a
+        # separate call. If it is already published, the live training is left as is;
+        # use Signals.publish_predictive_attribute to change it. Unpublishing already
+        # happened before the attribute groups were updated.
+        if predictive_attribute.is_published:
+            if response.is_published:
+                warn_if_newer_training(response)
+            else:
+                self.predictive_attributes.publish(current=response)
+
+        return predictive_attribute
 
     def _publish_event_log_to_engines(self, event_log: EventLog) -> None:
         request = SelectivePublishRequest(
