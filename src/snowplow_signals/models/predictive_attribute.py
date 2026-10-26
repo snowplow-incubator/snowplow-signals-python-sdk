@@ -54,30 +54,30 @@ class PredictiveAttribute(PredictiveAttributeInput):
     input attributes and retrieved with `Signals.get_predictive_attribute_score`.
     """
 
-    version: int = Field(  # type: ignore[assignment]
+    version: int = Field(
         default=1,
         ge=1,
         description="The version of the predictive attribute. Bump it to change input attributes, goal criteria or excluded events.",
         title="Version",
     )
 
-    input_attributes: list[SourceGroupReference] = Field(  # type: ignore[assignment]
+    input_attributes: list[SourceGroupReference] = Field(
         ...,
         description="The attributes used as model inputs, from stream attribute groups. Use `attribute_group.attribute_reference(name)` to build them.",
         min_length=1,
         title="Input Attributes",
     )
-    goal_criteria: Criteria = Field(  # type: ignore[assignment]
+    goal_criteria: Criteria = Field(
         ...,
         description="Criteria defining the goal event the model predicts.",
         title="Goal Criteria",
     )
-    excluded_events: list[DatasetEvent] = Field(  # type: ignore[assignment]
+    excluded_events: list[DatasetEvent] = Field(
         default_factory=lambda: [DatasetEvent(name="page_ping")],
         description="Events to exclude from anchoring during training.",
         title="Excluded Events",
     )
-    owner: EmailStr = Field(  # type: ignore[assignment]
+    owner: EmailStr = Field(
         ...,
         description="The owner of the predictive attribute, typically the email of the primary maintainer. This field is required for predictive attribute creation.",
         title="Owner",

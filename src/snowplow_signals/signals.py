@@ -40,6 +40,7 @@ from .models import (
     WarehouseTable,
 )
 from .models.model import (
+    AppId,
     DatasetEvent,
 )
 from .models.model import PredictiveAttribute as PredictiveAttributeDefinition
@@ -435,8 +436,8 @@ class BaseSignalsWithApiClient:
     def test(
         self,
         attribute_group: AttributeGroup,
-        attribute_key_ids: list[AttributeKeyId] = [],
-        app_ids: list[str] = [],
+        attribute_key_ids: list[str | AttributeKeyId] | None = None,
+        app_ids: list[str] | None = None,
         window: timedelta = timedelta(hours=1),
     ) -> pd.DataFrame:
         """
@@ -444,15 +445,18 @@ class BaseSignalsWithApiClient:
 
         Args:
             attribute_group: The attribute group to test.
-            attribute_key_ids: The list of attribute key ids (e.g., domain_userid values) to extract features for. If empty, random 10 IDs will be used.
+            attribute_key_ids: The list of attribute key ids (e.g., domain_userid values) to extract features for, as plain strings or AttributeKeyId objects. If empty, random 10 IDs will be used.
             app_ids: The list of app ids to extract features for.
             window: The time window to extract features from.
         """
         request = TestAttributeGroupRequest(
             attribute_group=attribute_group,
-            attribute_key_ids=attribute_key_ids,
+            attribute_key_ids=[
+                AttributeKeyId(root=k) if isinstance(k, str) else k
+                for k in (attribute_key_ids or [])
+            ],
             window=window,
-            app_ids=app_ids,  # pyright: ignore[reportArgumentType] AppID is already a string, validation happens at runtime
+            app_ids=[AppId(root=a) for a in (app_ids or [])],
         )
         return self.testing.test_attribute_group(request=request)
 
