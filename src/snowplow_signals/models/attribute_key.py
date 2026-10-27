@@ -4,6 +4,16 @@ from pydantic import Field
 
 from .model import AtomicProperty, AttributeKeyInput, EntityProperty, EventProperty
 
+SNOWPLOW_ID = "snowplow_id"
+
+# The API refuses to update a built-in key unless its key and property match.
+SNOWPLOW_ID_PROPERTY = EntityProperty(
+    vendor="com.snowplowanalytics.snowplow",
+    name="identity",
+    major_version=2,
+    path="snowplow_id",
+)
+
 
 class AttributeKey(AttributeKeyInput):
     key: str | None = Field(
@@ -28,6 +38,18 @@ class AttributeKey(AttributeKeyInput):
     )
 
     def model_post_init(self, context: Any) -> None:
+        # Checks model_fields_set because reading the deprecated key field warns.
+        if (
+            self.name == SNOWPLOW_ID
+            and "key" not in self.model_fields_set
+            and self.property is None
+        ):
+            self.key = SNOWPLOW_ID
+            self.property = SNOWPLOW_ID_PROPERTY.model_copy()
+            if self.description is None:
+                self.description = (
+                    "The Snowplow ID that Identities resolved the user to"
+                )
         if self.name and self.external_column and self.name != self.external_column:
             raise ValueError(
                 "If external_column is specified, it must be equal to the name of the AttributeKey."
