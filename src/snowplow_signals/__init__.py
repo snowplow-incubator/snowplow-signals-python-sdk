@@ -79,6 +79,7 @@ from .definitions import (
     domain_userid,
     network_userid,
     session_attribute_key,
+    snowplow_id,
     user_attribute_key,
     user_id,
 )
@@ -104,6 +105,7 @@ domain_userid
 domain_sessionid
 user_id
 network_userid
+snowplow_id
 EntityProperty
 EventProperty
 AtomicProperty

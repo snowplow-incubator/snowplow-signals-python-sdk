@@ -12,6 +12,24 @@ class TestAttributeKey:
         assert attr_key.property is None
         assert attr_key.external_column is None
 
+    def test_snowplow_id_gets_the_built_in_definition(self):
+        attr_key = AttributeKey(name="snowplow_id", lookup_identifiers=["user_id"])
+        assert attr_key.key == "snowplow_id"
+        assert attr_key.property == EntityProperty(
+            vendor="com.snowplowanalytics.snowplow",
+            name="identity",
+            major_version=2,
+            path="snowplow_id",
+        )
+        assert attr_key.description is not None
+        assert attr_key.lookup_identifiers == ["user_id"]
+
+    def test_snowplow_id_keeps_an_explicit_property(self):
+        prop = AtomicProperty(name="user_id")
+        attr_key = AttributeKey(name="snowplow_id", property=prop)
+        assert attr_key.key is None
+        assert attr_key.property == prop
+
     def test_create_with_deprecated_key_only_fails(self):
         with pytest.raises(ValueError, match="Name could not be derived from key only"):
             AttributeKey(key="session_id")
