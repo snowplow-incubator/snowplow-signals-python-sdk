@@ -1,5 +1,10 @@
 # Changelog
 
+# [0.4.11] - 2026-10-30
+
+- [AISP-1583] Add predictive attributes (#165)
+- Support snowplow_id (#168)
+
 # [0.4.10] - 2026-10-25
 
 - Better typing: mutable-default fix, py.typed, ignore cleanup + mypy CI gate (#154)
