@@ -186,18 +186,25 @@ class RegistryClient:
         return AttributeGroup.model_validate(response)
 
     def _create_or_update_service(self, service: Service) -> Service:
+        data = self._model_dump(service)
+        # Only send access_mode when the caller set it. Otherwise the default
+        # would make a service that was made public elsewhere (e.g. in Console)
+        # private again on every publish; the API keeps the stored value when
+        # an update omits it, and defaults to "authenticated" on create.
+        if "access_mode" not in service.model_fields_set:
+            data.pop("access_mode", None)
         try:
             response = self.api_client.make_request(
                 method="POST",
                 endpoint="registry/services/",
-                data=self._model_dump(service),
+                data=data,
             )
         except SignalsAPIError as e:
             if e.status_code == 400:
                 response = self.api_client.make_request(
                     method="PUT",
                     endpoint=(f"registry/services/{service.name}"),
-                    data=self._model_dump(service),
+                    data=data,
                 )
             else:
                 raise e
