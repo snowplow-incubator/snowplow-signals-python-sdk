@@ -1,6 +1,7 @@
 import json
 
 import httpx
+import pytest
 from respx import MockRouter
 
 from snowplow_signals import (
@@ -182,6 +183,62 @@ class TestSignalsPublish:
 
         assert group_post_mock.called
         assert group_put_mock.called
+
+    @pytest.mark.parametrize(
+        "service_kwargs, expected_body_access_mode",
+        [
+            ({"access_mode": "public"}, "public"),
+            ({"access_mode": "authenticated"}, "authenticated"),
+            # Left out, the field isn't sent, so an update keeps the stored mode.
+            ({}, None),
+        ],
+    )
+    def test_publish_service_access_mode_on_create_and_update(
+        self,
+        respx_mock: MockRouter,
+        signals_client: Signals,
+        service_kwargs: dict,
+        expected_body_access_mode: str | None,
+    ):
+        service = Service(
+            name="my_service",
+            attribute_groups=[{"name": "my_attribute_group", "version": 1}],
+            owner="test@example.com",
+            **service_kwargs,
+        )
+        bodies = []
+
+        def record_and_conflict(request):
+            bodies.append(json.loads(request.content))
+            return httpx.Response(400, json={})
+
+        def record_and_respond(request):
+            bodies.append(json.loads(request.content))
+            return httpx.Response(
+                200,
+                json={
+                    "name": "my_service",
+                    "attribute_groups": [{"name": "my_attribute_group", "version": 1}],
+                    "owner": "test@example.com",
+                    "access_mode": "public",
+                    "is_published": True,
+                },
+            )
+
+        respx_mock.post("http://localhost:8000/api/v1/registry/services/").mock(
+            side_effect=record_and_conflict
+        )
+        respx_mock.put(
+            "http://localhost:8000/api/v1/registry/services/my_service"
+        ).mock(side_effect=record_and_respond)
+
+        [applied] = signals_client.publish(objects=[service])
+
+        create_body, update_body = bodies
+        for body in (create_body, update_body):
+            assert body.get("access_mode") == expected_body_access_mode
+        assert isinstance(applied, Service)
+        assert applied.access_mode == "public"
 
 
 class TestSignalsUnpublish:
