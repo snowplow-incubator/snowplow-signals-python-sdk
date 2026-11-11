@@ -6,6 +6,7 @@ import httpx
 from respx import MockRouter
 
 from snowplow_signals import (
+    AtomicProperty,
     AttributeGroup,
     Criteria,
     Criterion,
@@ -274,6 +275,25 @@ class TestDatasetClient:
         assert "training_span" in request_body["anchors"]
         assert len(request_body["attributes"]["attribute_groups"]) == 1
         assert request_body["attributes"]["attribute_groups"][0]["name"] == "my_group"
+
+    def test_build_sql_session_anchors_sends_anchor_criteria(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/sql").mock(
+            return_value=httpx.Response(200, json=self._mock_bundle_response())
+        )
+
+        signals_client.build_dataset_with_session_anchors(
+            attribute_groups=[self._make_attribute_group()],
+            goal_criteria=self._make_session_anchors().goal_criteria,
+            training_span=self._make_session_anchors().training_span,
+            anchor_criteria=Criteria(
+                all=[Criterion.eq(AtomicProperty(name="app_id"), "shop")]
+            ),
+        )
+
+        request_body = json.loads(mock.calls[0].request.content)
+        assert request_body["anchors"]["anchor_criteria"]["all"][0]["value"] == "shop"
 
     def test_build_sql_parses_bundle_response(
         self, respx_mock: MockRouter, signals_client: Signals
