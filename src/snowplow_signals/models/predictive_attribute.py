@@ -57,7 +57,7 @@ class PredictiveAttribute(PredictiveAttributeInput):
     version: int = Field(
         default=1,
         ge=1,
-        description="The version of the predictive attribute. Bump it to change input attributes, goal criteria or excluded events.",
+        description="The version of the predictive attribute. Bump it to change input attributes, goal criteria, anchor criteria or excluded events.",
         title="Version",
     )
 
@@ -71,6 +71,11 @@ class PredictiveAttribute(PredictiveAttributeInput):
         ...,
         description="Criteria defining the goal event the model predicts.",
         title="Goal Criteria",
+    )
+    anchor_criteria: Criteria | None = Field(
+        default=None,
+        description="An anchor is an event the model learns to score from: one training row, labelled by whether the goal happens later in the session. Only events matching these criteria become anchors during training. Set it to where the score will be read, such as one app, so another app sharing the session cookie adds no rows. The goal is still found among every event. Not enforced when scoring. If None, any event can be an anchor.",
+        title="Anchor Criteria",
     )
     excluded_events: list[DatasetEvent] = Field(
         default_factory=lambda: [DatasetEvent(name="page_ping")],

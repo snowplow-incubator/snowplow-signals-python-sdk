@@ -1917,6 +1917,10 @@ class PredictiveAttribute(BaseModel):
         ...,
         description="The event criteria that defines the prediction target (e.g., a transaction).",
     )
+    anchor_criteria: Optional[Criteria] = Field(
+        default=None,
+        description="An anchor is an event the model learns to score from: one training row, labelled by whether the goal happens later in the session. Only events matching these criteria become anchors during training. Set it to where the score will be read, such as one app, so another app sharing the session cookie adds no rows. The goal is still found among every event. Not enforced when scoring. If None, any event can be an anchor.",
+    )
     excluded_events: Optional[List[DatasetEvent]] = Field(
         default_factory=lambda: [
             DatasetEvent.model_validate(v) for v in [{"name": "page_ping"}]
@@ -2091,6 +2095,10 @@ class SessionAnchors(BaseModel):
         default=5.0,
         description="Maximum ratio of negative to positive anchors for downsampling.",
         title="Max Negative Ratio",
+    )
+    anchor_criteria: Optional[Criteria] = Field(
+        default=None,
+        description="Only events matching these criteria become anchors, such as the app the score will be read on. The goal is still found among every event, and every event still counts toward min_events. If None, any event can be an anchor.",
     )
 
 
@@ -2499,6 +2507,10 @@ class PredictiveAttributeResponse(BaseModel):
     goal_criteria: Criteria = Field(
         ...,
         description="The event criteria that defines the prediction target (e.g., a transaction).",
+    )
+    anchor_criteria: Optional[Criteria] = Field(
+        default=None,
+        description="An anchor is an event the model learns to score from: one training row, labelled by whether the goal happens later in the session. Only events matching these criteria become anchors during training. Set it to where the score will be read, such as one app, so another app sharing the session cookie adds no rows. The goal is still found among every event. Not enforced when scoring. If None, any event can be an anchor.",
     )
     excluded_events: Optional[List[DatasetEvent]] = Field(
         default_factory=lambda: [

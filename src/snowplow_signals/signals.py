@@ -530,6 +530,7 @@ class BaseSignalsWithApiClient:
         min_events: int | None = None,
         max_anchors_per_session: int | None = None,
         max_negative_ratio: float | None = None,
+        anchor_criteria: Criteria | None = None,
         anchors_table: WarehouseTable | None = None,
         attributes_table: AttributesWarehouseTable | None = None,
         dataset_table: WarehouseTable | None = None,
@@ -549,6 +550,7 @@ class BaseSignalsWithApiClient:
             min_events: Minimum prior in-session events before an anchor is eligible.
             max_anchors_per_session: Max anchor events to sample per session.
             max_negative_ratio: Max ratio of negative to positive anchors for downsampling.
+            anchor_criteria: Only events matching these criteria become anchors, such as one app (defaults to every event).
             anchors_table: Optional output table for the generated anchors.
             attributes_table: Optional table configuration for attribute output tables.
             dataset_table: Optional output table for the assembled dataset.
@@ -564,6 +566,7 @@ class BaseSignalsWithApiClient:
                 min_events=min_events,
                 max_anchors_per_session=max_anchors_per_session,
                 max_negative_ratio=max_negative_ratio,
+                anchor_criteria=anchor_criteria,
                 output=anchors_table,
             )
         )
@@ -639,6 +642,7 @@ class BaseSignalsWithApiClient:
         min_events: int | None = None,
         max_anchors_per_session: int | None = None,
         max_negative_ratio: float | None = None,
+        anchor_criteria: Criteria | None = None,
         anchors_table: WarehouseTable | None = None,
         attributes_table: AttributesWarehouseTable | None = None,
         dataset_table: WarehouseTable | None = None,
@@ -656,6 +660,7 @@ class BaseSignalsWithApiClient:
             min_events: Minimum prior in-session events before an anchor is eligible.
             max_anchors_per_session: Max anchor events to sample per session.
             max_negative_ratio: Max ratio of negative to positive anchors for downsampling.
+            anchor_criteria: Only events matching these criteria become anchors, such as one app (defaults to every event).
             anchors_table: Optional output table for the generated anchors.
             attributes_table: Optional table configuration for attribute output tables.
             dataset_table: Optional output table for the assembled dataset.
@@ -671,6 +676,7 @@ class BaseSignalsWithApiClient:
                 min_events=min_events,
                 max_anchors_per_session=max_anchors_per_session,
                 max_negative_ratio=max_negative_ratio,
+                anchor_criteria=anchor_criteria,
                 output=anchors_table,
             )
         )

@@ -3,6 +3,7 @@ from datetime import timedelta
 import pytest
 
 from snowplow_signals import (
+    AtomicProperty,
     Attribute,
     AttributeGroup,
     Criteria,
@@ -137,6 +138,24 @@ class TestPredictiveAttribute:
         assert payload["input_attributes"] == [
             {"name": "session_stats", "version": 3, "attribute_name": "page_views"}
         ]
+
+    def test_serializes_anchor_criteria(
+        self, session_group: AttributeGroup, goal_criteria: Criteria
+    ):
+        on_site = Criteria(
+            all=[Criterion.eq(AtomicProperty(name="app_id"), "signals-website")]
+        )
+        pa = PredictiveAttribute(
+            name="purchase_propensity",
+            owner="test@example.com",
+            input_attributes=[session_group.attribute_reference("page_views")],
+            goal_criteria=goal_criteria,
+            anchor_criteria=on_site,
+        )
+
+        payload = pa.model_dump(mode="json", exclude_none=True)
+
+        assert payload["anchor_criteria"]["all"][0]["value"] == "signals-website"
 
     def test_rejects_missing_version(
         self, session_group: AttributeGroup, goal_criteria: Criteria
