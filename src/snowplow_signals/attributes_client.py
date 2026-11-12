@@ -2,6 +2,7 @@ from typing import Any, Literal
 
 from .api_client import ApiClient
 from .models import (
+    AgenticAttributeResult,
     AgenticContextResponse,
     AttributeKeyIdentifiers,
     GetAttributeGroupAttributesRequest,
@@ -84,6 +85,23 @@ class AttributesClient:
             params=params,
         )
         return AgenticContextResponse.model_validate(response)
+
+    def get_agentic_attribute_value(
+        self, name: str, identifier: str
+    ) -> AgenticAttributeResult:
+        """
+        Retrieves the most recently evaluated value of an agentic attribute.
+
+        Args:
+            name: The name of the agentic attribute.
+            identifier: The attribute key value identifying the entity.
+        """
+        response = self.api_client.make_request(
+            method="GET",
+            endpoint="agentic_attribute",
+            params={"name": name, "identifier": identifier},
+        )
+        return AgenticAttributeResult.model_validate(response)
 
     def get_predictive_attribute_score(
         self, name: str, identifiers: dict[str, str]

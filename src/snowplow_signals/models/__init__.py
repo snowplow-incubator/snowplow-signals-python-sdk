@@ -1,3 +1,4 @@
+from .agentic_attribute import AgenticAttribute
 from .attribute_group import (
     AttributeGroup,
     BatchAttributeGroup,
@@ -25,6 +26,12 @@ from .event_log import EventLog, EventSelection
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
+    AgenticAttributeAgentConfig,
+    AgenticAttributeEvaluationPolicy,
+    AgenticAttributeReference,
+    AgenticAttributeResponse,
+    AgenticAttributeResult,
+    AgenticAttributeValue,
     AtomicProperty,
     AttributeGroupReference,
     AttributeGroupResponse,
@@ -37,8 +44,12 @@ from .model import (
     BatchSource,
 )
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
+from .model import CriteriaAllInput as TriggerCriteriaAllInput
 from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
+from .model import CriteriaAnyInput as TriggerCriteriaAnyInput
 from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
+from .model import CriteriaNoneInput as TriggerCriteriaNoneInput
+from .model import CriteriaTriggerInput as CriteriaTrigger
 from .model import (
     CriteriaWithStringProperty,
     CriterionWithStringProperty,
@@ -78,6 +89,7 @@ from .model import (
 from .model import (
     SignalsApiModelsInterventionCriterionCriterion as InterventionCriterion,
 )
+from .model import SignalsApiModelsInterventionCriterionCriterion as TriggerCriterion
 from .model import (
     SourceGroupReference,
     TestAttributeGroupRequest,
@@ -168,6 +180,20 @@ EventLogEntityProperty
 
 # Agentic context (retrieved values)
 AgenticContextResponse
+
+# Agentic attributes
+AgenticAttribute
+AgenticAttributeResponse
+AgenticAttributeReference
+AgenticAttributeValue
+AgenticAttributeEvaluationPolicy
+AgenticAttributeAgentConfig
+AgenticAttributeResult
+CriteriaTrigger
+TriggerCriterion
+TriggerCriteriaAllInput
+TriggerCriteriaAnyInput
+TriggerCriteriaNoneInput
 
 # Dataset runs
 DatasetRunResponse

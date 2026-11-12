@@ -177,6 +177,54 @@ class TestAttributesClient:
 
         assert exc_info.value.status_code == 404
 
+    def test_get_agentic_attribute_value(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        attributes_client = AttributesClient(api_client=api_client)
+
+        def check_request(request):
+            assert request.url.params["name"] == "shopper_intent"
+            assert request.url.params["identifier"] == "session-123"
+            return httpx.Response(
+                200,
+                json={
+                    "value": "stuck",
+                    "version": 2,
+                    "available_options": ["browsing", "stuck"],
+                    "decided_at": "2026-11-12T10:00:00Z",
+                    "justification": "Searched three times without a click.",
+                },
+            )
+
+        respx_mock.get("http://localhost:8000/api/v1/agentic_attribute").mock(
+            side_effect=check_request
+        )
+
+        result = attributes_client.get_agentic_attribute_value(
+            name="shopper_intent", identifier="session-123"
+        )
+
+        assert result.value == "stuck"
+        assert result.version == 2
+        assert result.available_options == ["browsing", "stuck"]
+        assert result.justification == "Searched three times without a click."
+
+    def test_get_agentic_attribute_value_not_evaluated_yet(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        attributes_client = AttributesClient(api_client=api_client)
+
+        respx_mock.get("http://localhost:8000/api/v1/agentic_attribute").mock(
+            return_value=httpx.Response(404, json={"error": "not found"})
+        )
+
+        with pytest.raises(SignalsAPIError) as exc_info:
+            attributes_client.get_agentic_attribute_value(
+                name="shopper_intent", identifier="session-123"
+            )
+
+        assert exc_info.value.status_code == 404
+
     def test_get_attributes_multiple_attributes(
         self, respx_mock: MockRouter, api_client: ApiClient
     ):
