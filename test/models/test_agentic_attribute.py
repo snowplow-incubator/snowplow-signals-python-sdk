@@ -166,3 +166,79 @@ def test_rejects_unknown_output_type():
             contexts=["recent_events"],
             triggers=[make_trigger()],
         )
+
+
+def make_boolean_attribute(**overrides) -> AgenticAttribute:
+    return AgenticAttribute(
+        **{
+            "name": "needs_help",
+            "attribute_key": domain_sessionid,
+            "output_type": "boolean",
+            "goal": "Does the shopper need help?",
+            "contexts": ["recent_events"],
+            "triggers": [make_trigger()],
+            **overrides,
+        }
+    )
+
+
+EXPECTED_TRIGGER = {
+    "type": "criteria",
+    "criteria": {"attribute": "session_stats:page_views", "operator": ">", "value": 3},
+}
+
+
+@pytest.mark.parametrize(
+    "trigger",
+    [
+        pytest.param(make_trigger(), id="explicit CriteriaTrigger"),
+        pytest.param(make_trigger().criteria, id="bare criterion"),
+        pytest.param(EXPECTED_TRIGGER, id="trigger dict from the API"),
+        pytest.param(EXPECTED_TRIGGER["criteria"], id="bare criterion dict"),
+    ],
+)
+def test_wraps_bare_criteria_in_a_trigger(trigger):
+    agentic_attribute = make_boolean_attribute(triggers=[trigger])
+
+    assert all(isinstance(t, CriteriaTrigger) for t in agentic_attribute.triggers)
+    dumped = agentic_attribute.model_dump(mode="json", exclude_none=True)
+    assert dumped["triggers"] == [EXPECTED_TRIGGER]
+
+
+def test_wraps_bare_criteria_groups_in_a_trigger():
+    group = TriggerCriteriaAny(
+        any=[
+            TriggerCriterion(
+                attribute="session_stats:searches", operator=">=", value=2
+            ),
+            TriggerCriterion(
+                attribute="session_stats:page_views", operator=">", value=3
+            ),
+        ]
+    )
+
+    agentic_attribute = make_boolean_attribute(triggers=[group])
+
+    [trigger] = agentic_attribute.triggers
+    assert isinstance(trigger, CriteriaTrigger)
+    assert trigger.criteria == group
+
+
+def test_enum_requires_values():
+    with pytest.raises(ValidationError, match="values are required"):
+        make_boolean_attribute(output_type="enum")
+
+
+@pytest.mark.parametrize("output_type", ["boolean", "number"])
+def test_only_enum_takes_values(output_type):
+    with pytest.raises(ValidationError, match="values can only be set"):
+        make_boolean_attribute(
+            output_type=output_type,
+            values=[AgenticAttributeValue(name="yes", description="Yes.")],
+        )
+
+
+def test_non_enum_accepts_empty_values():
+    agentic_attribute = make_boolean_attribute(values=[])
+
+    assert agentic_attribute.values == []
