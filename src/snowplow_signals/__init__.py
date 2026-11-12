@@ -1,5 +1,11 @@
 from snowplow_signals.api_client import SignalsAPIError
 from snowplow_signals.models import (
+    AgenticAttribute,
+    AgenticAttributeAgentConfig,
+    AgenticAttributeEvaluationPolicy,
+    AgenticAttributeResponse,
+    AgenticAttributeResult,
+    AgenticAttributeValue,
     AgenticContextResponse,
     AtomicProperty,
     Attribute,
@@ -12,6 +18,7 @@ from snowplow_signals.models import (
     BatchSource,
     CalculatedProperty,
     Criteria,
+    CriteriaTrigger,
     Criterion,
     DatasetBundle,
     DatasetEvent,
@@ -62,6 +69,12 @@ from snowplow_signals.models import (
     TrainingPreset,
     TrainingRunStatus,
     TrainingSpan,
+)
+from snowplow_signals.models import TriggerCriteriaAllInput as TriggerCriteriaAll
+from snowplow_signals.models import TriggerCriteriaAnyInput as TriggerCriteriaAny
+from snowplow_signals.models import TriggerCriteriaNoneInput as TriggerCriteriaNone
+from snowplow_signals.models import (
+    TriggerCriterion,
     UserSuppliedAnchors,
     WarehouseTable,
     attribute_reference,
@@ -122,6 +135,19 @@ EventLogEntityProperty
 
 # Agentic context (retrieved values)
 AgenticContextResponse
+
+# Agentic attributes
+AgenticAttribute
+AgenticAttributeResponse
+AgenticAttributeValue
+AgenticAttributeEvaluationPolicy
+AgenticAttributeAgentConfig
+AgenticAttributeResult
+CriteriaTrigger
+TriggerCriterion
+TriggerCriteriaAll
+TriggerCriteriaAny
+TriggerCriteriaNone
 
 PagePing
 PageView

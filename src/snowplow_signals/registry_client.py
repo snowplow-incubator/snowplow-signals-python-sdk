@@ -2,6 +2,9 @@ from pydantic import BaseModel
 
 from .api_client import ApiClient, SignalsAPIError
 from .models import (
+    AgenticAttribute,
+    AgenticAttributeReference,
+    AgenticAttributeResponse,
     AttributeGroup,
     AttributeGroupResponse,
     AttributeKey,
@@ -28,6 +31,7 @@ RegistryObject = (
     | AttributeKey
     | RuleIntervention
     | EventLog
+    | AgenticAttribute
     | PredictiveAttribute
 )
 
@@ -85,11 +89,26 @@ class RegistryClient:
                     self._create_or_update_intervention(intervention=object)
                 )
 
+        # Agentic attributes read event logs as their contexts, so take them off
+        # the engines before any event log they read is unpublished
+        for object in objects:
+            if isinstance(object, AgenticAttribute) and not object.is_published:
+                updated_objects.append(
+                    self._create_or_update_agentic_attribute(agentic_attribute=object)
+                )
+
         # Event logs depend on attribute keys, so publish them after the keys
         for object in objects:
             if isinstance(object, EventLog):
                 updated_objects.append(
                     self._create_or_update_event_log(event_log=object)
+                )
+
+        # ...and publish them only once the event logs they read are published
+        for object in objects:
+            if isinstance(object, AgenticAttribute) and object.is_published:
+                updated_objects.append(
+                    self._create_or_update_agentic_attribute(agentic_attribute=object)
                 )
 
         # Predictive attributes reference attribute groups, so register them last
@@ -111,6 +130,11 @@ class RegistryClient:
         for object in objects:
             if isinstance(object, PredictiveAttribute):
                 self.predictive_attributes.delete(object)
+
+        # Agentic attributes read event logs, so delete them before the event logs
+        for object in objects:
+            if isinstance(object, AgenticAttribute):
+                self._delete_agentic_attribute(agentic_attribute=object)
 
         for object in objects:
             if isinstance(object, EventLog):
@@ -161,6 +185,13 @@ class RegistryClient:
             endpoint=(f"registry/event_logs/{name}"),
         )
         return EventLogResponse.model_validate(response)
+
+    def get_agentic_attribute(self, name: str) -> AgenticAttributeResponse:
+        response = self.api_client.make_request(
+            method="GET",
+            endpoint=(f"registry/agentic_attributes/{name}"),
+        )
+        return AgenticAttributeResponse.model_validate(response)
 
     def _create_or_update_attribute_group(
         self, attribute_group: AttributeGroup
@@ -253,10 +284,11 @@ class RegistryClient:
         # Unlike other registry types, the event_logs endpoint does not promote
         # the resource to the engines based on is_published. We need to call the
         # engines publish/unpublish endpoint explicitly as a second step.
+        event_logs = [EventLogReference(name=event_log.name)]
         if event_log.is_published:
-            self._publish_event_log_to_engines(event_log=event_log)
+            self._publish_to_engines(SelectivePublishRequest(event_logs=event_logs))
         else:
-            self._unpublish_event_log_from_engines(event_log=event_log)
+            self._unpublish_from_engines(UnpublishRequest(event_logs=event_logs))
 
         # The registry response has no is_published field, so preserve the
         # requested publish state on the returned wrapper.
@@ -281,18 +313,56 @@ class RegistryClient:
 
         return predictive_attribute
 
-    def _publish_event_log_to_engines(self, event_log: EventLog) -> None:
-        request = SelectivePublishRequest(
-            event_logs=[EventLogReference(name=event_log.name)]
-        )
+    def _create_or_update_agentic_attribute(
+        self, agentic_attribute: AgenticAttribute
+    ) -> AgenticAttribute:
+        # Like event logs, is_published is a client-side control and not part of
+        # the agentic_attributes registry input schema.
+        payload = self._model_dump(agentic_attribute)
+        payload.pop("is_published", None)
+
+        try:
+            response = self.api_client.make_request(
+                method="POST",
+                endpoint="registry/agentic_attributes/",
+                data=payload,
+            )
+        except SignalsAPIError as e:
+            if e.status_code == 400:
+                response = self.api_client.make_request(
+                    method="PUT",
+                    endpoint=(f"registry/agentic_attributes/{agentic_attribute.name}"),
+                    data=payload,
+                )
+            else:
+                raise e
+
+        # The registry write only creates a draft, so promote it to (or remove it
+        # from) the engines explicitly.
+        agentic_attributes = [AgenticAttributeReference(name=agentic_attribute.name)]
+        if agentic_attribute.is_published:
+            self._publish_to_engines(
+                SelectivePublishRequest(agentic_attributes=agentic_attributes)
+            )
+        else:
+            self._unpublish_from_engines(
+                UnpublishRequest(agentic_attributes=agentic_attributes)
+            )
+
+        # The registry response describes the draft row, so report the requested
+        # publish state instead.
+        updated = AgenticAttribute.model_validate(response)
+        updated.is_published = agentic_attribute.is_published
+        return updated
+
+    def _publish_to_engines(self, request: SelectivePublishRequest) -> None:
         self.api_client.make_request(
             method="POST",
             endpoint="engines/publish",
             data=self._model_dump(request),
         )
 
-    def _unpublish_event_log_from_engines(self, event_log: EventLog) -> None:
-        request = UnpublishRequest(event_logs=[EventLogReference(name=event_log.name)])
+    def _unpublish_from_engines(self, request: UnpublishRequest) -> None:
         self.api_client.make_request(
             method="POST",
             endpoint="engines/unpublish",
@@ -353,6 +423,12 @@ class RegistryClient:
         self.api_client.make_request(
             method="DELETE",
             endpoint=(f"registry/event_logs/{event_log.name}"),
+        )
+
+    def _delete_agentic_attribute(self, agentic_attribute: AgenticAttribute) -> None:
+        self.api_client.make_request(
+            method="DELETE",
+            endpoint=(f"registry/agentic_attributes/{agentic_attribute.name}"),
         )
 
     def _model_dump(self, model: BaseModel) -> dict:

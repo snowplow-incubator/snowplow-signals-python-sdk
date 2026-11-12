@@ -420,3 +420,226 @@ class TestRegistryClient:
         registry_client.delete([intervention])
 
         assert delete_mock.called
+
+
+class TestAgenticAttributes:
+    REGISTRY_URL = "http://localhost:8000/api/v1/registry/agentic_attributes/"
+
+    def _make_agentic_attribute(self, is_published: bool):
+        from snowplow_signals import (
+            AgenticAttribute,
+            CriteriaTrigger,
+            TriggerCriterion,
+            domain_sessionid,
+        )
+
+        return AgenticAttribute(
+            name="needs_help",
+            attribute_key=domain_sessionid,
+            output_type="boolean",
+            goal="Does the shopper need help?",
+            contexts=["my_event_log"],
+            triggers=[
+                CriteriaTrigger(
+                    criteria=TriggerCriterion(
+                        attribute="session_stats:page_views",
+                        operator=">",
+                        value=3,
+                    )
+                )
+            ],
+            is_published=is_published,
+        )
+
+    def _registry_response(self, agentic_attribute) -> dict:
+        response = agentic_attribute.model_dump(mode="json", exclude_none=True)
+        # The registry returns the state of the draft row it just wrote.
+        response["is_published"] = False
+        response["has_published_version"] = False
+        return response
+
+    def _calls(self, respx_mock: MockRouter) -> list[tuple[str, str, dict | None]]:
+        return [
+            (
+                call.request.method,
+                call.request.url.path,
+                json.loads(call.request.content) if call.request.content else None,
+            )
+            for call in respx_mock.calls
+            if call.request.url.host == "localhost"
+        ]
+
+    def test_publish_creates_draft_and_promotes_to_engines(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        agentic_attribute = self._make_agentic_attribute(is_published=True)
+        respx_mock.post(self.REGISTRY_URL).mock(
+            return_value=httpx.Response(
+                200, json=self._registry_response(agentic_attribute)
+            )
+        )
+        respx_mock.post("http://localhost:8000/api/v1/engines/publish").mock(
+            return_value=httpx.Response(200, json={"status": "published"})
+        )
+
+        registry_client = RegistryClient(api_client=api_client)
+        [updated] = registry_client.create_or_update([agentic_attribute])
+
+        [create, publish] = self._calls(respx_mock)
+        assert create[:2] == ("POST", "/api/v1/registry/agentic_attributes/")
+        assert create[2] is not None
+        assert create[2]["contexts"] == ["my_event_log"]
+        assert create[2]["attribute_key"] == {"name": "domain_sessionid"}
+        assert "is_published" not in create[2]
+        assert publish == (
+            "POST",
+            "/api/v1/engines/publish",
+            {"agentic_attributes": [{"name": "needs_help"}]},
+        )
+        assert updated.is_published is True
+
+    def test_existing_attribute_is_updated(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        agentic_attribute = self._make_agentic_attribute(is_published=True)
+        respx_mock.post(self.REGISTRY_URL).mock(
+            return_value=httpx.Response(400, json={"detail": "already exists"})
+        )
+        put_mock = respx_mock.put(f"{self.REGISTRY_URL}needs_help").mock(
+            return_value=httpx.Response(
+                200, json=self._registry_response(agentic_attribute)
+            )
+        )
+        respx_mock.post("http://localhost:8000/api/v1/engines/publish").mock(
+            return_value=httpx.Response(200, json={"status": "published"})
+        )
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.create_or_update([agentic_attribute])
+
+        assert put_mock.called
+        assert "is_published" not in json.loads(put_mock.calls[0].request.content)
+
+    def test_unpublish_removes_from_engines(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        agentic_attribute = self._make_agentic_attribute(is_published=False)
+        respx_mock.post(self.REGISTRY_URL).mock(
+            return_value=httpx.Response(
+                200, json=self._registry_response(agentic_attribute)
+            )
+        )
+        unpublish_mock = respx_mock.post(
+            "http://localhost:8000/api/v1/engines/unpublish"
+        ).mock(return_value=httpx.Response(200, json={"status": "unpublished"}))
+
+        registry_client = RegistryClient(api_client=api_client)
+        [updated] = registry_client.create_or_update([agentic_attribute])
+
+        assert json.loads(unpublish_mock.calls[0].request.content) == {
+            "agentic_attributes": [{"name": "needs_help"}]
+        }
+        assert updated.is_published is False
+
+    def _mock_event_log_and_agentic_attribute(
+        self, respx_mock: MockRouter, event_log, agentic_attribute
+    ):
+        event_log_response = event_log.model_dump(mode="json", by_alias=True)
+        event_log_response.pop("is_published", None)
+        respx_mock.post("http://localhost:8000/api/v1/registry/event_logs/").mock(
+            return_value=httpx.Response(200, json=event_log_response)
+        )
+        respx_mock.post(self.REGISTRY_URL).mock(
+            return_value=httpx.Response(
+                200, json=self._registry_response(agentic_attribute)
+            )
+        )
+        respx_mock.post("http://localhost:8000/api/v1/engines/publish").mock(
+            return_value=httpx.Response(200, json={"status": "published"})
+        )
+        respx_mock.post("http://localhost:8000/api/v1/engines/unpublish").mock(
+            return_value=httpx.Response(200, json={"status": "unpublished"})
+        )
+
+    def test_publishes_event_logs_before_agentic_attributes(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        event_log = TestRegistryClient()._make_event_log(is_published=True)
+        agentic_attribute = self._make_agentic_attribute(is_published=True)
+        self._mock_event_log_and_agentic_attribute(
+            respx_mock, event_log, agentic_attribute
+        )
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.create_or_update([agentic_attribute, event_log])
+
+        engine_calls = [
+            body
+            for _, path, body in self._calls(respx_mock)
+            if path == "/api/v1/engines/publish"
+        ]
+        assert engine_calls == [
+            {"event_logs": [{"name": "my_event_log"}]},
+            {"agentic_attributes": [{"name": "needs_help"}]},
+        ]
+
+    def test_unpublishes_agentic_attributes_before_event_logs(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        event_log = TestRegistryClient()._make_event_log(is_published=False)
+        agentic_attribute = self._make_agentic_attribute(is_published=False)
+        self._mock_event_log_and_agentic_attribute(
+            respx_mock, event_log, agentic_attribute
+        )
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.create_or_update([event_log, agentic_attribute])
+
+        engine_calls = [
+            body
+            for _, path, body in self._calls(respx_mock)
+            if path == "/api/v1/engines/unpublish"
+        ]
+        assert engine_calls == [
+            {"agentic_attributes": [{"name": "needs_help"}]},
+            {"event_logs": [{"name": "my_event_log"}]},
+        ]
+
+    def test_deletes_agentic_attributes_before_event_logs(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        event_log = TestRegistryClient()._make_event_log(is_published=False)
+        agentic_attribute = self._make_agentic_attribute(is_published=False)
+        respx_mock.delete(f"{self.REGISTRY_URL}needs_help").mock(
+            return_value=httpx.Response(200, json={})
+        )
+        respx_mock.delete(
+            "http://localhost:8000/api/v1/registry/event_logs/my_event_log"
+        ).mock(return_value=httpx.Response(200, json={}))
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.delete([event_log, agentic_attribute])
+
+        assert [path for _, path, _ in self._calls(respx_mock)] == [
+            "/api/v1/registry/agentic_attributes/needs_help",
+            "/api/v1/registry/event_logs/my_event_log",
+        ]
+
+    def test_get_agentic_attribute_definition(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        agentic_attribute = self._make_agentic_attribute(is_published=True)
+        api_response = self._registry_response(agentic_attribute)
+        api_response["is_published"] = True
+        api_response["has_published_version"] = True
+        respx_mock.get(f"{self.REGISTRY_URL}needs_help").mock(
+            return_value=httpx.Response(200, json=api_response)
+        )
+
+        registry_client = RegistryClient(api_client=api_client)
+        response = registry_client.get_agentic_attribute("needs_help")
+
+        assert response.name == "needs_help"
+        assert response.output_type == "boolean"
+        assert response.contexts == ["my_event_log"]
+        assert response.is_published is True

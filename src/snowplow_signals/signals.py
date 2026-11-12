@@ -10,6 +10,8 @@ from .attributes_client import AttributesClient
 from .dataset_client import DatasetClient
 from .interventions_client import InterventionsClient
 from .models import (
+    AgenticAttributeResponse,
+    AgenticAttributeResult,
     AgenticContextResponse,
     AttributeGroup,
     AttributeGroupResponse,
@@ -244,6 +246,39 @@ class BaseSignalsWithApiClient:
             The Event Log definition
         """
         return self.registry.get_event_log(name)
+
+    def get_agentic_attribute(self, name: str) -> AgenticAttributeResponse:
+        """
+        Returns an Agentic Attribute definition from the Signals registry by name.
+        If a draft exists, it is returned; otherwise the published version.
+
+        Args:
+            name: The name of the Agentic Attribute.
+        Returns:
+            The Agentic Attribute definition
+        """
+        return self.registry.get_agentic_attribute(name)
+
+    def get_agentic_attribute_value(
+        self, name: str, identifier: str
+    ) -> AgenticAttributeResult:
+        """
+        Retrieves the most recently evaluated value of an agentic attribute
+        for an entity. Raises a SignalsAPIError with status 404 if the attribute
+        has not been evaluated for the entity yet.
+
+        Args:
+            name: The name of the agentic attribute.
+            identifier: The attribute key value identifying the entity
+                (e.g. the domain_sessionid).
+        Returns:
+            The latest value, the options the model could choose from, and
+            the model's justification.
+        """
+        return self.attributes.get_agentic_attribute_value(
+            name=name,
+            identifier=identifier,
+        )
 
     def create_predictive_attribute(
         self, predictive_attribute: PredictiveAttribute
