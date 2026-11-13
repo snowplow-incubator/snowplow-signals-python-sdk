@@ -2,6 +2,7 @@
 
 # Snowplow Signals Python SDK
 
+[![Discord](https://img.shields.io/discord/1570041314370781214?label=Discord&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/6hhMCYNCG)
 [![Early Release](https://img.shields.io/static/v1?style=flat&label=Snowplow&message=Early%20Release&color=014477&labelColor=9ba0aa)](https://github.com/snowplow/snowplow/wiki/Tracker-Maintenance-Classification)
 [![Test](https://github.com/snowplow-incubator/snowplow-signals-python-sdk/actions/workflows/test.yml/badge.svg)](https://github.com/snowplow-incubator/snowplow-signals-python-sdk/actions/workflows/test.yml)
 [![PyPI version](https://img.shields.io/pypi/v/snowplow-signals.svg)](https://pypi.org/project/snowplow-signals/)
