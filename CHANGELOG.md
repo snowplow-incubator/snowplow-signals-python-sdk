@@ -1,5 +1,10 @@
 # Changelog
 
+# [0.4.12] - 2026-11-17
+
+- [AISP-1831] Expose `Service.access_mode`, so a service can be made public and read without an API token; regenerate models from the latest API spec (#172)
+- Use absolute URLs in README so the logo and license link render on PyPI (#171)
+
 # [0.4.11] - 2026-10-30
 
 - [AISP-1583] Add predictive attributes (#165)
