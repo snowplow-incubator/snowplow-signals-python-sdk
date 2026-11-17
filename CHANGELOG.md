@@ -1,5 +1,9 @@
 # Changelog
 
+# [0.4.13] - 2026-11-17
+
+- Export public names via `__all__`, so type checkers no longer report `reportPrivateImportUsage` for names imported from `snowplow_signals` (#177)
+
 # [0.4.12] - 2026-11-17
 
 - [AISP-1831] Expose `Service.access_mode`, so a service can be made public and read without an API token; regenerate models from the latest API spec (#172)
