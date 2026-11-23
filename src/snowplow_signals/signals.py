@@ -36,20 +36,16 @@ from .models import (
     RuleIntervention,
     Service,
     SessionAnchors,
-    SessionSample,
     TestAttributeGroupRequest,
     TrainingPreset,
     TrainingRunStatus,
-    TriggerAnchors,
     UserSuppliedAnchors,
     WarehouseTable,
 )
 from .models.model import (
-    AgenticAttributeEvaluationPolicy,
     AppId,
+    DatasetEvent,
 )
-from .models.model import CriteriaTriggerInput as CriteriaTrigger
-from .models.model import DatasetEvent
 from .models.model import PredictiveAttribute as PredictiveAttributeDefinition
 from .models.model import (
     PredictiveAttributeTrainingRequest,
@@ -543,6 +539,7 @@ class BaseSignalsWithApiClient:
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
         agentic_contexts: list[EventLog | EventLogResponse] | None = None,
+        anchor_criteria: Criteria | None = None,
     ) -> DatasetBundle:
         """
         Generate a SQL bundle for building a training dataset using session-based anchors.
@@ -556,7 +553,7 @@ class BaseSignalsWithApiClient:
             training_span: The time span to generate anchors from.
             excluded_events: Events to exclude from anchoring (defaults to page_ping).
             min_events: Minimum prior in-session events before an anchor is eligible.
-            max_anchors_per_session: Max anchor events to sample per session.
+            max_anchors_per_session: Keep only the first N anchors in each session.
             max_negative_ratio: Max ratio of negative to positive anchors for downsampling.
             anchors_table: Optional output table for the generated anchors.
             attributes_table: Optional table configuration for attribute output tables.
@@ -564,6 +561,7 @@ class BaseSignalsWithApiClient:
             max_lookback_days: Override the computed max lookback window (in days).
             outcomes: Outcome columns: whether matching events happened after each anchor.
             agentic_contexts: Agentic contexts to add as columns, as buffered at each anchor (Snowflake only).
+            anchor_criteria: Only events matching these criteria become anchors, such as the app the score will be read on. The goal is still found among every event (default: any event can be an anchor).
         Returns:
             A DatasetBundle containing the generated SQL files.
         """
@@ -575,6 +573,7 @@ class BaseSignalsWithApiClient:
                 min_events=min_events,
                 max_anchors_per_session=max_anchors_per_session,
                 max_negative_ratio=max_negative_ratio,
+                anchor_criteria=anchor_criteria,
                 output=anchors_table,
             )
         )
@@ -671,6 +670,7 @@ class BaseSignalsWithApiClient:
         max_lookback_days: int | None = None,
         outcomes: list[DatasetOutcome] | None = None,
         agentic_contexts: list[EventLog | EventLogResponse] | None = None,
+        anchor_criteria: Criteria | None = None,
     ) -> DatasetRunResponse:
         """Submit a dataset build for async execution using session-based anchors.
 
@@ -682,7 +682,7 @@ class BaseSignalsWithApiClient:
             training_span: The time span to generate anchors from.
             excluded_events: Events to exclude from anchoring (defaults to page_ping).
             min_events: Minimum prior in-session events before an anchor is eligible.
-            max_anchors_per_session: Max anchor events to sample per session.
+            max_anchors_per_session: Keep only the first N anchors in each session.
             max_negative_ratio: Max ratio of negative to positive anchors for downsampling.
             anchors_table: Optional output table for the generated anchors.
             attributes_table: Optional table configuration for attribute output tables.
@@ -690,6 +690,7 @@ class BaseSignalsWithApiClient:
             max_lookback_days: Override the computed max lookback window (in days).
             outcomes: Outcome columns: whether matching events happened after each anchor.
             agentic_contexts: Agentic contexts to add as columns, as buffered at each anchor (Snowflake only).
+            anchor_criteria: Only events matching these criteria become anchors, such as the app the score will be read on. The goal is still found among every event (default: any event can be an anchor).
         Returns:
             A DatasetRunResponse containing the run ID and dataset table info.
         """
@@ -701,6 +702,7 @@ class BaseSignalsWithApiClient:
                 min_events=min_events,
                 max_anchors_per_session=max_anchors_per_session,
                 max_negative_ratio=max_negative_ratio,
+                anchor_criteria=anchor_criteria,
                 output=anchors_table,
             )
         )
@@ -763,10 +765,6 @@ class BaseSignalsWithApiClient:
         criteria: Criteria,
         training_span: TrainingSpan,
         max_per_session: int | None = None,
-        pick: Literal["first", "random"] | None = None,
-        seed: str | None = None,
-        include_anchor_event: bool | None = None,
-        sample: SessionSample | None = None,
         anchors_table: WarehouseTable | None = None,
         attributes_table: AttributesWarehouseTable | None = None,
         dataset_table: WarehouseTable | None = None,
@@ -778,17 +776,15 @@ class BaseSignalsWithApiClient:
         Generate a SQL bundle for a dataset with one anchor per matching event.
 
         Use it for the moments an application calls a model in response to an event,
-        such as a product page view.
+        such as a product page view. Attributes and agentic contexts are computed from
+        the events before the anchor event. Events without a domain_sessionid never
+        become anchors.
 
         Args:
             attribute_groups: The attribute groups to include in the dataset.
             criteria: Events to anchor on.
             training_span: The time span to generate anchors from.
-            max_per_session: Maximum anchors per session (default: every matching event).
-            pick: Which events to keep above max_per_session: "first" or "random".
-            seed: Seed for the random pick.
-            include_anchor_event: Whether attributes and agentic contexts include the anchor event.
-            sample: Use only a deterministic sample of sessions.
+            max_per_session: Maximum anchors per session, keeping the earliest (default: every matching event).
             anchors_table: Optional output table for the generated anchors.
             attributes_table: Optional table configuration for attribute output tables.
             dataset_table: Optional output table for the assembled dataset.
@@ -804,10 +800,6 @@ class BaseSignalsWithApiClient:
                 criteria,
                 training_span,
                 max_per_session,
-                pick,
-                seed,
-                include_anchor_event,
-                sample,
                 anchors_table,
             ),
             attributes_table=attributes_table,
@@ -823,10 +815,6 @@ class BaseSignalsWithApiClient:
         criteria: Criteria,
         training_span: TrainingSpan,
         max_per_session: int | None = None,
-        pick: Literal["first", "random"] | None = None,
-        seed: str | None = None,
-        include_anchor_event: bool | None = None,
-        sample: SessionSample | None = None,
         anchors_table: WarehouseTable | None = None,
         attributes_table: AttributesWarehouseTable | None = None,
         dataset_table: WarehouseTable | None = None,
@@ -847,91 +835,7 @@ class BaseSignalsWithApiClient:
                 criteria,
                 training_span,
                 max_per_session,
-                pick,
-                seed,
-                include_anchor_event,
-                sample,
                 anchors_table,
-            ),
-            attributes_table=attributes_table,
-            dataset_table=dataset_table,
-            max_lookback_days=max_lookback_days,
-            outcomes=outcomes,
-            agentic_contexts=agentic_contexts,
-        )
-
-    def build_dataset_with_trigger_anchors(
-        self,
-        attribute_groups: list[AttributeGroup | AttributeGroupResponse],
-        triggers: list[CriteriaTrigger],
-        training_span: TrainingSpan,
-        evaluation_policy: AgenticAttributeEvaluationPolicy | None = None,
-        sample: SessionSample | None = None,
-        anchors_table: WarehouseTable | None = None,
-        attributes_table: AttributesWarehouseTable | None = None,
-        dataset_table: WarehouseTable | None = None,
-        max_lookback_days: int | None = None,
-        outcomes: list[DatasetOutcome] | None = None,
-        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
-    ) -> DatasetBundle:
-        """
-        Generate a SQL bundle for a dataset anchored where an agentic attribute would have fired.
-
-        The triggers and evaluation policy take the same shape as on an agentic attribute.
-        Attributes in the dataset include the triggering event.
-
-        Args:
-            attribute_groups: The attribute groups to include. Must contain the attributes the triggers reference.
-            triggers: Criteria triggers, as on an agentic attribute.
-            training_span: The time span to replay.
-            evaluation_policy: Cooldown and per-session cap, as on an agentic attribute.
-            sample: Replay only a deterministic sample of sessions.
-            anchors_table: Optional output table for the generated anchors.
-            attributes_table: Optional table configuration for attribute output tables.
-            dataset_table: Optional output table for the assembled dataset.
-            max_lookback_days: Override the computed max lookback window (in days).
-            outcomes: Outcome columns: whether matching events happened after each anchor.
-            agentic_contexts: Agentic contexts to add as columns, as buffered at each anchor (Snowflake only).
-        Returns:
-            A DatasetBundle containing the generated SQL files.
-        """
-        return self._build_dataset_sql(
-            attribute_groups=attribute_groups,
-            anchors=self._trigger_anchors(
-                triggers, training_span, evaluation_policy, sample, anchors_table
-            ),
-            attributes_table=attributes_table,
-            dataset_table=dataset_table,
-            max_lookback_days=max_lookback_days,
-            outcomes=outcomes,
-            agentic_contexts=agentic_contexts,
-        )
-
-    def submit_dataset_run_with_trigger_anchors(
-        self,
-        attribute_groups: list[AttributeGroup | AttributeGroupResponse],
-        triggers: list[CriteriaTrigger],
-        training_span: TrainingSpan,
-        evaluation_policy: AgenticAttributeEvaluationPolicy | None = None,
-        sample: SessionSample | None = None,
-        anchors_table: WarehouseTable | None = None,
-        attributes_table: AttributesWarehouseTable | None = None,
-        dataset_table: WarehouseTable | None = None,
-        max_lookback_days: int | None = None,
-        outcomes: list[DatasetOutcome] | None = None,
-        agentic_contexts: list[EventLog | EventLogResponse] | None = None,
-    ) -> DatasetRunResponse:
-        """Submit a dataset build anchored where an agentic attribute would have fired.
-
-        Takes the same arguments as `build_dataset_with_trigger_anchors`.
-
-        Returns:
-            A DatasetRunResponse containing the run ID and dataset table info.
-        """
-        return self._submit_dataset_run(
-            attribute_groups=attribute_groups,
-            anchors=self._trigger_anchors(
-                triggers, training_span, evaluation_policy, sample, anchors_table
             ),
             attributes_table=attributes_table,
             dataset_table=dataset_table,
@@ -945,10 +849,6 @@ class BaseSignalsWithApiClient:
         criteria: Criteria,
         training_span: TrainingSpan,
         max_per_session: int | None,
-        pick: Literal["first", "random"] | None,
-        seed: str | None,
-        include_anchor_event: bool | None,
-        sample: SessionSample | None,
         anchors_table: WarehouseTable | None,
     ) -> EventAnchors:
         return EventAnchors.model_validate(
@@ -956,28 +856,6 @@ class BaseSignalsWithApiClient:
                 criteria=criteria,
                 training_span=training_span,
                 max_per_session=max_per_session,
-                pick=pick,
-                seed=seed,
-                include_anchor_event=include_anchor_event,
-                sample=sample,
-                output=anchors_table,
-            )
-        )
-
-    @staticmethod
-    def _trigger_anchors(
-        triggers: list[CriteriaTrigger],
-        training_span: TrainingSpan,
-        evaluation_policy: AgenticAttributeEvaluationPolicy | None,
-        sample: SessionSample | None,
-        anchors_table: WarehouseTable | None,
-    ) -> TriggerAnchors:
-        return TriggerAnchors.model_validate(
-            _exclude_none(
-                triggers=triggers,
-                training_span=training_span,
-                evaluation_policy=evaluation_policy,
-                sample=sample,
                 output=anchors_table,
             )
         )

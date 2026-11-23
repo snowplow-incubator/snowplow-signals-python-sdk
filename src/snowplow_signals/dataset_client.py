@@ -36,7 +36,6 @@ from .models.model import (
 from .models.model import EventLog as EventLogInput
 from .models.model import (
     SessionAnchors,
-    TriggerAnchors,
     UserSuppliedAnchors,
 )
 
@@ -234,10 +233,6 @@ class DatasetClient:
             return "user-supplied custom anchors."
         if isinstance(anchors, EventAnchors):
             return "one row per matching event."
-        if isinstance(anchors, TriggerAnchors):
-            return (
-                "one row per moment the agentic attribute's triggers would have fired."
-            )
         return "custom anchoring strategy."
 
     def submit_run(

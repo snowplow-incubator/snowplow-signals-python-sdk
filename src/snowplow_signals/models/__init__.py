@@ -20,8 +20,6 @@ from .dataset import (
     DatasetRunStatusResponse,
     EventAnchors,
     SessionAnchors,
-    SessionSample,
-    TriggerAnchors,
     UserSuppliedAnchors,
     WarehouseTable,
 )
@@ -29,7 +27,6 @@ from .event_log import EventLog, EventSelection
 from .get_attributes_response import GetAttributesResponse
 from .interventions import RuleIntervention
 from .model import (
-    AgenticAttributeEvaluationPolicy,
     AtomicProperty,
     AttributeGroupReference,
     AttributeGroupResponse,
@@ -44,7 +41,6 @@ from .model import (
 from .model import CriteriaAllInput as InterventionCriteriaAllInput
 from .model import CriteriaAnyInput as InterventionCriteriaAnyInput
 from .model import CriteriaNoneInput as InterventionCriteriaNoneInput
-from .model import CriteriaTriggerInput as CriteriaTrigger
 from .model import (
     CriteriaWithStringProperty,
     CriterionWithStringProperty,
@@ -157,14 +153,10 @@ DatasetBundle
 DatasetBundleRequest
 DatasetBundleResponse
 DatasetSqlFile
-AgenticAttributeEvaluationPolicy
-CriteriaTrigger
 DatasetOutcome
 EventAnchors
 SessionAnchors
-SessionSample
 TrainingSpan
-TriggerAnchors
 UserSuppliedAnchors
 WarehouseTable
 

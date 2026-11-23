@@ -18,8 +18,6 @@ from .model import DatasetSqlFile
 from .model import EventAnchors as EventAnchorsModel
 from .model import EventLog as EventLogModel
 from .model import SessionAnchors as SessionAnchorsModel
-from .model import SessionSample as SessionSampleModel
-from .model import TriggerAnchors as TriggerAnchorsModel
 from .model import UserSuppliedAnchors as UserSuppliedAnchorsModel
 from .model import WarehouseTable as WarehouseTableModel
 
@@ -30,10 +28,11 @@ if TYPE_CHECKING:
 
 
 class SessionAnchors(SessionAnchorsModel):
-    """SDK wrapper that uses the Criteria wrapper for goal_criteria."""
+    """SDK wrapper that uses the Criteria wrapper for goal_criteria and anchor_criteria."""
 
     model_config = ConfigDict(populate_by_name=True)
     goal_criteria: Criteria
+    anchor_criteria: Criteria | None = None
 
 
 class UserSuppliedAnchors(UserSuppliedAnchorsModel):
@@ -47,26 +46,17 @@ class EventAnchors(EventAnchorsModel):
     model in response to an event."""
 
     model_config = ConfigDict(populate_by_name=True)
-    criteria: Criteria  # type: ignore[override]
-
-
-class TriggerAnchors(TriggerAnchorsModel):
-    """Anchors where an agentic attribute's triggers and evaluation policy would have fired."""
-
-    model_config = ConfigDict(populate_by_name=True)
-
-
-class SessionSample(SessionSampleModel):
-    """A deterministic sample of sessions, picked by hashing session IDs with the seed."""
-
-    model_config = ConfigDict(populate_by_name=True)
+    criteria: Criteria
 
 
 class DatasetOutcome(DatasetOutcomeModel):
-    """A boolean column saying whether matching events happened after each anchor."""
+    """A boolean column saying whether matching events happened after each anchor.
+
+    Only events with the anchor's value of `attribute_key` (default domain_sessionid)
+    count, and the value is null when the anchor has no value for that key."""
 
     model_config = ConfigDict(populate_by_name=True)
-    criteria: Criteria  # type: ignore[override]
+    criteria: Criteria
 
 
 class WarehouseTable(WarehouseTableModel):
@@ -92,7 +82,7 @@ class DatasetAttributeGroups(DatasetAttributeGroupsModel):
     attribute_groups: Sequence[AttributeGroupInput]  # type: ignore[assignment]
 
 
-Anchors = Union[SessionAnchors, UserSuppliedAnchors, EventAnchors, TriggerAnchors]
+Anchors = Union[SessionAnchors, UserSuppliedAnchors, EventAnchors]
 
 
 class ManifestDefinition(BaseModel):
@@ -100,7 +90,6 @@ class ManifestDefinition(BaseModel):
         SessionAnchorsModel,
         UserSuppliedAnchorsModel,
         EventAnchorsModel,
-        TriggerAnchorsModel,
     ] = Field(discriminator="mode")
     attribute_groups: list[AttributeGroupInput]
     outcomes: list[DatasetOutcomeModel] = Field(default_factory=list)

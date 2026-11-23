@@ -6,12 +6,8 @@ import httpx
 from respx import MockRouter
 
 from snowplow_signals import (
-    AgenticAttributeEvaluationPolicy,
-    AttributeCriteriaAll,
-    AttributeCriterion,
     AttributeGroup,
     Criteria,
-    CriteriaTrigger,
     Criterion,
     DatasetOutcome,
     DatasetPreviewResponse,
@@ -19,8 +15,6 @@ from snowplow_signals import (
     DatasetRunStatus,
     DatasetRunStatusResponse,
     EventLog,
-    InterventionCriterion,
-    SessionSample,
     Signals,
     domain_sessionid,
     domain_userid,
@@ -462,6 +456,28 @@ class TestDatasetRuns:
         assert request_body["anchors"]["mode"] == "session"
         assert len(request_body["attributes"]["attribute_groups"]) == 1
 
+    def test_submit_run_session_anchors_with_anchor_criteria(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/runs").mock(
+            return_value=httpx.Response(202, json=self._mock_run_response())
+        )
+        web_only = Criteria(all=[Criterion.eq(AtomicProperty(name="app_id"), "web")])
+
+        signals_client.submit_dataset_run_with_session_anchors(
+            attribute_groups=[self._make_attribute_group()],
+            goal_criteria=self._make_session_anchors().goal_criteria,
+            training_span=self._make_session_anchors().training_span,
+            anchor_criteria=web_only,
+        )
+
+        body = json.loads(mock.calls[0].request.content)
+        assert body["anchors"]["anchor_criteria"]["all"][0] == {
+            "property": {"name": "app_id", "type": "atomic"},
+            "operator": "=",
+            "value": "web",
+        }
+
     def test_submit_run_custom_anchors(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
@@ -500,8 +516,6 @@ class TestDatasetRuns:
             criteria=product_view,
             training_span=self._make_session_anchors().training_span,
             max_per_session=2,
-            pick="random",
-            sample=SessionSample(max_sessions=1000, seed="eval"),
             outcomes=[
                 DatasetOutcome(name="purchased_later", criteria=purchase),
                 DatasetOutcome(
@@ -514,8 +528,6 @@ class TestDatasetRuns:
         body = json.loads(mock.calls[0].request.content)
         assert body["anchors"]["mode"] == "event"
         assert body["anchors"]["max_per_session"] == 2
-        assert body["anchors"]["pick"] == "random"
-        assert body["anchors"]["sample"] == {"max_sessions": 1000, "seed": "eval"}
         assert body["anchors"]["criteria"]["all"][0]["value"] == "product_view"
         assert [o["name"] for o in body["outcomes"]] == [
             "purchased_later",
@@ -524,84 +536,6 @@ class TestDatasetRuns:
         assert body["outcomes"][1]["within_seconds"] == 600
         assert body["agentic_contexts"][0]["name"] == "recent_activity"
         assert body["agentic_contexts"][0]["max_events"] == 20
-
-    def test_build_sql_trigger_anchors(
-        self, respx_mock: MockRouter, signals_client: Signals
-    ):
-        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/sql").mock(
-            return_value=httpx.Response(
-                200, json=TestDatasetClient()._mock_bundle_response()
-            )
-        )
-
-        signals_client.build_dataset_with_trigger_anchors(
-            attribute_groups=[self._make_session_group()],
-            triggers=[
-                CriteriaTrigger(
-                    criteria=InterventionCriterion(
-                        attribute="session_group:page_views", operator=">=", value=3
-                    )
-                )
-            ],
-            training_span=self._make_session_anchors().training_span,
-            evaluation_policy=AgenticAttributeEvaluationPolicy(
-                cooldown_seconds=600, max_per_session=2
-            ),
-        )
-
-        body = json.loads(mock.calls[0].request.content)
-        assert body["anchors"]["mode"] == "trigger"
-        assert body["anchors"]["triggers"] == [
-            {
-                "type": "criteria",
-                "criteria": {
-                    "attribute": "session_group:page_views",
-                    "operator": ">=",
-                    "value": 3,
-                },
-            }
-        ]
-        assert body["anchors"]["evaluation_policy"] == {
-            "cooldown_seconds": 600,
-            "max_per_session": 2,
-        }
-
-    def test_trigger_anchors_accept_attribute_criteria(
-        self, respx_mock: MockRouter, signals_client: Signals
-    ):
-        assert AttributeCriterion is InterventionCriterion
-        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/sql").mock(
-            return_value=httpx.Response(
-                200, json=TestDatasetClient()._mock_bundle_response()
-            )
-        )
-
-        signals_client.build_dataset_with_trigger_anchors(
-            attribute_groups=[self._make_session_group()],
-            triggers=[
-                CriteriaTrigger(
-                    criteria=AttributeCriteriaAll(
-                        all=[
-                            AttributeCriterion(
-                                attribute="session_group:page_views",
-                                operator=">=",
-                                value=3,
-                            ),
-                            AttributeCriterion(
-                                attribute="session_group:cart_adds", operator="changed"
-                            ),
-                        ]
-                    )
-                )
-            ],
-            training_span=self._make_session_anchors().training_span,
-        )
-
-        body = json.loads(mock.calls[0].request.content)
-        assert body["anchors"]["triggers"][0]["criteria"]["all"][1] == {
-            "attribute": "session_group:cart_adds",
-            "operator": "changed",
-        }
 
     def _make_session_group(self) -> AttributeGroup:
         return AttributeGroup(
