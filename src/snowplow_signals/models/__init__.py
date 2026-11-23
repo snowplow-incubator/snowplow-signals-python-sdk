@@ -13,10 +13,12 @@ from .dataset import (
     AttributesWarehouseTable,
     DatasetAttributeGroups,
     DatasetBundle,
+    DatasetOutcome,
     DatasetPreviewResponse,
     DatasetRunResponse,
     DatasetRunStatus,
     DatasetRunStatusResponse,
+    EventAnchors,
     SessionAnchors,
     UserSuppliedAnchors,
     WarehouseTable,
@@ -151,6 +153,8 @@ DatasetBundle
 DatasetBundleRequest
 DatasetBundleResponse
 DatasetSqlFile
+DatasetOutcome
+EventAnchors
 SessionAnchors
 TrainingSpan
 UserSuppliedAnchors

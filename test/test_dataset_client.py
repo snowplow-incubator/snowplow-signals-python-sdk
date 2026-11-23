@@ -9,11 +9,14 @@ from snowplow_signals import (
     AttributeGroup,
     Criteria,
     Criterion,
+    DatasetOutcome,
     DatasetPreviewResponse,
     DatasetRunResponse,
     DatasetRunStatus,
     DatasetRunStatusResponse,
+    EventLog,
     Signals,
+    domain_sessionid,
     domain_userid,
 )
 from snowplow_signals.dataset_client import DatasetClient
@@ -23,6 +26,7 @@ from snowplow_signals.models import (
     DatasetBundleRequest,
     DatasetBundleResponse,
     DatasetSqlFile,
+    EventSelection,
     SessionAnchors,
     TrainingSpan,
     UserSuppliedAnchors,
@@ -33,6 +37,8 @@ from snowplow_signals.models.model import (
     AttributeKeyOutput,
     AttributeSqlFile,
     DatasetAttributeGroups,
+    EventLogAtomicProperty,
+    EventLogEvent,
 )
 
 
@@ -450,6 +456,28 @@ class TestDatasetRuns:
         assert request_body["anchors"]["mode"] == "session"
         assert len(request_body["attributes"]["attribute_groups"]) == 1
 
+    def test_submit_run_session_anchors_with_anchor_criteria(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/runs").mock(
+            return_value=httpx.Response(202, json=self._mock_run_response())
+        )
+        web_only = Criteria(all=[Criterion.eq(AtomicProperty(name="app_id"), "web")])
+
+        signals_client.submit_dataset_run_with_session_anchors(
+            attribute_groups=[self._make_attribute_group()],
+            goal_criteria=self._make_session_anchors().goal_criteria,
+            training_span=self._make_session_anchors().training_span,
+            anchor_criteria=web_only,
+        )
+
+        body = json.loads(mock.calls[0].request.content)
+        assert body["anchors"]["anchor_criteria"]["all"][0] == {
+            "property": {"name": "app_id", "type": "atomic"},
+            "operator": "=",
+            "value": "web",
+        }
+
     def test_submit_run_custom_anchors(
         self, respx_mock: MockRouter, signals_client: Signals
     ):
@@ -469,6 +497,66 @@ class TestDatasetRuns:
         request_body = json.loads(mock.calls[0].request.content)
         assert request_body["anchors"]["mode"] == "user_supplied"
         assert request_body["anchors"]["source"]["table"] == "my_anchors"
+
+    def test_submit_run_event_anchors_with_outcomes_and_agentic_contexts(
+        self, respx_mock: MockRouter, signals_client: Signals
+    ):
+        mock = respx_mock.post("http://localhost:8000/api/v1/datasets/runs").mock(
+            return_value=httpx.Response(202, json=self._mock_run_response())
+        )
+        product_view = Criteria(
+            all=[Criterion.eq(AtomicProperty(name="event_name"), "product_view")]
+        )
+        purchase = Criteria(
+            all=[Criterion.eq(AtomicProperty(name="event_name"), "purchase")]
+        )
+
+        signals_client.submit_dataset_run_with_event_anchors(
+            attribute_groups=[self._make_session_group()],
+            criteria=product_view,
+            training_span=self._make_session_anchors().training_span,
+            max_per_session=2,
+            outcomes=[
+                DatasetOutcome(name="purchased_later", criteria=purchase),
+                DatasetOutcome(
+                    name="purchased_within_10m", criteria=purchase, within_seconds=600
+                ),
+            ],
+            agentic_contexts=[self._make_event_log()],
+        )
+
+        body = json.loads(mock.calls[0].request.content)
+        assert body["anchors"]["mode"] == "event"
+        assert body["anchors"]["max_per_session"] == 2
+        assert body["anchors"]["criteria"]["all"][0]["value"] == "product_view"
+        assert [o["name"] for o in body["outcomes"]] == [
+            "purchased_later",
+            "purchased_within_10m",
+        ]
+        assert body["outcomes"][1]["within_seconds"] == 600
+        assert body["agentic_contexts"][0]["name"] == "recent_activity"
+        assert body["agentic_contexts"][0]["max_events"] == 20
+
+    def _make_session_group(self) -> AttributeGroup:
+        return AttributeGroup(
+            name="session_group",
+            attribute_key=domain_sessionid,
+            owner="test@example.com",
+        )
+
+    def _make_event_log(self) -> EventLog:
+        return EventLog(
+            name="recent_activity",
+            attribute_key=domain_sessionid,
+            events=[
+                EventSelection(
+                    event=EventLogEvent(name="page_view"),
+                    properties=[EventLogAtomicProperty(name="page_title")],
+                )
+            ],
+            max_events=20,
+            max_age_seconds=1800,
+        )
 
     def test_get_run_status(self, respx_mock: MockRouter, signals_client: Signals):
         run_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"

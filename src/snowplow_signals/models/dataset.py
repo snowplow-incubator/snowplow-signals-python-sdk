@@ -12,7 +12,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from .criteria_wrapper import Criteria
 from .model import AttributeGroupInput, AttributeSqlFile
 from .model import DatasetAttributeGroups as DatasetAttributeGroupsModel
-from .model import DatasetBundleRequest, DatasetBundleResponse, DatasetSqlFile
+from .model import DatasetBundleRequest, DatasetBundleResponse
+from .model import DatasetOutcome as DatasetOutcomeModel
+from .model import DatasetSqlFile
+from .model import EventAnchors as EventAnchorsModel
+from .model import EventLog as EventLogModel
 from .model import SessionAnchors as SessionAnchorsModel
 from .model import UserSuppliedAnchors as UserSuppliedAnchorsModel
 from .model import WarehouseTable as WarehouseTableModel
@@ -24,16 +28,35 @@ if TYPE_CHECKING:
 
 
 class SessionAnchors(SessionAnchorsModel):
-    """SDK wrapper that uses the Criteria wrapper for goal_criteria."""
+    """SDK wrapper that uses the Criteria wrapper for goal_criteria and anchor_criteria."""
 
     model_config = ConfigDict(populate_by_name=True)
     goal_criteria: Criteria
+    anchor_criteria: Criteria | None = None
 
 
 class UserSuppliedAnchors(UserSuppliedAnchorsModel):
     """SDK wrapper with populate_by_name enabled."""
 
     model_config = ConfigDict(populate_by_name=True)
+
+
+class EventAnchors(EventAnchorsModel):
+    """Anchors at events matching the criteria: the moments an application calls a
+    model in response to an event."""
+
+    model_config = ConfigDict(populate_by_name=True)
+    criteria: Criteria
+
+
+class DatasetOutcome(DatasetOutcomeModel):
+    """A boolean column saying whether matching events happened after each anchor.
+
+    Only events with the anchor's value of `attribute_key` (default domain_sessionid)
+    count, and the value is null when the anchor has no value for that key."""
+
+    model_config = ConfigDict(populate_by_name=True)
+    criteria: Criteria
 
 
 class WarehouseTable(WarehouseTableModel):
@@ -59,14 +82,18 @@ class DatasetAttributeGroups(DatasetAttributeGroupsModel):
     attribute_groups: Sequence[AttributeGroupInput]  # type: ignore[assignment]
 
 
-Anchors = Union[SessionAnchors, UserSuppliedAnchors]
+Anchors = Union[SessionAnchors, UserSuppliedAnchors, EventAnchors]
 
 
 class ManifestDefinition(BaseModel):
-    anchors: Union[SessionAnchorsModel, UserSuppliedAnchorsModel] = Field(
-        discriminator="mode"
-    )
+    anchors: Union[
+        SessionAnchorsModel,
+        UserSuppliedAnchorsModel,
+        EventAnchorsModel,
+    ] = Field(discriminator="mode")
     attribute_groups: list[AttributeGroupInput]
+    outcomes: list[DatasetOutcomeModel] = Field(default_factory=list)
+    agentic_contexts: list[EventLogModel] = Field(default_factory=list)
 
 
 class ManifestTables(BaseModel):
@@ -138,6 +165,7 @@ class DatasetRunStatusResponse(BaseModel):
     id: uuid.UUID
     status: DatasetRunStatus
     dataset: WarehouseTable
+    error: str | None = None
 
 
 class DatasetPreviewResponse(BaseModel):
