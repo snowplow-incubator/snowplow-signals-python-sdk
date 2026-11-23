@@ -29,7 +29,7 @@ class ApiClient:
         self.api_key_id = api_key_id
         self.org_id = org_id
         self.sandbox_token = sandbox_token
-        self.token = None
+        self.token: str | None = None
 
         # Validate auth mode dependencies
         if self.auth_mode == "sandbox":
@@ -52,6 +52,8 @@ class ApiClient:
         }
 
     def _fetch_token(self) -> str:
+        # Guaranteed by the bdp-mode check in __init__; narrows Optional for callers below.
+        assert self.api_key_id is not None and self.api_key is not None
         access_token_url = (
             f"https://console.snowplowanalytics.com/api/msc/v1/organizations/{self.org_id}/credentials/v3/token"
             if os.getenv("BDP_NEXT") is None

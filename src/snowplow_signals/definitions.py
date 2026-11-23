@@ -35,6 +35,10 @@ network_userid = AttributeKey(
     description="The network user ID for the user.",
 )
 
+# Fills in the built-in definition, see AttributeKey.model_post_init. Leaves
+# lookup_identifiers unset so publishing this keeps the stored selection.
+snowplow_id = AttributeKey(name="snowplow_id")
+
 
 def PageView():
     return Event(

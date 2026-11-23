@@ -13,18 +13,18 @@ if TYPE_CHECKING:
 def attribute_group_to_link(
     attribute_groups: list[AttributeGroup | VersionedLinkAttributeGroup | dict] | None,
 ) -> list[VersionedLinkAttributeGroup | dict] | None:
-    if attribute_groups:
-        attribute_groups = [
-            (
-                VersionedLinkAttributeGroup(
-                    name=attribute_group.name, version=attribute_group.version
-                )
-                if isinstance(attribute_group, AttributeGroup)
-                else attribute_group
+    if attribute_groups is None:
+        return None
+    return [
+        (
+            VersionedLinkAttributeGroup(
+                name=attribute_group.name, version=attribute_group.version
             )
-            for attribute_group in attribute_groups
-        ]
-    return attribute_groups
+            if isinstance(attribute_group, AttributeGroup)
+            else attribute_group
+        )
+        for attribute_group in attribute_groups
+    ]
 
 
 class Service(ServiceInput):
@@ -32,7 +32,7 @@ class Service(ServiceInput):
         list[VersionedLinkAttributeGroup | AttributeGroup],
         BeforeValidator(attribute_group_to_link),
     ] = Field(
-        None,
+        None,  # type: ignore[arg-type]
         description="A list containing Attribute Groups, representing the features in the service.",
         max_length=100,
         min_length=1,

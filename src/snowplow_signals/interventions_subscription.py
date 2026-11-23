@@ -27,7 +27,7 @@ class InterventionsSubscription(AbstractContextManager, Iterable):
     This keeps a reference to the instance to prevent it being garbage collected so it can continue passing interventions to callbacks even when out of scope.
     """
 
-    instances: set[Self] = set()
+    instances: "set[InterventionsSubscription]" = set()
 
     def __init__(
         self, api_client: ApiClient, targets: AttributeKeyIdentifiers, buffer=True

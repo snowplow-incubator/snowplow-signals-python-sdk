@@ -1,5 +1,24 @@
 # Changelog
 
+# [0.4.13] - 2026-11-17
+
+- Export public names via `__all__`, so type checkers no longer report `reportPrivateImportUsage` for names imported from `snowplow_signals` (#177)
+
+# [0.4.12] - 2026-11-17
+
+- [AISP-1831] Expose `Service.access_mode`, so a service can be made public and read without an API token; regenerate models from the latest API spec (#172)
+- Use absolute URLs in README so the logo and license link render on PyPI (#171)
+
+# [0.4.11] - 2026-10-30
+
+- [AISP-1583] Add predictive attributes (#165)
+- Support snowplow_id (#168)
+
+# [0.4.10] - 2026-10-25
+
+- Better typing: mutable-default fix, py.typed, ignore cleanup + mypy CI gate (#154)
+- Improve project branding: PyPI summary, README logo, badges, docs link + license footer (#155)
+
 # [0.4.9] - 2026-09-17
 
 - Add support for calculated properties and fix event property selection in event logs (#149)

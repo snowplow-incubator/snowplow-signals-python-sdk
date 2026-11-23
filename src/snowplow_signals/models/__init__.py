@@ -3,6 +3,7 @@ from .attribute_group import (
     BatchAttributeGroup,
     ExternalBatchAttributeGroup,
     StreamAttributeGroup,
+    attribute_reference,
 )
 from .attribute_key import AttributeKey
 from .criteria_wrapper import Criteria
@@ -49,7 +50,9 @@ from .model import (
     CriterionWithStringProperty,
     DatasetBundleRequest,
     DatasetBundleResponse,
+    DatasetEvent,
     DatasetSqlFile,
+    DataShortfall,
     EntityProperty,
     Event,
     EventLogAtomicProperty,
@@ -72,6 +75,7 @@ from .model import InterventionInstance as InterventionInstance
 from .model import (
     InterventionReference,
     LinkAttributeKey,
+    PredictiveAttributeScore,
     RuleInterventionInput,
     RuleInterventionOutput,
     SelectivePublishRequest,
@@ -81,9 +85,21 @@ from .model import (
     SignalsApiModelsInterventionCriterionCriterion as InterventionCriterion,
 )
 from .model import (
+    SourceGroupReference,
     TestAttributeGroupRequest,
+)
+from .model import TestPredictiveAttributeResponse as PredictiveAttributeTestResponse
+from .model import TestPredictiveAttributeSplit as PredictiveAttributeTestSplit
+from .model import (
     TrainingSpan,
     UnpublishRequest,
+)
+from .predictive_attribute import (
+    PredictiveAttribute,
+    PredictiveAttributeResponse,
+    PredictiveAttributeTraining,
+    TrainingPreset,
+    TrainingRunStatus,
 )
 from .property_wrapper import Attribute, CalculatedProperty
 from .service import Service
@@ -170,3 +186,17 @@ DatasetRunResponse
 DatasetRunStatus
 DatasetRunStatusResponse
 DatasetPreviewResponse
+
+# Predictive attributes
+PredictiveAttribute
+PredictiveAttributeResponse
+PredictiveAttributeTraining
+PredictiveAttributeScore
+SourceGroupReference
+attribute_reference
+DatasetEvent
+TrainingRunStatus
+TrainingPreset
+PredictiveAttributeTestResponse
+PredictiveAttributeTestSplit
+DataShortfall

@@ -201,6 +201,63 @@ class TestRegistryClient:
 
         assert delete_mock.called
 
+    def test_updates_snowplow_id_lookup_identifiers(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        from snowplow_signals import AttributeKey
+
+        # snowplow_id is built in, so creating it is refused and the client updates it.
+        respx_mock.post("http://localhost:8000/api/v1/registry/attribute_keys/").mock(
+            return_value=httpx.Response(400, json={"detail": "already exists"})
+        )
+        put_mock = respx_mock.put(
+            "http://localhost:8000/api/v1/registry/attribute_keys/snowplow_id"
+        ).mock(
+            side_effect=lambda request: httpx.Response(
+                200, json={**json.loads(request.content), "blobl_path": None}
+            )
+        )
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.create_or_update(
+            [AttributeKey(name="snowplow_id", lookup_identifiers=["domain_userid"])]
+        )
+
+        assert put_mock.called
+        body = json.loads(put_mock.calls[0].request.content)
+        assert body["key"] == "snowplow_id"
+        assert body["property"] == {
+            "type": "entity",
+            "vendor": "com.snowplowanalytics.snowplow",
+            "name": "identity",
+            "major_version": 2,
+            "path": "snowplow_id",
+            "index": 0,
+        }
+        assert body["lookup_identifiers"] == ["domain_userid"]
+
+    def test_snowplow_id_leaves_lookup_identifiers_out(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        from snowplow_signals import snowplow_id
+
+        respx_mock.post("http://localhost:8000/api/v1/registry/attribute_keys/").mock(
+            return_value=httpx.Response(400, json={"detail": "already exists"})
+        )
+        put_mock = respx_mock.put(
+            "http://localhost:8000/api/v1/registry/attribute_keys/snowplow_id"
+        ).mock(
+            side_effect=lambda request: httpx.Response(
+                200, json={**json.loads(request.content), "blobl_path": None}
+            )
+        )
+
+        registry_client = RegistryClient(api_client=api_client)
+        registry_client.create_or_update([snowplow_id])
+
+        # Left out, the API keeps the stored selection; an empty list would clear it.
+        assert "lookup_identifiers" not in json.loads(put_mock.calls[0].request.content)
+
     def _make_event_log(self, is_published: bool):
         from snowplow_signals import (
             EventLog,

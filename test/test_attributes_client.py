@@ -226,3 +226,44 @@ class TestAttributesClient:
         }
 
         assert response == expected_response
+
+    def test_get_predictive_attribute_score(
+        self, respx_mock: MockRouter, api_client: ApiClient
+    ):
+        attributes_client = AttributesClient(api_client=api_client)
+
+        def check_request(request):
+            assert request.url.params["name"] == "purchase_propensity"
+            assert request.url.params["domain_sessionid"] == "abc"
+            assert request.url.params["domain_userid"] == "def"
+            return httpx.Response(
+                200,
+                json={
+                    "name": "purchase_propensity",
+                    "version": 2,
+                    "minor_version": 0,
+                    "score": 0.42,
+                },
+            )
+
+        respx_mock.get("http://localhost:8000/api/v1/predictive_attribute").mock(
+            side_effect=check_request
+        )
+
+        score = attributes_client.get_predictive_attribute_score(
+            name="purchase_propensity",
+            identifiers={"domain_sessionid": "abc", "domain_userid": "def"},
+        )
+
+        assert score.name == "purchase_propensity"
+        assert score.score == pytest.approx(0.42)
+
+    def test_get_predictive_attribute_score_rejects_identifier_named_name(
+        self, api_client: ApiClient
+    ):
+        attributes_client = AttributesClient(api_client=api_client)
+
+        with pytest.raises(ValueError, match="name"):
+            attributes_client.get_predictive_attribute_score(
+                name="purchase_propensity", identifiers={"name": "abc"}
+            )
