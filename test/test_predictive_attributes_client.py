@@ -13,6 +13,7 @@ from snowplow_signals import (
     PredictiveAttributeResponse,
     PredictiveAttributeTraining,
     PredictiveAttributeTrainingError,
+    ScoreTier,
     Signals,
     SignalsAPIError,
     SourceGroupReference,
@@ -248,6 +249,35 @@ class TestTrainPredictiveAttribute:
 
         assert training.version == 3
         assert training.status == "success"
+
+    def test_sets_score_tiers(
+        self,
+        respx_mock: MockRouter,
+        signals_client: Signals,
+        predictive_attribute: PredictiveAttribute,
+    ):
+        tiers = [{"name": "hot", "min_percentile": 90, "max_percentile": 99}]
+        update_mock = respx_mock.put(
+            f"{PA_URL}/purchase_propensity/versions/2/trainings/3"
+        ).mock(
+            return_value=httpx.Response(
+                200,
+                json=training_response(version=3, status="success", score_tiers=tiers),
+            )
+        )
+
+        training = signals_client.set_predictive_attribute_score_tiers(
+            predictive_attribute,
+            training=3,
+            score_tiers=[ScoreTier(name="hot", min_percentile=90, max_percentile=99)],
+        )
+
+        assert json.loads(update_mock.calls[0].request.content) == {
+            "score_tiers": tiers
+        }
+        assert training.score_tiers == [
+            ScoreTier(name="hot", min_percentile=90, max_percentile=99)
+        ]
 
 
 class TestGetPredictiveAttribute:

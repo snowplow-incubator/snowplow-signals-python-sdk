@@ -72,6 +72,7 @@ from .model import (
     PredictiveAttributeScore,
     RuleInterventionInput,
     RuleInterventionOutput,
+    ScoreTier,
     SelectivePublishRequest,
     ServiceReference,
 )
@@ -180,6 +181,7 @@ PredictiveAttribute
 PredictiveAttributeResponse
 PredictiveAttributeTraining
 PredictiveAttributeScore
+ScoreTier
 SourceGroupReference
 attribute_reference
 DatasetEvent

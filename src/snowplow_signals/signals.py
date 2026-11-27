@@ -31,6 +31,7 @@ from .models import (
     PredictiveAttributeTestResponse,
     PredictiveAttributeTraining,
     RuleIntervention,
+    ScoreTier,
     Service,
     SessionAnchors,
     TestAttributeGroupRequest,
@@ -46,6 +47,7 @@ from .models.model import (
 from .models.model import PredictiveAttribute as PredictiveAttributeDefinition
 from .models.model import (
     PredictiveAttributeTrainingRequest,
+    PredictiveAttributeTrainingUpdate,
     TestPredictiveAttributeRequest,
     TrainingSpan,
 )
@@ -325,6 +327,29 @@ class BaseSignalsWithApiClient:
         """
         return self.predictive_attributes.get_training(
             predictive_attribute, _training_version(training)
+        )
+
+    def set_predictive_attribute_score_tiers(
+        self,
+        predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+        training: PredictiveAttributeTraining | int,
+        score_tiers: list[ScoreTier],
+    ) -> PredictiveAttributeTraining:
+        """
+        Replaces the score tiers of a training. The training must be successful and
+        unpublished; the tiers go live when it's published.
+
+        Args:
+            predictive_attribute: The predictive attribute the training belongs to.
+            training: The training run, or its version.
+            score_tiers: The training's new tiers. An empty list clears them.
+        Returns:
+            The updated training run
+        """
+        return self.predictive_attributes.update_training(
+            predictive_attribute,
+            _training_version(training),
+            PredictiveAttributeTrainingUpdate(score_tiers=score_tiers),
         )
 
     def wait_for_predictive_attribute_training(
