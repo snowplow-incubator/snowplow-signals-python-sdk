@@ -13,6 +13,7 @@ from snowplow_signals import (
     PredictiveAttributeResponse,
     PredictiveAttributeTraining,
     PredictiveAttributeTrainingError,
+    ScoreTier,
     Signals,
     SignalsAPIError,
     SourceGroupReference,
@@ -249,6 +250,35 @@ class TestTrainPredictiveAttribute:
         assert training.version == 3
         assert training.status == "success"
 
+    def test_sets_score_tiers(
+        self,
+        respx_mock: MockRouter,
+        signals_client: Signals,
+        predictive_attribute: PredictiveAttribute,
+    ):
+        tiers = [{"name": "hot", "min_percentile": 90, "max_percentile": 99}]
+        update_mock = respx_mock.put(
+            f"{PA_URL}/purchase_propensity/versions/2/trainings/3"
+        ).mock(
+            return_value=httpx.Response(
+                200,
+                json=training_response(version=3, status="success", score_tiers=tiers),
+            )
+        )
+
+        training = signals_client.set_predictive_attribute_score_tiers(
+            predictive_attribute,
+            training=3,
+            score_tiers=[ScoreTier(name="hot", min_percentile=90, max_percentile=99)],
+        )
+
+        assert json.loads(update_mock.calls[0].request.content) == {
+            "score_tiers": tiers
+        }
+        assert training.score_tiers == [
+            ScoreTier(name="hot", min_percentile=90, max_percentile=99)
+        ]
+
 
 class TestGetPredictiveAttribute:
     def test_gets_latest_version(
@@ -285,6 +315,68 @@ class TestGetPredictiveAttribute:
 
         assert response.trainings[0].status == "success"
         assert response.trainings[0].preset == "fast"
+
+    def test_parses_training_score_tiers_and_percentiles(
+        self,
+        respx_mock: MockRouter,
+        signals_client: Signals,
+        predictive_attribute: PredictiveAttribute,
+    ):
+        metrics = {
+            "auc": 0.8,
+            "baseline_rate": 0.1,
+            "brier_score": 0.08,
+            "lift_top_decile": 3.0,
+            "model_type": "LightGBM",
+            "rows_used": 1000,
+            "training_time_seconds": 12.5,
+        }
+        respx_mock.get(f"{PA_URL}/purchase_propensity").mock(
+            return_value=httpx.Response(
+                200,
+                json=pa_response(
+                    predictive_attribute,
+                    trainings=[
+                        training_response(version=0, metrics=metrics),
+                        training_response(
+                            version=1,
+                            metrics={
+                                **metrics,
+                                "score_percentile_boundaries": [
+                                    i / 100 for i in range(1, 100)
+                                ],
+                                "mean_score": 0.12,
+                                "percentile_shares": [0.01] * 100,
+                                "percentile_goal_rates": [None] + [0.1] * 99,
+                            },
+                            score_tiers=[
+                                {
+                                    "name": "hot",
+                                    "min_percentile": 90,
+                                    "max_percentile": 99,
+                                }
+                            ],
+                        ),
+                    ],
+                ),
+            )
+        )
+
+        response = signals_client.get_predictive_attribute("purchase_propensity")
+
+        before, after = response.trainings
+        assert before.score_tiers is None
+        assert before.metrics.score_percentile_boundaries is None
+        assert before.metrics.mean_score is None
+        assert before.metrics.percentile_shares is None
+        assert before.metrics.percentile_goal_rates is None
+        assert after.score_tiers[0].name == "hot"
+        assert after.score_tiers[0].min_percentile == 90
+        assert after.score_tiers[0].max_percentile == 99
+        assert len(after.metrics.score_percentile_boundaries) == 99
+        assert after.metrics.mean_score == pytest.approx(0.12)
+        assert len(after.metrics.percentile_shares) == 100
+        assert after.metrics.percentile_goal_rates[0] is None
 
     def test_gets_specific_version(
         self,

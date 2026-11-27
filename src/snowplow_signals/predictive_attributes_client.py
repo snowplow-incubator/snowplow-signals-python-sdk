@@ -17,6 +17,7 @@ from .models import (
 from .models.model import (
     PredictiveAttributePublishReference,
     PredictiveAttributeTrainingRequest,
+    PredictiveAttributeTrainingUpdate,
     PredictiveAttributeUnpublishReference,
     PredictiveAttributeUpdate,
 )
@@ -120,6 +121,19 @@ class PredictiveAttributesClient:
         response = self.api_client.make_request(
             method="GET",
             endpoint=f"{_endpoint_for(predictive_attribute)}/trainings/{training_version}",
+        )
+        return PredictiveAttributeTraining.model_validate(response)
+
+    def update_training(
+        self,
+        predictive_attribute: PredictiveAttribute | PredictiveAttributeResponse,
+        training_version: int,
+        update: PredictiveAttributeTrainingUpdate,
+    ) -> PredictiveAttributeTraining:
+        response = self.api_client.make_request(
+            method="PUT",
+            endpoint=f"{_endpoint_for(predictive_attribute)}/trainings/{training_version}",
+            data=_model_dump(update),
         )
         return PredictiveAttributeTraining.model_validate(response)
 
