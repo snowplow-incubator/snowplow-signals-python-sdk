@@ -427,7 +427,8 @@ class BaseSignalsWithApiClient:
             identifiers: Mapping of attribute key name to identifier, one for each
                 attribute key used by the input attribute groups.
         Returns:
-            The predictive attribute score.
+            The predictive attribute score, and as `tier` the name of the training's
+            score tier it falls in, if any.
         """
         return self.attributes.get_predictive_attribute_score(
             name=name, identifiers=identifiers

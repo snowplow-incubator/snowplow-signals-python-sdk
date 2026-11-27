@@ -258,6 +258,25 @@ class TestAttributesClient:
         assert score.name == "purchase_propensity"
         assert score.score == pytest.approx(0.42)
 
+    @pytest.mark.parametrize("tier", ["hot", None])
+    def test_get_predictive_attribute_score_returns_tier(
+        self, respx_mock: MockRouter, api_client: ApiClient, tier: str | None
+    ):
+        attributes_client = AttributesClient(api_client=api_client)
+        body = {"name": "purchase_propensity", "version": 2, "minor_version": 0}
+        respx_mock.get("http://localhost:8000/api/v1/predictive_attribute").mock(
+            return_value=httpx.Response(
+                200,
+                json={**body, "score": 0.42, **({"tier": tier} if tier else {})},
+            )
+        )
+
+        score = attributes_client.get_predictive_attribute_score(
+            name="purchase_propensity", identifiers={"domain_sessionid": "abc"}
+        )
+
+        assert score.tier == tier
+
     def test_get_predictive_attribute_score_rejects_identifier_named_name(
         self, api_client: ApiClient
     ):
